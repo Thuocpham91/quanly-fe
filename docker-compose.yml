@@ -1,0 +1,19 @@
+services:
+  quanly-fe-service:
+    image: quanly-fe-service:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:9004/api/v1}
+    container_name: quanly-fe-service
+    ports:
+      - "3000:80"
+    restart: always
+    networks:
+      - gasy-network
+
+networks:
+  gasy-network:
+    name: gasy-network
+    external: true

@@ -1,0 +1,148 @@
+.revenue-page-container {
+  padding: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.dashboard-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.summary-card {
+  background-color: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  transition: transform 0.2s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.summary-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bg-blue-100 { background-color: #dbeafe; }
+.text-blue-600 { color: #2563eb; }
+.bg-green-100 { background-color: #dcfce3; }
+.text-green-600 { color: #16a34a; }
+.bg-purple-100 { background-color: #f3e8ff; }
+.text-purple-600 { color: #9333ea; }
+
+.summary-info p {
+  margin: 0 0 0.25rem 0;
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.summary-info h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.filters-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.date-filters {
+  display: flex;
+  gap: 1rem;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.filter-group select {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+}
+
+.avatar-sm {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.875rem;
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+
+.rank-1 {
+  background-color: #fef08a; /* Vàng */
+  color: #854d0e;
+}
+
+.rank-2 {
+  background-color: #e2e8f0; /* Bạc */
+  color: #475569;
+}
+
+.rank-3 {
+  background-color: #fed7aa; /* Đồng */
+  color: #9a3412;
+}
+
+@media (max-width: 768px) {
+  .dashboard-summary {
+    grid-template-columns: 1fr;
+  }
+  
+  .filters-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .date-filters {
+    justify-content: space-between;
+  }
+}

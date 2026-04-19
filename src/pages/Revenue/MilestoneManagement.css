@@ -1,0 +1,21 @@
+.milestone-page-container {
+  padding: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.inactive-row td {
+  opacity: 0.6;
+}
+
+.error-message {
+  background-color: #fee2e2;
+  color: #ef4444;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}

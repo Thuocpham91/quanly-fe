@@ -1,0 +1,248 @@
+.user-dashboard {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dashboard-header h2 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.5rem 0;
+}
+
+.dashboard-header p {
+  color: #64748b;
+  margin: 0;
+}
+
+.kpi-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.kpi-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f1f5f9;
+}
+
+.kpi-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.revenue-card .kpi-icon { background: #dbeafe; color: #2563eb; }
+.target-card .kpi-icon { background: #dcfce3; color: #16a34a; }
+.status-card .kpi-icon { background: #ffedd5; color: #ea580c; }
+
+.kpi-content p {
+  margin: 0 0 0.25rem 0;
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.kpi-content h3 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+/* Progress Section */
+.progress-section {
+  background: white;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f1f5f9;
+  margin-bottom: 2.5rem;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.progress-header h3 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #1e293b;
+  font-size: 1.25rem;
+}
+
+.progress-header span {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #3b82f6;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 20px;
+  background-color: #e2e8f0;
+  border-radius: 9999px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 9999px;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-footer {
+  text-align: center;
+  color: #475569;
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+}
+
+.milestones-track {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 3rem;
+  position: relative;
+}
+
+.milestones-track::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #e2e8f0;
+  z-index: 1;
+}
+
+.milestone-point {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.m-point {
+  width: 24px;
+  height: 24px;
+  background: white;
+  border: 4px solid #cbd5e1;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.passed .m-point {
+  border-color: #10b981;
+  background: #10b981;
+  box-shadow: 0 0 0 4px #d1fae5;
+}
+
+.m-label {
+  display: flex;
+  flex-direction: column;
+}
+
+.m-label strong { color: #1e293b; font-size: 0.875rem; }
+.m-label span { color: #64748b; font-size: 0.875rem; font-weight: 600; }
+.m-label .m-bonus { color: #10b981; font-size: 0.75rem; margin-top: 0.25rem; padding: 2px 6px; background: #ecfdf5; border-radius: 4px; }
+
+/* Support Banner */
+.support-banner {
+  padding: 1.5rem 2.5rem;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-radius: 16px;
+  border: 1px solid #bfdbfe;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.support-icon {
+  width: 48px;
+  height: 48px;
+  background: #3b82f6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39);
+}
+
+.support-title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.support-phone {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1e3a8a;
+  letter-spacing: 1px;
+}
+
+.support-phone a {
+  text-decoration: none;
+  color: inherit;
+}
+
+@media (max-width: 768px) {
+  .user-dashboard {
+    padding: 1rem;
+  }
+  
+  .milestones-track {
+    flex-direction: column;
+    gap: 2rem;
+    align-items: flex-start;
+  }
+  
+  .milestones-track::before {
+    top: 0;
+    bottom: 0;
+    left: 11px;
+    width: 3px;
+    height: auto;
+  }
+  
+  .milestone-point {
+    flex-direction: row;
+    gap: 1rem;
+  }
+}
