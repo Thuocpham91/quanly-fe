@@ -169,7 +169,7 @@ const Dashboard: React.FC = () => {
           </div>
           <h3 style={{ fontSize: '1.5rem', color: '#1e293b', marginBottom: '0.5rem', fontWeight: 700 }}>Tổng Đài Hỗ Trợ Khách Hàng</h3>
           <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>Đội ngũ chăm sóc luôn sẵn sàng 24/7</p>
-          <a href="tel:19001560" style={{ fontSize: '2rem', fontWeight: 800, color: '#2563eb', textDecoration: 'none' }}>1900 1560</a>
+          <a href="tel:0974095248" style={{ fontSize: '2rem', fontWeight: 800, color: '#2563eb', textDecoration: 'none' }}>0974 095 248</a>
         </div>
       </div>
     );
@@ -450,8 +450,8 @@ const Dashboard: React.FC = () => {
       <div className="support-banner">
         <div className="support-icon"><PhoneCall size={24} /></div>
         <div>
-          <p className="support-title">HỖ TRỢ KỸ THUẬT 24/7</p>
-          <p className="support-phone"><a href="tel:19001560">1900 1560</a></p>
+          <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', marginBottom: '2px' }}>HỖ TRỢ KỸ THUẬT 24/7</p>
+          <p className="support-phone"><a href="tel:0974095248" style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', textDecoration: 'none' }}>0974 095 248</a></p>
         </div>
       </div>
     </div>
