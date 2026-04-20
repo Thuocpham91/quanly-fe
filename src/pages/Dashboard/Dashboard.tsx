@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { 
   PhoneCall, Target, TrendingUp, DollarSign,
   CheckCircle2, Clock, Users, UserSquare2,
-  ShoppingBag, Briefcase, Activity, ArrowUp, ArrowDown
+  ShoppingBag, Briefcase, Activity, ArrowUp, ArrowDown, BarChart2
 } from 'lucide-react';
 import api from '../../api/axios';
 import './Dashboard.css';
@@ -93,59 +93,63 @@ const Dashboard: React.FC = () => {
     if (user?.id) fetchDashboardData();
   }, [user]);
 
-  // Shared price banner
   const PriceBanner = () => (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: '1rem',
-      background: 'linear-gradient(135deg, #16a34a 0%, #065f46 100%)',
-      borderRadius: '14px', padding: '1rem 1.5rem',
-      boxShadow: '0 6px 24px rgba(22,163,74,0.22)', marginBottom: '1.5rem'
+    <div className="price-banner-container" style={{
+      display: 'flex', alignItems: 'center', gap: '1.25rem',
+      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+      borderRadius: '20px', padding: '1.25rem 2rem',
+      boxShadow: '0 10px 20px -5px rgba(16, 185, 129, 0.3)', marginBottom: '2rem',
+      color: 'white', position: 'relative', overflow: 'hidden'
     }}>
-      <span style={{ fontSize: '2.2rem' }}>🐔</span>
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#bbf7d0', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+      <div style={{ position: 'absolute', top: '-10px', right: '-10px', opacity: 0.1, transform: 'rotate(15deg)' }}>
+        <BarChart2 size={120} />
+      </div>
+      <div style={{ background: 'rgba(255,255,255,0.2)', width: '64px', height: '64px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', backdropFilter: 'blur(4px)', flexShrink: 0 }}>
+        🐔
+      </div>
+      <div style={{ flex: 1, position: 'relative' }}>
+        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ecfdf5', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem' }}>
           Giá gà hôm nay • {new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit' })}
         </div>
         {todayPrice ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.2rem' }}>
-            {/* If we have breakdown prices, show them prominently */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {(todayPrice.priceGaSo || todayPrice.priceGaTrong || todayPrice.priceGaMai) ? (
-              <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', marginTop: '0.2rem' }}>
+              <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
                 {todayPrice.priceGaSo && (
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ color: '#fbbf24', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase' }}>Gà xô</span>
-                    <span style={{ color: '#fff', fontSize: '1.4rem', fontWeight: 800 }}>{Number(todayPrice.priceGaSo).toLocaleString('vi-VN')}đ</span>
+                    <span style={{ color: '#fcd34d', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase' }}>Gà xô</span>
+                    <span style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 900 }}>{Number(todayPrice.priceGaSo).toLocaleString('vi-VN')} <small style={{ fontSize: '0.8rem', fontWeight: 600 }}>đ</small></span>
                   </div>
                 )}
                 {todayPrice.priceGaTrong && (
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ color: '#fbbf24', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase' }}>Gà trống</span>
-                    <span style={{ color: '#fff', fontSize: '1.4rem', fontWeight: 800 }}>{Number(todayPrice.priceGaTrong).toLocaleString('vi-VN')}đ</span>
+                    <span style={{ color: '#fcd34d', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase' }}>Gà trống</span>
+                    <span style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 900 }}>{Number(todayPrice.priceGaTrong).toLocaleString('vi-VN')} <small style={{ fontSize: '0.8rem', fontWeight: 600 }}>đ</small></span>
                   </div>
                 )}
                 {todayPrice.priceGaMai && (
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ color: '#fbbf24', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase' }}>Gà mái</span>
-                    <span style={{ color: '#fff', fontSize: '1.4rem', fontWeight: 800 }}>{Number(todayPrice.priceGaMai).toLocaleString('vi-VN')}đ</span>
+                    <span style={{ color: '#fcd34d', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase' }}>Gà mái</span>
+                    <span style={{ color: '#fff', fontSize: '1.75rem', fontWeight: 900 }}>{Number(todayPrice.priceGaMai).toLocaleString('vi-VN')} <small style={{ fontSize: '0.8rem', fontWeight: 600 }}>đ</small></span>
                   </div>
                 )}
               </div>
             ) : (
-              /* Fallback if no breakdown exists */
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '1.9rem', fontWeight: 800, color: '#fff', lineHeight: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '2.5rem', fontWeight: 900, color: '#fff', lineHeight: 1 }}>
                   {Number(todayPrice.pricePerKg).toLocaleString('vi-VN')}
                 </span>
-                <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#86efac' }}>đ/kg</span>
+                <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#d1fae5' }}>VNĐ / KG</span>
               </div>
             )}
-
             {todayPrice.note && (
-              <span style={{ color: '#bbf7d0', fontSize: '0.75rem', fontStyle: 'italic', marginTop: '0.2rem' }}>• {todayPrice.note}</span>
+              <div style={{ background: 'rgba(0,0,0,0.1)', padding: '4px 12px', borderRadius: '8px', fontSize: '0.85rem', color: '#ecfdf5', width: 'fit-content' }}>
+                💡 {todayPrice.note}
+              </div>
             )}
           </div>
         ) : (
-          <div style={{ color: '#bbf7d0', fontStyle: 'italic', marginTop: '0.2rem' }}>Chưa cập nhật giá hôm nay</div>
+          <div style={{ color: '#ecfdf5', fontStyle: 'italic', fontSize: '1.1rem', marginTop: '0.5rem' }}>Đang chờ cập nhật giá từ trang trại...</div>
         )}
       </div>
     </div>
@@ -159,17 +163,32 @@ const Dashboard: React.FC = () => {
         <p style={{ fontSize: '1.1rem', color: '#475569', marginBottom: '1.5rem', lineHeight: '1.7' }}>
           Chúng tôi tự hào là đơn vị cung cấp các sản phẩm nông nghiệp và chăn nuôi xuất sắc nhất.
         </p>
+        <div style={{ 
+          background: 'white', padding: '2.5rem', borderRadius: '24px', 
+          display: 'flex', flexDirection: 'column', alignItems: 'center', 
+          marginBottom: '2.5rem', boxShadow: 'var(--card-shadow)', border: '1px solid var(--border-color)',
+          position: 'relative', overflow: 'hidden'
+        }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '6px', background: 'var(--primary)' }} />
+          <div style={{ 
+            width: '80px', height: '80px', backgroundColor: '#eff6ff', 
+            borderRadius: '24px', display: 'flex', alignItems: 'center', 
+            justifyContent: 'center', marginBottom: '1.5rem', color: 'var(--primary)',
+            boxShadow: '0 10px 15px -3px rgba(37, 99, 235, 0.1)'
+          }}>
+            <PhoneCall size={40} />
+          </div>
+          <h3 style={{ fontSize: '1.75rem', color: 'var(--text-main)', marginBottom: '0.5rem', fontWeight: 900 }}>Tổng Đài Hỗ Trợ</h3>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', fontSize: '1.1rem', fontWeight: 500 }}>Đội ngũ chăm sóc luôn sẵn sàng 24/7 giúp đỡ bạn</p>
+          <a href="tel:0974095248" style={{ 
+            fontSize: '2.5rem', fontWeight: 900, color: 'var(--primary)', 
+            textDecoration: 'none', background: '#eff6ff', padding: '0.75rem 2.5rem', 
+            borderRadius: '20px', transition: 'all 0.3s ease' 
+          }} className="support-link-btn">0974 095 248</a>
+        </div>
         <PriceBanner />
         <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', marginBottom: '3rem', border: '4px solid #fff' }}>
           <iframe style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} src="https://www.youtube.com/embed/zH1k0N62pE0" title="Video Giới Thiệu Trang Trại" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
-        </div>
-        <div style={{ backgroundColor: '#eff6ff', padding: '2.5rem', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <div style={{ width: '64px', height: '64px', backgroundColor: '#dbeafe', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
-            <PhoneCall size={32} color="#2563eb" />
-          </div>
-          <h3 style={{ fontSize: '1.5rem', color: '#1e293b', marginBottom: '0.5rem', fontWeight: 700 }}>Tổng Đài Hỗ Trợ Khách Hàng</h3>
-          <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>Đội ngũ chăm sóc luôn sẵn sàng 24/7</p>
-          <a href="tel:0974095248" style={{ fontSize: '2rem', fontWeight: 800, color: '#2563eb', textDecoration: 'none' }}>0974 095 248</a>
         </div>
       </div>
     );
@@ -234,6 +253,14 @@ const Dashboard: React.FC = () => {
           <div>
             <h2>Xin chào, {user?.fullName || user?.username}! 👋</h2>
             <p>Tổng quan hệ thống — {new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+          </div>
+        </div>
+
+        <div className="support-banner" style={{ marginBottom: '2.5rem' }}>
+          <div className="support-icon"><PhoneCall size={28} /></div>
+          <div>
+            <p style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>HỖ TRỢ KỸ THUẬT 24/7</p>
+            <p className="support-phone"><a href="tel:0974095248">0974 095 248</a></p>
           </div>
         </div>
 
@@ -379,6 +406,14 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
+      <div className="support-banner" style={{ marginBottom: '2.5rem' }}>
+        <div className="support-icon"><PhoneCall size={28} /></div>
+        <div>
+          <p style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-muted)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>HỖ TRỢ KỸ THUẬT 24/7</p>
+          <p className="support-phone"><a href="tel:0974095248">0974 095 248</a></p>
+        </div>
+      </div>
+
       <PriceBanner />
 
       {isLoading ? (
@@ -415,7 +450,7 @@ const Dashboard: React.FC = () => {
 
           <div className="progress-section">
             <div className="progress-header">
-              <h3><TrendingUp size={20} /> Tiến độ Mục tiêu</h3>
+              <h3><TrendingUp size={24} /> Tiến độ Mục tiêu</h3>
               <span>{Math.min(progressPercentage, 100).toFixed(1)}%</span>
             </div>
             <div className="progress-bar-container">
@@ -425,7 +460,7 @@ const Dashboard: React.FC = () => {
               {targetMilestone ? (
                 <span>Tiếp tục cố gắng! Bạn cần thêm <strong>{(nextTargetAmount - totalRevenue).toLocaleString('vi-VN')} đ</strong> để đạt mốc thưởng <strong>{Number(targetMilestone.bonusAmount).toLocaleString('vi-VN')} đ</strong>.</span>
               ) : (
-                <span style={{ color: '#059669', fontWeight: 600 }}>Chúc mừng! Bạn đã phá đảo tất cả mốc KPI cao nhất!</span>
+                <span style={{ color: 'var(--success)', fontWeight: 800 }}>⭐ Chúc mừng! Bạn đã chinh phục tất cả mốc KPI cao nhất!</span>
               )}
             </div>
             <div className="milestones-track">
@@ -433,11 +468,13 @@ const Dashboard: React.FC = () => {
                 const isPassed = totalRevenue >= Number(m.targetAmount);
                 return (
                   <div key={m.id} className={`milestone-point ${isPassed ? 'passed' : ''}`}>
-                    <div className="m-point" />
+                    <div className="m-point">
+                      {isPassed ? <CheckCircle2 size={24} /> : <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#94a3b8' }}>{index + 1}</span>}
+                    </div>
                     <div className="m-label">
                       <strong>Mốc {index + 1}</strong>
                       <span>{Number(m.targetAmount).toLocaleString('vi-VN')} đ</span>
-                      <span className="m-bonus">Thưởng: {Number(m.bonusAmount).toLocaleString('vi-VN')} đ</span>
+                      <span className="m-bonus">+{Number(m.bonusAmount).toLocaleString('vi-VN')} đ</span>
                     </div>
                   </div>
                 );
@@ -447,13 +484,6 @@ const Dashboard: React.FC = () => {
         </>
       )}
 
-      <div className="support-banner">
-        <div className="support-icon"><PhoneCall size={24} /></div>
-        <div>
-          <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', marginBottom: '2px' }}>HỖ TRỢ KỸ THUẬT 24/7</p>
-          <p className="support-phone"><a href="tel:0974095248" style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', textDecoration: 'none' }}>0974 095 248</a></p>
-        </div>
-      </div>
     </div>
   );
 };
