@@ -107,13 +107,41 @@ const Dashboard: React.FC = () => {
           Giá gà hôm nay • {new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit' })}
         </div>
         {todayPrice ? (
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.2rem' }}>
-            <span style={{ fontSize: '1.9rem', fontWeight: 800, color: '#fff', lineHeight: 1 }}>
-              {Number(todayPrice.pricePerHead || todayPrice.pricePerKg).toLocaleString('vi-VN')}
-            </span>
-            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#86efac' }}>đ/con</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.2rem' }}>
+            {/* If we have breakdown prices, show them prominently */}
+            {(todayPrice.priceGaSo || todayPrice.priceGaTrong || todayPrice.priceGaMai) ? (
+              <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', marginTop: '0.2rem' }}>
+                {todayPrice.priceGaSo && (
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ color: '#fbbf24', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase' }}>Gà xô</span>
+                    <span style={{ color: '#fff', fontSize: '1.4rem', fontWeight: 800 }}>{Number(todayPrice.priceGaSo).toLocaleString('vi-VN')}đ</span>
+                  </div>
+                )}
+                {todayPrice.priceGaTrong && (
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ color: '#fbbf24', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase' }}>Gà trống</span>
+                    <span style={{ color: '#fff', fontSize: '1.4rem', fontWeight: 800 }}>{Number(todayPrice.priceGaTrong).toLocaleString('vi-VN')}đ</span>
+                  </div>
+                )}
+                {todayPrice.priceGaMai && (
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ color: '#fbbf24', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase' }}>Gà mái</span>
+                    <span style={{ color: '#fff', fontSize: '1.4rem', fontWeight: 800 }}>{Number(todayPrice.priceGaMai).toLocaleString('vi-VN')}đ</span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Fallback if no breakdown exists */
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '1.9rem', fontWeight: 800, color: '#fff', lineHeight: 1 }}>
+                  {Number(todayPrice.pricePerKg).toLocaleString('vi-VN')}
+                </span>
+                <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#86efac' }}>đ/kg</span>
+              </div>
+            )}
+
             {todayPrice.note && (
-              <span style={{ color: '#bbf7d0', fontSize: '0.78rem', fontStyle: 'italic', marginLeft: '0.5rem' }}>• {todayPrice.note}</span>
+              <span style={{ color: '#bbf7d0', fontSize: '0.75rem', fontStyle: 'italic', marginTop: '0.2rem' }}>• {todayPrice.note}</span>
             )}
           </div>
         ) : (

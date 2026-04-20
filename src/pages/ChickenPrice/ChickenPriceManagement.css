@@ -42,6 +42,37 @@
   flex: 1;
 }
 
+.banner-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 1.5rem;
+  gap: 0.5rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  min-width: 200px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.detail-label {
+  color: #fbbf24;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-value {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
 .banner-label {
   font-size: 0.8rem;
   font-weight: 500;
@@ -436,4 +467,22 @@
   .today-price-banner { flex-direction: column; text-align: center; }
   .form-row { grid-template-columns: 1fr; }
   .price-value { font-size: 2rem; }
+}
+
+.price-breakdown-section {
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  margin: 1rem 0;
+}
+
+.price-breakdown-section h4 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  font-size: 0.8rem;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
 }

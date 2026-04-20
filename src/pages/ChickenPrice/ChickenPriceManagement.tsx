@@ -12,6 +12,9 @@ interface PriceData {
   priceDate: string;
   pricePerKg: number;
   pricePerHead?: number;
+  priceGaSo?: number;
+  priceGaTrong?: number;
+  priceGaMai?: number;
   note?: string;
   createdAt: string;
 }
@@ -36,6 +39,9 @@ const ChickenPriceManagement: React.FC = () => {
     priceDate: new Date().toISOString().split('T')[0],
     pricePerKg: '' as string | number,
     pricePerHead: '' as string | number,
+    priceGaSo: '' as string | number,
+    priceGaTrong: '' as string | number,
+    priceGaMai: '' as string | number,
     note: ''
   });
 
@@ -73,6 +79,9 @@ const ChickenPriceManagement: React.FC = () => {
       priceDate: new Date().toISOString().split('T')[0],
       pricePerKg: '',
       pricePerHead: '',
+      priceGaSo: '',
+      priceGaTrong: '',
+      priceGaMai: '',
       note: ''
     });
     setError('');
@@ -85,6 +94,9 @@ const ChickenPriceManagement: React.FC = () => {
       priceDate: item.priceDate ? new Date(item.priceDate).toISOString().split('T')[0] : '',
       pricePerKg: item.pricePerKg,
       pricePerHead: item.pricePerHead || '',
+      priceGaSo: item.priceGaSo || '',
+      priceGaTrong: item.priceGaTrong || '',
+      priceGaMai: item.priceGaMai || '',
       note: item.note || ''
     });
     setError('');
@@ -103,6 +115,9 @@ const ChickenPriceManagement: React.FC = () => {
         priceDate: formData.priceDate,
         pricePerKg: Number(String(formData.pricePerKg).replace(/\D/g, '')),
         pricePerHead: formData.pricePerHead ? Number(String(formData.pricePerHead).replace(/\D/g, '')) : undefined,
+        priceGaSo: formData.priceGaSo ? Number(String(formData.priceGaSo).replace(/\D/g, '')) : undefined,
+        priceGaTrong: formData.priceGaTrong ? Number(String(formData.priceGaTrong).replace(/\D/g, '')) : undefined,
+        priceGaMai: formData.priceGaMai ? Number(String(formData.priceGaMai).replace(/\D/g, '')) : undefined,
         note: formData.note || undefined
       };
       if (editingItem) {
@@ -156,19 +171,41 @@ const ChickenPriceManagement: React.FC = () => {
         <div className="banner-content">
           <div className="banner-label">Giá gà hôm nay • {new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
           {todayPrice ? (
-            <div className="banner-prices">
-              <div className="price-main">
-                <span className="price-value">{Number(todayPrice.pricePerKg).toLocaleString('vi-VN')}</span>
-                <span className="price-unit">đ/kg</span>
-              </div>
-              {todayPrice.pricePerHead && (
-                <div className="price-head">
-                  <Tag size={14} />
-                  <span>{Number(todayPrice.pricePerHead).toLocaleString('vi-VN')} đ/con</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              {/* If we have breakdown prices, show them prominently */}
+              {(todayPrice.priceGaSo || todayPrice.priceGaTrong || todayPrice.priceGaMai) ? (
+                <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', marginTop: '0.2rem' }}>
+                  {todayPrice.priceGaSo && (
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ color: '#fbbf24', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase' }}>Gà xô</span>
+                      <span style={{ color: '#fff', fontSize: '1.6rem', fontWeight: 800 }}>{Number(todayPrice.priceGaSo).toLocaleString('vi-VN')}đ</span>
+                    </div>
+                  )}
+                  {todayPrice.priceGaTrong && (
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ color: '#fbbf24', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase' }}>Gà trống</span>
+                      <span style={{ color: '#fff', fontSize: '1.6rem', fontWeight: 800 }}>{Number(todayPrice.priceGaTrong).toLocaleString('vi-VN')}đ</span>
+                    </div>
+                  )}
+                  {todayPrice.priceGaMai && (
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ color: '#fbbf24', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase' }}>Gà mái</span>
+                      <span style={{ color: '#fff', fontSize: '1.6rem', fontWeight: 800 }}>{Number(todayPrice.priceGaMai).toLocaleString('vi-VN')}đ</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Fallback if no breakdown exists */
+                <div className="banner-prices">
+                  <div className="price-main">
+                    <span className="price-value">{Number(todayPrice.pricePerKg).toLocaleString('vi-VN')}</span>
+                    <span className="price-unit">đ/kg</span>
+                  </div>
                 </div>
               )}
+
               {todayPrice.note && (
-                <div className="price-note">
+                <div className="price-note" style={{ marginTop: '0.2rem' }}>
                   <AlertCircle size={13} />
                   <span>{todayPrice.note}</span>
                 </div>
@@ -178,6 +215,7 @@ const ChickenPriceManagement: React.FC = () => {
             <div className="banner-no-price">Chưa cập nhật giá hôm nay</div>
           )}
         </div>
+
         {isAdmin && (
           <div className="banner-action">
             <CheckCircle2 size={20} style={{ color: '#86efac' }} />
@@ -226,7 +264,9 @@ const ChickenPriceManagement: React.FC = () => {
                 <tr>
                   <th>Ngày</th>
                   <th>Giá / Kg</th>
-                  <th>Giá / Con</th>
+                  <th>Gà sô</th>
+                  <th>Gà trống</th>
+                  <th>Gà mái</th>
                   <th>Biến động</th>
                   <th>Ghi chú</th>
                   {isAdmin && <th style={{ textAlign: 'right' }}>Thao tác</th>}
@@ -259,8 +299,18 @@ const ChickenPriceManagement: React.FC = () => {
                         </div>
                       </td>
                       <td>
-                        {item.pricePerHead ? (
-                          <span style={{ fontWeight: 500 }}>{Number(item.pricePerHead).toLocaleString('vi-VN')}đ</span>
+                        {item.priceGaSo ? (
+                          <span style={{ fontWeight: 500 }}>{Number(item.priceGaSo).toLocaleString('vi-VN')}đ</span>
+                        ) : <span style={{ color: '#94a3b8' }}>—</span>}
+                      </td>
+                      <td>
+                        {item.priceGaTrong ? (
+                          <span style={{ fontWeight: 500 }}>{Number(item.priceGaTrong).toLocaleString('vi-VN')}đ</span>
+                        ) : <span style={{ color: '#94a3b8' }}>—</span>}
+                      </td>
+                      <td>
+                        {item.priceGaMai ? (
+                          <span style={{ fontWeight: 500 }}>{Number(item.priceGaMai).toLocaleString('vi-VN')}đ</span>
                         ) : <span style={{ color: '#94a3b8' }}>—</span>}
                       </td>
                       <td>
@@ -346,6 +396,39 @@ const ChickenPriceManagement: React.FC = () => {
                       onChange={(e) => handleNumberChange(e, 'pricePerHead')}
                       placeholder="VD: 150.000"
                     />
+                  </div>
+                </div>
+
+                <div className="price-breakdown-section">
+                  <h4>Giá chi tiết theo loại (VNĐ)</h4>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Gà sô</label>
+                      <input
+                        type="text"
+                        value={formatPrice(formData.priceGaSo)}
+                        onChange={(e) => handleNumberChange(e, 'priceGaSo')}
+                        placeholder="VD: 85.000"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Gà trống</label>
+                      <input
+                        type="text"
+                        value={formatPrice(formData.priceGaTrong)}
+                        onChange={(e) => handleNumberChange(e, 'priceGaTrong')}
+                        placeholder="VD: 90.000"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Gà mái</label>
+                      <input
+                        type="text"
+                        value={formatPrice(formData.priceGaMai)}
+                        onChange={(e) => handleNumberChange(e, 'priceGaMai')}
+                        placeholder="VD: 80.000"
+                      />
+                    </div>
                   </div>
                 </div>
 

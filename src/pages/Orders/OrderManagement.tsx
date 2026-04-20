@@ -41,6 +41,12 @@ interface OrderData {
   creator?: { fullName: string; username: string };
   createdAt: string;
   description?: string;
+  gaSo?: number;
+  gaTrong?: number;
+  gaMai?: number;
+  priceGaSo?: number;
+  priceGaTrong?: number;
+  priceGaMai?: number;
 }
 
 const OrderManagement: React.FC = () => {
@@ -75,6 +81,12 @@ const OrderManagement: React.FC = () => {
   const [formData, setFormData] = useState({
     userId: '',
     quantity: '' as string | number,
+    gaSo: '' as string | number,
+    gaTrong: '' as string | number,
+    gaMai: '' as string | number,
+    priceGaSo: '' as string | number,
+    priceGaTrong: '' as string | number,
+    priceGaMai: '' as string | number,
     unitPrice: '' as string | number,
     amount: '' as string | number,
     type: 'MUA_GA',
@@ -180,10 +192,52 @@ const OrderManagement: React.FC = () => {
     
     setFormData((prev) => {
       const nextState = { ...prev, [name]: value };
+      
+      // Auto-calculate quantity from chicken types if any change
+      if (['gaSo', 'gaTrong', 'gaMai', 'priceGaSo', 'priceGaTrong', 'priceGaMai'].includes(name)) {
+        const s = name === 'gaSo' ? Number(value) : Number(nextState.gaSo);
+        const t = name === 'gaTrong' ? Number(value) : Number(nextState.gaTrong);
+        const m = name === 'gaMai' ? Number(value) : Number(nextState.gaMai);
+        
+        // Auto-populate prices from todayPrice if adding quantity for the first time
+        if (name === 'gaSo' && value && !nextState.priceGaSo && todayPrice?.priceGaSo) {
+          nextState.priceGaSo = todayPrice.priceGaSo;
+        }
+        if (name === 'gaTrong' && value && !nextState.priceGaTrong && todayPrice?.priceGaTrong) {
+          nextState.priceGaTrong = todayPrice.priceGaTrong;
+        }
+        if (name === 'gaMai' && value && !nextState.priceGaMai && todayPrice?.priceGaMai) {
+          nextState.priceGaMai = todayPrice.priceGaMai;
+        }
+
+        const ps = name === 'priceGaSo' ? Number(value) : Number(nextState.priceGaSo);
+        const pt = name === 'priceGaTrong' ? Number(value) : Number(nextState.priceGaTrong);
+        const pm = name === 'priceGaMai' ? Number(value) : Number(nextState.priceGaMai);
+
+        const total = (s || 0) + (t || 0) + (m || 0);
+        if (total > 0 && ['gaSo', 'gaTrong', 'gaMai'].includes(name)) {
+          nextState.quantity = total;
+        }
+
+        // Calculate amount from specific prices if any are present
+        if (ps || pt || pm) {
+          const calculatedAmount = (s * ps) + (t * pt) + (m * pm);
+          if (calculatedAmount > 0) {
+            nextState.amount = calculatedAmount;
+            // Also update main unitPrice as a weighted average if total quantity exist
+            if (total > 0) {
+              nextState.unitPrice = Math.round(calculatedAmount / total);
+            }
+          }
+        }
+      }
+
       if (name === 'quantity' || name === 'unitPrice') {
-         const q = name === 'quantity' ? Number(value) : Number(nextState.quantity);
-         const p = name === 'unitPrice' ? Number(value) : Number(nextState.unitPrice);
-         if (q > 0 && p > 0) {
+         const q = Number(nextState.quantity);
+         const p = Number(nextState.unitPrice);
+         // Only auto-calc amount from q*p if NOT using per-type pricing
+         const hasPerTypePricing = Number(nextState.priceGaSo) || Number(nextState.priceGaTrong) || Number(nextState.priceGaMai);
+         if (q > 0 && p > 0 && !hasPerTypePricing) {
             nextState.amount = q * p;
          }
       }
@@ -207,6 +261,12 @@ const OrderManagement: React.FC = () => {
     setFormData({
       userId: isNormalUser && user ? user.id : '',
       quantity: '',
+      gaSo: '',
+      gaTrong: '',
+      gaMai: '',
+      priceGaSo: '',
+      priceGaTrong: '',
+      priceGaMai: '',
       unitPrice: '',
       amount: '',
       type: isCollaborator || isNormalUser ? 'DAT_GA' : 'MUA_GA',
@@ -236,6 +296,12 @@ const OrderManagement: React.FC = () => {
     setFormData({
       userId: order.userId,
       quantity: order.quantity,
+      gaSo: order.gaSo || '',
+      gaTrong: order.gaTrong || '',
+      gaMai: order.gaMai || '',
+      priceGaSo: order.priceGaSo || '',
+      priceGaTrong: order.priceGaTrong || '',
+      priceGaMai: order.priceGaMai || '',
       unitPrice: order.unitPrice || '',
       amount: order.amount || '',
       type: order.type,
@@ -285,6 +351,12 @@ const OrderManagement: React.FC = () => {
       const payload = {
         userId: formData.userId,
         quantity: quantityNum,
+        gaSo: formData.gaSo ? Number(formData.gaSo) : 0,
+        gaTrong: formData.gaTrong ? Number(formData.gaTrong) : 0,
+        gaMai: formData.gaMai ? Number(formData.gaMai) : 0,
+        priceGaSo: formData.priceGaSo ? Number(formData.priceGaSo) : 0,
+        priceGaTrong: formData.priceGaTrong ? Number(formData.priceGaTrong) : 0,
+        priceGaMai: formData.priceGaMai ? Number(formData.priceGaMai) : 0,
         unitPrice: formData.unitPrice ? Number(String(formData.unitPrice).replace(/\D/g, '')) : undefined,
         amount: formData.amount ? Number(String(formData.amount).replace(/\D/g, '')) : undefined,
         type: formData.type,
@@ -389,13 +461,41 @@ const OrderManagement: React.FC = () => {
             Giá gà hôm nay • {new Date().toLocaleDateString('vi-VN')}
           </div>
           {todayPrice ? (
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', lineHeight: 1 }}>
-                {Number(todayPrice.pricePerHead || todayPrice.pricePerKg).toLocaleString('vi-VN')}
-              </span>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#86efac' }}>đ/con</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              {/* If we have breakdown prices, show them prominently */}
+              {(todayPrice.priceGaSo || todayPrice.priceGaTrong || todayPrice.priceGaMai) ? (
+                <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap' }}>
+                  {todayPrice.priceGaSo && (
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ color: '#fbbf24', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase' }}>Gà xô</span>
+                      <span style={{ color: '#fff', fontSize: '1.3rem', fontWeight: 800 }}>{Number(todayPrice.priceGaSo).toLocaleString('vi-VN')}đ</span>
+                    </div>
+                  )}
+                  {todayPrice.priceGaTrong && (
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ color: '#fbbf24', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase' }}>Gà trống</span>
+                      <span style={{ color: '#fff', fontSize: '1.3rem', fontWeight: 800 }}>{Number(todayPrice.priceGaTrong).toLocaleString('vi-VN')}đ</span>
+                    </div>
+                  )}
+                  {todayPrice.priceGaMai && (
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ color: '#fbbf24', fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase' }}>Gà mái</span>
+                      <span style={{ color: '#fff', fontSize: '1.3rem', fontWeight: 800 }}>{Number(todayPrice.priceGaMai).toLocaleString('vi-VN')}đ</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Fallback if no breakdown exists */
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', lineHeight: 1 }}>
+                    {Number(todayPrice.pricePerKg).toLocaleString('vi-VN')}
+                  </span>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#86efac' }}>đ/kg</span>
+                </div>
+              )}
+
               {todayPrice.note && (
-                <span style={{ color: '#bbf7d0', fontSize: '0.75rem', fontStyle: 'italic' }}>• {todayPrice.note}</span>
+                <span style={{ color: '#bbf7d0', fontSize: '0.7rem', fontStyle: 'italic' }}>• {todayPrice.note}</span>
               )}
             </div>
           ) : (
@@ -662,6 +762,115 @@ const OrderManagement: React.FC = () => {
                   </div>
                 )}
 
+                <div style={{ 
+                  padding: '1rem', 
+                  backgroundColor: '#f8fafc', 
+                  borderRadius: '12px', 
+                  marginBottom: '1.25rem',
+                  border: '1px solid #e2e8f0'
+                }}>
+                  <div style={{ 
+                    fontSize: '0.875rem', 
+                    fontWeight: 600, 
+                    color: '#64748b', 
+                    marginBottom: '1rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '0.5rem'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Tag size={16} /> Chi tiết theo loại gà
+                    </div>
+                    {todayPrice && (
+                      <span style={{ fontSize: '0.7rem', color: '#16a34a' }}>
+                        * Đang áp dụng giá hôm nay
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: isAdvancedRole ? '1fr 1fr' : '1fr', 
+                    gap: '1.5rem' 
+                  }}>
+                    <div className="chicken-type-column">
+                      <h5 style={{ fontSize: '0.75rem', marginBottom: '0.5rem', color: '#94a3b8' }}>
+                        SỐ LƯỢNG (Con) {!isAdvancedRole && ' - Quản trị viên sẽ cập nhật giá sau'}
+                      </h5>
+                      <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                        <label style={{ fontSize: '0.7rem' }}>Gà sô</label>
+                        <input
+                          type="text"
+                          name="gaSo"
+                          value={formatNumber(formData.gaSo)}
+                          onChange={(e) => handleNumberChange(e, 'gaSo')}
+                          placeholder="0"
+                        />
+                      </div>
+                      <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                        <label style={{ fontSize: '0.7rem' }}>Gà trống</label>
+                        <input
+                          type="text"
+                          name="gaTrong"
+                          value={formatNumber(formData.gaTrong)}
+                          onChange={(e) => handleNumberChange(e, 'gaTrong')}
+                          placeholder="0"
+                        />
+                      </div>
+                      <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                        <label style={{ fontSize: '0.7rem' }}>Gà mái</label>
+                        <input
+                          type="text"
+                          name="gaMai"
+                          value={formatNumber(formData.gaMai)}
+                          onChange={(e) => handleNumberChange(e, 'gaMai')}
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+
+                    {isAdvancedRole && (
+                      <div className="chicken-price-column">
+                        <h5 style={{ fontSize: '0.75rem', marginBottom: '0.5rem', color: '#94a3b8' }}>ĐƠN GIÁ (đ/con)</h5>
+                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                          <label style={{ fontSize: '0.7rem' }}>Giá Gà sô</label>
+                          <input
+                            type="text"
+                            name="priceGaSo"
+                            value={formatNumber(formData.priceGaSo)}
+                            onChange={(e) => handleNumberChange(e, 'priceGaSo')}
+                            placeholder="0"
+                            style={{ color: '#16a34a', fontWeight: 600 }}
+                          />
+                        </div>
+                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                          <label style={{ fontSize: '0.7rem' }}>Giá Gà trống</label>
+                          <input
+                            type="text"
+                            name="priceGaTrong"
+                            value={formatNumber(formData.priceGaTrong)}
+                            onChange={(e) => handleNumberChange(e, 'priceGaTrong')}
+                            placeholder="0"
+                            style={{ color: '#16a34a', fontWeight: 600 }}
+                          />
+                        </div>
+                        <div className="form-group" style={{ marginBottom: '0.75rem' }}>
+                          <label style={{ fontSize: '0.7rem' }}>Giá Gà mái</label>
+                          <input
+                            type="text"
+                            name="priceGaMai"
+                            value={formatNumber(formData.priceGaMai)}
+                            onChange={(e) => handleNumberChange(e, 'priceGaMai')}
+                            placeholder="0"
+                            style={{ color: '#16a34a', fontWeight: 600 }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="form-row">
                   <div className="form-group">
                     <label>Loại Đơn Hàng *</label>
@@ -671,7 +880,7 @@ const OrderManagement: React.FC = () => {
                     </select>
                   </div>
                   <div className="form-group">
-                    <label>Số Lượng *</label>
+                    <label>Tổng Số Lượng *</label>
                     <input
                       type="text"
                       name="quantity"
@@ -679,6 +888,11 @@ const OrderManagement: React.FC = () => {
                       onChange={(e) => handleNumberChange(e, 'quantity')}
                       placeholder="VD: 100"
                       required
+                      style={{ 
+                        backgroundColor: (formData.gaSo || formData.gaTrong || formData.gaMai) ? '#f1f5f9' : '#fff',
+                        fontWeight: (formData.gaSo || formData.gaTrong || formData.gaMai) ? 700 : 400
+                      }}
+                      title={(formData.gaSo || formData.gaTrong || formData.gaMai) ? "Tự động tính từ chi tiết loại gà" : ""}
                     />
                   </div>
                   
