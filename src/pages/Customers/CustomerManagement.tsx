@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Edit2, Trash2, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { X, Edit2, Trash2, Plus, Eye } from 'lucide-react';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import './CustomerManagement.css';
@@ -18,6 +19,7 @@ interface CustomerData {
 
 const CustomerManagement: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [customers, setCustomers] = useState<CustomerData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -196,6 +198,14 @@ const CustomerManagement: React.FC = () => {
                       </td>
                       <td>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button
+                            className="btn-secondary"
+                            style={{ padding: '0.4rem', border: '1px solid #e2e8f0', borderRadius: '4px' }}
+                            title="Chi tiết"
+                            onClick={() => navigate(`/customers/${customer.id}`)}
+                          >
+                            <Eye size={16} />
+                          </button>
                           <button
                             className="btn-secondary"
                             style={{ padding: '0.4rem', border: '1px solid #e2e8f0', borderRadius: '4px' }}

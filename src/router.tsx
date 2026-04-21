@@ -10,6 +10,7 @@ import WorkDetail from './pages/Work/WorkDetail';
 import OrderManagement from './pages/Orders/OrderManagement';
 import OrderDetail from './pages/Orders/OrderDetail';
 import CustomerManagement from './pages/Customers/CustomerManagement';
+import CustomerDetail from './pages/Customers/CustomerDetail';
 import TaskSchedule from './pages/Tasks/TaskSchedule';
 import OrderSchedule from './pages/Orders/OrderSchedule';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -37,6 +38,10 @@ export const router = createBrowserRouter([
           {
             path: 'customers',
             element: <CustomerManagement />,
+          },
+          {
+            path: 'customers/:id',
+            element: <CustomerDetail />,
           },
           {
             index: true,
