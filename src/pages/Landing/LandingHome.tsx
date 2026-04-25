@@ -52,62 +52,6 @@ const LandingHome: React.FC = () => {
 
   return (
     <div className="landing-home">
-      {/* Hero Section */}
-      <section className="hero-section">
-        <div className="hero-overlay"></div>
-        <img 
-          src="/assets/landing/hero_bg_new.png" 
-          alt="Chicken Farm" 
-          className="hero-bg" 
-        />
-        <div className="landing-container hero-content">
-          <div className="hero-text-area">
-            <img src="/assets/landing/decorative_chicken.png" alt="" className="hero-decoration" />
-            <span className="hero-badge">Chào mừng đến với Gà Giống Sâm Oanh</span>
-            <h1>Cung Cấp Giống Gà <span>Chất Lượng</span> Hàng Đầu</h1>
-            <p>
-              Khởi đầu sự nghiệp chăn nuôi của bạn với nguồn giống khỏe mạnh, 
-              được chọn lọc kỹ lưỡng và hỗ trợ kỹ thuật tận tình.
-            </p>
-            <div className="hero-btns">
-              <a href="#products" className="btn-primary">
-                Xem sản phẩm <ChevronRight size={20} />
-              </a>
-              <a href="#about" className="btn-secondary">
-                Tìm hiểu thêm
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="features-section">
-        <div className="landing-container">
-          <div className="section-header">
-            <h2>Tại sao chọn chúng tôi?</h2>
-            <div className="header-line"></div>
-          </div>
-          <div className="features-grid">
-            <div className="feature-card">
-              <div className="feature-icon"><ShieldCheck size={32} /></div>
-              <h3>Giống thuần chủng</h3>
-              <p>Đảm bảo nguồn gốc rõ ràng, không lai tạp, giữ vững đặc tính giống.</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon"><Star size={32} /></div>
-              <h3>Chất lượng cao</h3>
-              <p>Gà được tiêm chủng đầy đủ, sức đề kháng tốt và tốc độ lớn nhanh.</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon"><Zap size={32} /></div>
-              <h3>Hỗ trợ kỹ thuật</h3>
-              <p>Tư vấn quy trình nuôi dưỡng, phòng bệnh miễn phí cho bà con.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Products Section */}
       <section id="products" className="products-section">
         <div className="landing-container">
@@ -144,6 +88,33 @@ const LandingHome: React.FC = () => {
         </div>
       </section>
 
+      {/* Features Section */}
+      <section className="features-section">
+        <div className="landing-container">
+          <div className="section-header">
+            <h2>Tại sao chọn chúng tôi?</h2>
+            <div className="header-line"></div>
+          </div>
+          <div className="features-grid">
+            <div className="feature-card">
+              <div className="feature-icon"><ShieldCheck size={32} /></div>
+              <h3>Giống thuần chủng</h3>
+              <p>Đảm bảo nguồn gốc rõ ràng, không lai tạp, giữ vững đặc tính giống.</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon"><Star size={32} /></div>
+              <h3>Chất lượng cao</h3>
+              <p>Gà được tiêm chủng đầy đủ, sức đề kháng tốt và tốc độ lớn nhanh.</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon"><Zap size={32} /></div>
+              <h3>Hỗ trợ kỹ thuật</h3>
+              <p>Tư vấn quy trình nuôi dưỡng, phòng bệnh miễn phí cho bà con.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* About Section */}
       <section id="about" className="about-section">
         <div className="landing-container">
@@ -169,6 +140,35 @@ const LandingHome: React.FC = () => {
                 <li>Đội ngũ chuyên gia giàu kinh nghiệm</li>
               </ul>
               <a href="tel:0974095244" className="btn-primary">Liên hệ ngay</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Hero Section */}
+      <section className="hero-section">
+        <div className="hero-overlay"></div>
+        <img 
+          src="/assets/landing/hero_bg_new.png" 
+          alt="Chicken Farm" 
+          className="hero-bg" 
+        />
+        <div className="landing-container hero-content">
+          <div className="hero-text-area">
+            <img src="/assets/landing/decorative_chicken.png" alt="" className="hero-decoration" />
+            <span className="hero-badge">Chào mừng đến với Gà Giống Sâm Oanh</span>
+            <h1>Cung Cấp Giống Gà <span>Chất Lượng</span> Hàng Đầu</h1>
+            <p>
+              Khởi đầu sự nghiệp chăn nuôi của bạn với nguồn giống khỏe mạnh, 
+              được chọn lọc kỹ lưỡng và hỗ trợ kỹ thuật tận tình.
+            </p>
+            <div className="hero-btns">
+              <a href="#products" className="btn-primary">
+                Xem sản phẩm <ChevronRight size={20} />
+              </a>
+              <a href="#about" className="btn-secondary">
+                Tìm hiểu thêm
+              </a>
             </div>
           </div>
         </div>
