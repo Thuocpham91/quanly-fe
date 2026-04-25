@@ -32,18 +32,19 @@ const MainLayout: React.FC = () => {
   };
 
   const allNavItems = [
-    { path: '/', label: 'Trang chủ', icon: Home },
-    { path: '/users', label: 'Quản lý User', icon: Users },
-    { path: '/customers', label: 'Quản lý Khách hàng', icon: UserSquare2 },
-    { path: '/objects', label: 'Quản Object', icon: Box },
-    { path: '/works', label: 'Quản lý Công việc', icon: CheckSquare },
-    { path: '/tasks/schedule', label: 'Lịch trình công việc', icon: ListTodo },
-    { path: '/orders', label: 'Quản lý Đơn hàng', icon: ShoppingBag },
-    { path: '/orders/schedule', label: 'Lịch trình giao hàng', icon: Truck },
-    { path: '/revenue', label: 'Quản lý Doanh thu', icon: DollarSign },
-    { path: '/milestones', label: 'Cài đặt Mốc Thưởng', icon: Target },
-    { path: '/chicken-prices', label: 'Giá Gà Hôm Nay', icon: BarChart2 },
+    { path: '/admin', label: 'Trang chủ', icon: Home },
+    { path: '/admin/users', label: 'Quản lý User', icon: Users },
+    { path: '/admin/customers', label: 'Quản lý Khách hàng', icon: UserSquare2 },
+    { path: '/admin/objects', label: 'Quản Object', icon: Box },
+    { path: '/admin/works', label: 'Quản lý Công việc', icon: CheckSquare },
+    { path: '/admin/tasks/schedule', label: 'Lịch trình công việc', icon: ListTodo },
+    { path: '/admin/orders', label: 'Quản lý Đơn hàng', icon: ShoppingBag },
+    { path: '/admin/orders/schedule', label: 'Lịch trình giao hàng', icon: Truck },
+    { path: '/admin/revenue', label: 'Quản lý Doanh thu', icon: DollarSign },
+    { path: '/admin/milestones', label: 'Cài đặt Mốc Thưởng', icon: Target },
+    { path: '/admin/chicken-prices', label: 'Giá Gà Hôm Nay', icon: BarChart2 },
   ];
+
 
   // Backend trả về role là một Object chứa { code: 'USER', name: 'User' }
   const roleCode = typeof user?.role === 'object' && user?.role !== null 
@@ -57,12 +58,13 @@ const MainLayout: React.FC = () => {
 
   let visibleNavItems = allNavItems;
   if (isCustomer) {
-    visibleNavItems = allNavItems.filter(item => ['/', '/orders'].includes(item.path)).map(item => 
-      item.path === '/orders' ? { ...item, label: 'Lịch sử Đơn hàng' } : item
+    visibleNavItems = allNavItems.filter(item => ['/admin', '/admin/orders'].includes(item.path)).map(item => 
+      item.path === '/admin/orders' ? { ...item, label: 'Lịch sử Đơn hàng' } : item
     );
   } else if (isCollaborator) {
-    visibleNavItems = allNavItems.filter(item => ['/', '/customers', '/orders', '/revenue'].includes(item.path));
+    visibleNavItems = allNavItems.filter(item => ['/admin', '/admin/customers', '/admin/orders', '/admin/revenue'].includes(item.path));
   }
+
 
   return (
     <div className="layout-container">

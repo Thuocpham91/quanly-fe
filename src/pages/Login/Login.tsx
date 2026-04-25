@@ -53,7 +53,8 @@ const Login: React.FC = () => {
 
       // Login to context and route
       login(token, payload);
-      navigate('/');
+      navigate('/admin');
+
     } catch (err: any) {
       console.error('Login Error:', err);
       setError(err.response?.data?.message || 'Tài khoản hoặc mật khẩu không chính xác.');

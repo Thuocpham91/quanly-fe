@@ -1,5 +1,8 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout/MainLayout';
+import LandingLayout from './layouts/LandingLayout/LandingLayout';
+import LandingHome from './pages/Landing/LandingHome';
+import ChickenDetail from './pages/Landing/ChickenDetail';
 import Login from './pages/Login/Login';
 import Dashboard from './pages/Dashboard/Dashboard';
 import UserManagement from './pages/Users/UserManagement';
@@ -21,16 +24,34 @@ import ChickenPriceManagement from './pages/ChickenPrice/ChickenPriceManagement'
 
 export const router = createBrowserRouter([
   {
+    path: '/',
+    element: <LandingLayout />,
+    children: [
+      {
+        index: true,
+        element: <LandingHome />,
+      },
+      {
+        path: 'chicken/:id',
+        element: <ChickenDetail />,
+      },
+    ],
+  },
+  {
     path: '/login',
     element: <Login />,
   },
   {
-    path: '/',
+    path: '/admin',
     element: <ProtectedRoute />,
     children: [
       {
         element: <MainLayout />,
         children: [
+          {
+            index: true,
+            element: <Dashboard />,
+          },
           {
             path: 'users',
             element: <UserManagement />,
@@ -43,11 +64,6 @@ export const router = createBrowserRouter([
             path: 'customers/:id',
             element: <CustomerDetail />,
           },
-          {
-            index: true,
-            element: <Dashboard />,
-          },
-
           {
             path: 'objects',
             element: <ObjectManagement />,
@@ -105,3 +121,4 @@ export const router = createBrowserRouter([
     element: <Navigate to="/" replace />,
   },
 ]);
+
