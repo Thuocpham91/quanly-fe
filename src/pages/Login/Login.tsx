@@ -67,8 +67,8 @@ const Login: React.FC = () => {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <h1>Đăng Nhập Hệ Thống</h1>
-          <p>Chào mừng bạn quay trở lại</p>
+          <h1>Gà Giống Sâm Oanh</h1>
+          <p>Hệ thống Quản lý Trang trại</p>
         </div>
 
         <form className="login-form" onSubmit={handleLogin}>

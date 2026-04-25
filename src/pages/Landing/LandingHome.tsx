@@ -63,7 +63,7 @@ const LandingHome: React.FC = () => {
         <div className="landing-container hero-content">
           <div className="hero-text-area">
             <img src="/assets/landing/decorative_chicken.png" alt="" className="hero-decoration" />
-            <span className="hero-badge">Chào mừng đến với Gà Giống Samoanh</span>
+            <span className="hero-badge">Chào mừng đến với Gà Giống Sâm Oanh</span>
             <h1>Cung Cấp Giống Gà <span>Chất Lượng</span> Hàng Đầu</h1>
             <p>
               Khởi đầu sự nghiệp chăn nuôi của bạn với nguồn giống khỏe mạnh, 

@@ -76,7 +76,7 @@ const MainLayout: React.FC = () => {
       {/* Sidebar */}
       <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <div className="logo-text">CRM System</div>
+          <div className="logo-text">Gà Giống Sâm Oanh</div>
           <button className="mobile-close-btn" onClick={() => setIsSidebarOpen(false)}>
             <X size={24} />
           </button>
@@ -111,7 +111,7 @@ const MainLayout: React.FC = () => {
             <Menu size={24} />
           </button>
           
-          <div className="page-title desktop-only">Hệ thống Quản lý</div>
+          <div className="page-title desktop-only">Gà Giống Sâm Oanh</div>
           
           <div className="user-profile" onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}>
             <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#2563eb', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>

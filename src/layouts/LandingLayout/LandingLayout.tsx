@@ -30,7 +30,7 @@ const LandingLayout: React.FC = () => {
         <div className="landing-container">
           <Link to="/" className="landing-logo">
             <span className="logo-icon">🐔</span>
-            <span className="logo-text">Gà Giống Samoanh</span>
+            <span className="logo-text">Gà Giống Sâm Oanh</span>
           </Link>
 
           {/* Desktop Nav */}
@@ -90,7 +90,7 @@ const LandingLayout: React.FC = () => {
             <div className="footer-info">
               <Link to="/" className="landing-logo footer-logo">
                 <span className="logo-icon">🐔</span>
-                <span className="logo-text">Gà Giống Samoanh</span>
+                <span className="logo-text">Gà Giống Sâm Oanh</span>
               </Link>
               <p className="footer-desc">
                 Chuyên cung cấp các loại gà giống chất lượng cao, thuần chủng, 
@@ -132,7 +132,7 @@ const LandingLayout: React.FC = () => {
             </div>
           </div>
           <div className="footer-bottom">
-            <p>&copy; {new Date().getFullYear()} Gà Giống Samoanh. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} Gà Giống Sâm Oanh. All rights reserved.</p>
           </div>
         </div>
       </footer>
