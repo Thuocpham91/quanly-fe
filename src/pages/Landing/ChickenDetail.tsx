@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Phone, MessageSquare, Info } from 'lucide-react';
 import './ChickenDetail.css';
@@ -101,6 +101,29 @@ const ChickenDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const breed = breedData[id || ''];
+  
+  useEffect(() => {
+    if (breed) {
+      document.title = `${breed.fullName} - Gà Giống Samoanh`;
+      
+      // Cập nhật meta tags động (chủ yếu cho trình duyệt và các crawler hỗ trợ JS)
+      const metaDescription = document.querySelector('meta[name="description"]');
+      if (metaDescription) metaDescription.setAttribute('content', breed.description);
+      
+      const ogTitle = document.querySelector('meta[property="og:title"]');
+      if (ogTitle) ogTitle.setAttribute('content', `${breed.fullName} - Gà Giống Samoanh`);
+      
+      const ogDescription = document.querySelector('meta[property="og:description"]');
+      if (ogDescription) ogDescription.setAttribute('content', breed.description);
+      
+      const ogImage = document.querySelector('meta[property="og:image"]');
+      if (ogImage) ogImage.setAttribute('content', window.location.origin + breed.image);
+    }
+    
+    return () => {
+      document.title = 'Gà Giống Samoanh - Cung Cấp Giống Gà Chất Lượng';
+    };
+  }, [breed]);
 
   if (!breed) {
     return (
