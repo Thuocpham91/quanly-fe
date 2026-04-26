@@ -183,7 +183,13 @@ const CustomerManagement: React.FC = () => {
                         <div style={{ fontWeight: 600 }}>{customer.name}</div>
                       </td>
                       <td>{customer.email}</td>
-                      <td>{customer.phone || '-'}</td>
+                      <td>
+                        {customer.phone ? (
+                          <a href={`tel:${customer.phone}`} style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 500 }}>
+                            {customer.phone}
+                          </a>
+                        ) : '-'}
+                      </td>
                       <td>{customer.address || '-'}</td>
                       <td>{customer.note || '-'}</td>
                       <td>

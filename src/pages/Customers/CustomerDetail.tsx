@@ -136,7 +136,13 @@ const CustomerDetail: React.FC = () => {
           <div className="info-grid">
             <div className="info-item">
               <span className="label"><Phone size={12} /> Điện thoại</span>
-              <span className="value">{customer.phone || 'Chưa cập nhật'}</span>
+              <span className="value">
+                {customer.phone ? (
+                  <a href={`tel:${customer.phone}`} style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 500 }}>
+                    {customer.phone}
+                  </a>
+                ) : 'Chưa cập nhật'}
+              </span>
             </div>
             <div className="info-item">
               <span className="label"><Mail size={12} /> Email</span>

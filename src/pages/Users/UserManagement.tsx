@@ -305,7 +305,13 @@ const UserManagement: React.FC = () => {
                       </td>
                       <td>
                         <div style={{ fontSize: '0.875rem' }}>{user.email}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{user.phone || '-'}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                          {user.phone ? (
+                            <a href={`tel:${user.phone}`} style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 500 }}>
+                              {user.phone}
+                            </a>
+                          ) : '-'}
+                        </div>
                       </td>
                       <td>
                         <span className="role-badge">
