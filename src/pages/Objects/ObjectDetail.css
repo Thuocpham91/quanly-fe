@@ -2,56 +2,206 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .back-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--text-muted);
+  color: #64748b;
   font-weight: 500;
   font-size: 0.875rem;
-  transition: color 0.2s;
-  padding: 0.5rem 0;
+  transition: all 0.2s;
+  padding: 0.5rem 1rem;
   cursor: pointer;
-  background: transparent;
+  background: white;
   width: fit-content;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .back-btn:hover {
-  color: var(--primary-color);
+  color: #2563eb;
+  border-color: #2563eb;
+  transform: translateX(-4px);
 }
 
-.detail-header {
-  background-color: var(--white);
-  padding: 1.5rem 2rem;
+.detail-header-card {
+  background: white;
   border-radius: 16px;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-color);
+  padding: 1.5rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.header-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.title-section h2 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.id-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  background: #f1f5f9;
+  color: #64748b;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.info-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.info-value {
+  font-size: 1rem;
+  color: #334155;
+  font-weight: 500;
+}
+
+.tabs-container {
+  display: flex;
+  gap: 1rem;
+  border-bottom: 2px solid #f1f5f9;
+  margin-bottom: 0.5rem;
+}
+
+.tab-item {
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  color: #94a3b8;
+  transition: all 0.2s;
+  position: relative;
+  background: transparent;
+  border: none;
+}
+
+.tab-item:hover {
+  color: #2563eb;
+}
+
+.tab-item.active {
+  color: #2563eb;
+}
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #2563eb;
+}
+
+.section-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.section-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: #fcfdfe;
 }
 
-.detail-info h2 {
-  font-size: 1.5rem;
+.section-header h3 {
+  font-size: 1.125rem;
   font-weight: 700;
-  color: var(--text-main);
-  margin-bottom: 0.25rem;
+  color: #1e293b;
 }
 
-.detail-info p {
-  color: var(--text-muted);
-  font-size: 0.875rem;
+.empty-state-container {
+  padding: 4rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: #94a3b8;
 }
 
-.task-section-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-main);
-  margin-top: 1rem;
-  margin-bottom: -0.5rem;
+.empty-icon {
+  width: 64px;
+  height: 64px;
+  background: #f8fafc;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #cbd5e1;
 }
 
-/* Biến tái sử dụng class của ObjectManagement.css */
-/* Các popup Modal và Table tự dùng class cũ là ok */
+.btn-icon-only {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s;
+  background: white;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-icon-only:hover {
+  background: #f8fafc;
+  transform: scale(1.05);
+}
+
+.btn-edit:hover {
+  color: #2563eb;
+  border-color: #bfdbfe;
+}
+
+.btn-delete:hover {
+  color: #ef4444;
+  border-color: #fecaca;
+}

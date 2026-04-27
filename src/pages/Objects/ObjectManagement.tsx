@@ -182,7 +182,7 @@ const ObjectManagement: React.FC = () => {
                             className="btn-secondary" 
                             style={{ padding: '0.4rem', border: '1px solid #e2e8f0', borderRadius: '4px' }}
                             title="Chi tiết"
-                            onClick={() => navigate(`/objects/${obj.id}`, { state: obj })}
+                            onClick={() => navigate(`/admin/objects/${obj.id}`, { state: obj })}
                           >
                             <Eye size={16} />
                           </button>

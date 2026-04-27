@@ -1,6 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { Plus, X, ArrowLeft, Edit2, Trash2 } from 'lucide-react';
+import { 
+  Plus, 
+  X, 
+  ArrowLeft, 
+  Edit2, 
+  Trash2, 
+  Calendar, 
+  Hash, 
+  Tag, 
+  FileText, 
+  Briefcase, 
+  ClipboardList,
+  ChevronRight,
+  Loader2
+} from 'lucide-react';
 import api from '../../api/axios';
 import './ObjectManagement.css'; // Re-use table & modal styles
 import './ObjectDetail.css';
@@ -15,15 +29,26 @@ interface TaskData {
   description?: string;
 }
 
+interface WorkData {
+  id: string;
+  title: string;
+  workDate: string;
+  exportDate?: string;
+  quantity?: number;
+  workTasks?: any[];
+}
+
 const ObjectDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
   
   // Object data passed from state
-  const objectData = location.state || { name: 'Object ' + id };
+  const objectData = location.state || { name: 'Object #' + id };
 
+  const [activeTab, setActiveTab] = useState<'tasks' | 'works'>('tasks');
   const [tasks, setTasks] = useState<TaskData[]>([]);
+  const [works, setWorks] = useState<WorkData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
   // Modal states for task creation/editing
@@ -41,23 +66,35 @@ const ObjectDetail: React.FC = () => {
 
   const fetchTasks = async () => {
     try {
-      setIsLoading(true);
       const response = await api.get(`/objects/${id}/tasks`);
       if (response.data && Array.isArray(response.data.data)) {
         setTasks(response.data.data);
-      } else {
-        setTasks([]);
       }
     } catch (err) {
       console.error('Error fetching tasks:', err);
-    } finally {
-      setIsLoading(false);
     }
+  };
+
+  const fetchWorks = async () => {
+    try {
+      const response = await api.get(`/works?objectId=${id}`);
+      if (response.data && Array.isArray(response.data.data)) {
+        setWorks(response.data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching works:', err);
+    }
+  };
+
+  const loadData = async () => {
+    setIsLoading(true);
+    await Promise.all([fetchTasks(), fetchWorks()]);
+    setIsLoading(false);
   };
 
   useEffect(() => {
     if (id) {
-      fetchTasks();
+      loadData();
     }
   }, [id]);
 
@@ -77,7 +114,7 @@ const ObjectDetail: React.FC = () => {
     setEditingTask(task);
     setFormData({ 
         taskName: task.taskName, 
-        quantity: task.quantity.toString(), 
+        quantity: task.quantity?.toString() || '', 
         workDate: task.workDate.toString(), 
         removalCount: task.removalCount?.toString() || '',
         description: task.description || ''
@@ -91,7 +128,7 @@ const ObjectDetail: React.FC = () => {
     setError('');
     
     if (!formData.taskName || !formData.workDate) {
-      setError('Vui lòng nhập đầy đủ Task Name và Work Date!');
+      setError('Vui lòng nhập đầy đủ Tên Task và Ngày làm việc!');
       return;
     }
 
@@ -112,9 +149,7 @@ const ObjectDetail: React.FC = () => {
         await api.post(`/objects/${id}/tasks`, payload);
       }
       
-      // Close modal and refresh
       setIsModalOpen(false);
-      setFormData({ taskName: '', quantity: '', workDate: '', removalCount: '', description: '' });
       fetchTasks();
     } catch (err: any) {
       console.error('Lỗi khi lưu task:', err);
@@ -138,77 +173,126 @@ const ObjectDetail: React.FC = () => {
 
   return (
     <div className="detail-container">
-      <button className="back-btn" onClick={() => navigate('/objects')}>
-        <ArrowLeft size={18} /> Quay lại danh sách
+      <button className="back-btn" onClick={() => navigate('/admin/objects')}>
+        <ArrowLeft size={18} /> 
+        <span>Quay lại danh sách</span>
       </button>
 
-      <div className="detail-header">
-        <div className="detail-info">
-          <h2>{objectData.name}</h2>
-          <p>Thuộc tính Object ID: {id}</p>
+      <div className="detail-header-card">
+        <div className="header-main">
+          <div className="title-section">
+            <div className="id-badge">
+              <Hash size={12} />
+              <span>{id}</span>
+            </div>
+            <h2>{objectData.name}</h2>
+          </div>
+          <div className="status-badge" style={{ backgroundColor: '#eff6ff', color: '#2563eb', fontWeight: 700, padding: '0.5rem 1rem' }}>
+            <Tag size={16} />
+            <span>{objectData.type || 'Nghiệp vụ'}</span>
+          </div>
+        </div>
+
+        <div className="info-grid">
+          <div className="info-item">
+            <span className="info-label">Ngày bắt đầu</span>
+            <div className="info-value" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Calendar size={16} color="#64748b" />
+              {objectData.startDate ? new Date(objectData.startDate).toLocaleDateString('vi-VN') : '-'}
+            </div>
+          </div>
+          <div className="info-item">
+            <span className="info-label">Loại quy trình</span>
+            <div className="info-value" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Briefcase size={16} color="#64748b" />
+              {objectData.type || 'Tiêu chuẩn'}
+            </div>
+          </div>
+          <div className="info-item" style={{ gridColumn: 'span 2' }}>
+            <span className="info-label">Mô tả chi tiết</span>
+            <div className="info-value" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <FileText size={16} color="#64748b" />
+              {objectData.description || 'Chưa có mô tả cho đối tượng này.'}
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="page-header" style={{ marginTop: '1rem' }}>
-        <h3 className="task-section-title">Danh sách Task</h3>
-        <button className="btn-primary" onClick={openAddModal}>
-          <Plus size={18} />
-          <span>Thêm Mới Task</span>
+      <div className="tabs-container">
+        <button 
+          className={`tab-item ${activeTab === 'tasks' ? 'active' : ''}`}
+          onClick={() => setActiveTab('tasks')}
+        >
+          <ClipboardList size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+          Quy trình Task Mẫu
+        </button>
+        <button 
+          className={`tab-item ${activeTab === 'works' ? 'active' : ''}`}
+          onClick={() => setActiveTab('works')}
+        >
+          <Briefcase size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+          Lịch sử Công việc ({works.length})
         </button>
       </div>
 
-      <div className="table-card">
-        {isLoading ? (
-          <div className="loading-container">
-            <div className="loader-large"></div>
-            <p>Đang tải dữ liệu Task...</p>
+      {isLoading ? (
+        <div className="loading-container" style={{ padding: '5rem 0' }}>
+          <Loader2 className="loader-large animate-spin" size={40} color="#2563eb" />
+          <p style={{ marginTop: '1rem', color: '#64748b', fontWeight: 500 }}>Đang tải dữ liệu...</p>
+        </div>
+      ) : activeTab === 'tasks' ? (
+        <div className="section-card">
+          <div className="section-header">
+            <h3>Danh sách Task Templates</h3>
+            <button className="btn-primary" onClick={openAddModal}>
+              <Plus size={18} />
+              <span>Thêm Task Mới</span>
+            </button>
           </div>
-        ) : (
+          
           <div className="table-responsive">
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Task ID</th>
+                  <th style={{ width: '80px' }}>ID</th>
                   <th>Tên Task</th>
-                  <th>Số lượng</th>
-                  <th>Work Date</th>
-                  <th>Scheduled</th>
-                  <th>Removal</th>
+                  <th>Quy mô</th>
+                  <th>Ngày làm (Offset)</th>
+                  <th>Dự kiến (Tương đối)</th>
+                  <th>Loại bỏ</th>
                   <th>Mô tả</th>
-                  <th style={{ textAlign: 'right' }}>Hành động</th>
+                  <th style={{ textAlign: 'right' }}>Thao tác</th>
                 </tr>
               </thead>
               <tbody>
                 {tasks.length > 0 ? (
                   tasks.map((task) => (
                     <tr key={task.id}>
-                      <td>{task.id}</td>
-                      <td>{task.taskName}</td>
-                      <td>{task.quantity}</td>
-                      <td>{task.workDate}</td>
+                      <td><span style={{ color: '#94a3b8' }}>#{task.id}</span></td>
+                      <td style={{ fontWeight: 600, color: '#1e293b' }}>{task.taskName}</td>
+                      <td>{task.quantity || '-'}</td>
                       <td>
-                          <span style={{ color: '#2563eb', fontWeight: 500 }}>
-                            {task.scheduledDate ? new Date(task.scheduledDate).toLocaleDateString('vi-VN') : '-'}
-                          </span>
+                        <span className="id-badge" style={{ backgroundColor: '#f0fdf4', color: '#16a34a' }}>
+                          +{task.workDate} ngày
+                        </span>
+                      </td>
+                      <td>
+                        <span style={{ color: '#2563eb', fontWeight: 500 }}>
+                          {task.scheduledDate ? new Date(task.scheduledDate).toLocaleDateString('vi-VN') : '-'}
+                        </span>
                       </td>
                       <td>{task.removalCount ?? '-'}</td>
-                      <td>{task.description || '-'}</td>
+                      <td>
+                        <div style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#64748b' }}>
+                          {task.description || '-'}
+                        </div>
+                      </td>
                       <td>
                         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                          <button 
-                            className="btn-secondary" 
-                            style={{ padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center' }}
-                            title="Sửa Task"
-                            onClick={() => openEditModal(task)}
-                          >
+                          <button className="btn-icon-only btn-edit" title="Sửa" onClick={() => openEditModal(task)}>
                             <Edit2 size={14} />
                           </button>
-                          <button 
-                            className="btn-danger" 
-                            style={{ padding: '0.4rem', borderRadius: '4px', display: 'flex', alignItems: 'center' }}
-                            title="Xóa Task"
-                            onClick={() => handleDelete(task.id)}
-                          >
+                          <button className="btn-icon-only btn-delete" title="Xóa" onClick={() => handleDelete(task.id)}>
                             <Trash2 size={14} />
                           </button>
                         </div>
@@ -217,23 +301,88 @@ const ObjectDetail: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={8} className="empty-state">
-                      Chưa có Task nào cho Object này.
+                    <td colSpan={8}>
+                      <div className="empty-state-container">
+                        <div className="empty-icon"><ClipboardList size={32} /></div>
+                        <p>Chưa có Task mẫu nào được thiết lập.</p>
+                      </div>
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="section-card">
+          <div className="section-header">
+            <h3>Các đợt công việc đã triển khai</h3>
+          </div>
+          <div className="table-responsive">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Tiêu đề Công việc</th>
+                  <th>Ngày bắt đầu</th>
+                  <th>Ngày xuất gà</th>
+                  <th>Quy mô</th>
+                  <th>Nhiệm vụ</th>
+                  <th style={{ textAlign: 'right' }}>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {works.length > 0 ? (
+                  works.map((work) => (
+                    <tr key={work.id}>
+                      <td><span style={{ color: '#94a3b8' }}>#{work.id}</span></td>
+                      <td style={{ fontWeight: 600 }}>{work.title}</td>
+                      <td>{new Date(work.workDate).toLocaleDateString('vi-VN')}</td>
+                      <td>
+                        <span style={{ color: '#2563eb', fontWeight: 600 }}>
+                          {work.exportDate ? new Date(work.exportDate).toLocaleDateString('vi-VN') : '-'}
+                        </span>
+                      </td>
+                      <td>{work.quantity?.toLocaleString('vi-VN') || '-'}</td>
+                      <td>
+                        <span className="id-badge">{work.workTasks?.length || 0} nhiệm vụ</span>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                          <button 
+                            className="btn-primary" 
+                            style={{ padding: '0.35rem 0.75rem', borderRadius: '6px', fontSize: '0.75rem' }}
+                            onClick={() => navigate(`/admin/works/${work.id}`)}
+                          >
+                            <span>Chi tiết</span>
+                            <ChevronRight size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={7}>
+                      <div className="empty-state-container">
+                        <div className="empty-icon"><Briefcase size={32} /></div>
+                        <p>Chưa có đợt công việc nào được tạo cho Object này.</p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Create Task Modal */}
       {isModalOpen && (
         <div className="modal-overlay" onClick={() => !isSubmitting && setIsModalOpen(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>{editingTask ? 'Cập Nhật Task' : 'Thêm Task Mới'}</h3>
+              <h3>{editingTask ? 'Cập Nhật Task Mẫu' : 'Thêm Task Mẫu Mới'}</h3>
               <button 
                 className="close-btn" 
                 onClick={() => setIsModalOpen(false)}
@@ -246,69 +395,70 @@ const ObjectDetail: React.FC = () => {
             <form onSubmit={handleSubmit}>
               <div className="modal-body">
                 {error && (
-                  <div className="form-group-modal" style={{ color: '#ef4444', fontSize: '0.875rem' }}>
+                  <div style={{ color: '#ef4444', fontSize: '0.875rem', marginBottom: '1rem', padding: '0.5rem', background: '#fef2f2', borderRadius: '6px' }}>
                     {error}
                   </div>
                 )}
                 
                 <div className="form-group-modal">
-                  <label htmlFor="taskName">Tên Task (Task Name)</label>
+                  <label htmlFor="taskName">Tên Task Template *</label>
                   <input
                     type="text"
                     id="taskName"
                     name="taskName"
                     value={formData.taskName}
                     onChange={handleInputChange}
-                    placeholder="VD: task 1..."
+                    placeholder="VD: Kiểm tra nhiệt độ, Tiêm vaccine..."
                     required
                   />
                 </div>
                 
-                <div className="form-group-modal">
-                  <label htmlFor="quantity">Số lượng (Quantity - Tùy chọn)</label>
-                  <input
-                    type="number"
-                    id="quantity"
-                    name="quantity"
-                    value={formData.quantity}
-                    onChange={handleInputChange}
-                    placeholder="VD: 3"
-                  />
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group-modal">
+                    <label htmlFor="workDate">Ngày làm việc (Ngày thứ mấy) *</label>
+                    <input
+                      type="number"
+                      id="workDate"
+                      name="workDate"
+                      value={formData.workDate}
+                      onChange={handleInputChange}
+                      placeholder="VD: 0 (ngày đầu), 7 (sau 1 tuần)..."
+                      required
+                    />
+                  </div>
+                  <div className="form-group-modal">
+                    <label htmlFor="quantity">Quy mô (Tùy chọn)</label>
+                    <input
+                      type="number"
+                      id="quantity"
+                      name="quantity"
+                      value={formData.quantity}
+                      onChange={handleInputChange}
+                      placeholder="Số lượng áp dụng..."
+                    />
+                  </div>
                 </div>
 
                 <div className="form-group-modal">
-                  <label htmlFor="workDate">Ngày làm việc (Work Date Offset)</label>
-                  <input
-                    type="number"
-                    id="workDate"
-                    name="workDate"
-                    value={formData.workDate}
-                    onChange={handleInputChange}
-                    placeholder="VD: 4"
-                    required
-                  />
-                </div>
-
-                <div className="form-group-modal">
-                  <label htmlFor="removalCount">Số lượng loại bỏ (Removal Count)</label>
+                  <label htmlFor="removalCount">Số lượng loại bỏ dự kiến</label>
                   <input
                     type="number"
                     id="removalCount"
                     name="removalCount"
                     value={formData.removalCount}
                     onChange={handleInputChange}
-                    placeholder="VD: 1"
+                    placeholder="Số lượng hao hụt dự kiến..."
                   />
                 </div>
 
                 <div className="form-group-modal">
-                  <label htmlFor="description">Mô tả (Description)</label>
+                  <label htmlFor="description">Ghi chú / Hướng dẫn công việc</label>
                   <textarea
                     id="description"
                     name="description"
                     value={formData.description}
                     onChange={handleInputChange}
-                    placeholder="Nhập mô tả chi tiết..."
+                    placeholder="Mô tả chi tiết các bước thực hiện..."
                     rows={3}
                     style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', resize: 'vertical' }}
                   />
@@ -325,7 +475,7 @@ const ObjectDetail: React.FC = () => {
                   Hủy Bỏ
                 </button>
                 <button type="submit" className="btn-primary" disabled={isSubmitting}>
-                  {isSubmitting ? <div className="loader-small" /> : 'Lưu Dữ Liệu'}
+                  {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : 'Lưu Task Template'}
                 </button>
               </div>
             </form>
