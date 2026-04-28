@@ -166,7 +166,7 @@ const TaskSchedule: React.FC = () => {
                 <div className="task-main">
                   <div className="task-info">
                     <h3 className="task-name">{task.taskName}</h3>
-                    {task.description && <p className="task-desc">{task.description}</p>}
+                    {task.description && <div className="task-desc" dangerouslySetInnerHTML={{ __html: task.description }}></div>}
                   </div>
                   
                   <div className="task-actions-btns">
