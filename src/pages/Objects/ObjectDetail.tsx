@@ -19,6 +19,9 @@ import api from '../../api/axios';
 import './ObjectManagement.css'; // Re-use table & modal styles
 import './ObjectDetail.css';
 
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
+
 interface TaskData {
   id: string;
   taskName: string;
@@ -37,6 +40,14 @@ interface WorkData {
   quantity?: number;
   workTasks?: any[];
 }
+
+const quillModules = {
+  toolbar: [
+    ['bold', 'italic', 'underline'],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    ['clean']
+  ],
+};
 
 const ObjectDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -98,9 +109,13 @@ const ObjectDetail: React.FC = () => {
     }
   }, [id]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleDescriptionChange = (content: string) => {
+    setFormData((prev) => ({ ...prev, description: content }));
   };
 
   const openAddModal = () => {
@@ -260,7 +275,7 @@ const ObjectDetail: React.FC = () => {
                   <th>Ngày làm (Offset)</th>
                   <th>Dự kiến (Tương đối)</th>
                   <th>Loại bỏ</th>
-                  <th>Mô tả</th>
+                  <th>Mô tả / Ghi chú</th>
                   <th style={{ textAlign: 'right' }}>Thao tác</th>
                 </tr>
               </thead>
@@ -283,9 +298,11 @@ const ObjectDetail: React.FC = () => {
                       </td>
                       <td>{task.removalCount ?? '-'}</td>
                       <td>
-                        <div style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#64748b' }}>
-                          {task.description || '-'}
-                        </div>
+                        <div 
+                          className="rich-text-content"
+                          style={{ maxWidth: '300px', fontSize: '0.875rem', color: '#64748b' }}
+                          dangerouslySetInnerHTML={{ __html: task.description || '-' }}
+                        />
                       </td>
                       <td>
                         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
@@ -380,7 +397,7 @@ const ObjectDetail: React.FC = () => {
       {/* Create Task Modal */}
       {isModalOpen && (
         <div className="modal-overlay" onClick={() => !isSubmitting && setIsModalOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" style={{ maxWidth: '600px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>{editingTask ? 'Cập Nhật Task Mẫu' : 'Thêm Task Mẫu Mới'}</h3>
               <button 
@@ -416,15 +433,25 @@ const ObjectDetail: React.FC = () => {
                 <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className="form-group-modal">
                     <label htmlFor="workDate">Ngày làm việc (Ngày thứ mấy) *</label>
-                    <input
-                      type="number"
+                    <select
                       id="workDate"
                       name="workDate"
                       value={formData.workDate}
                       onChange={handleInputChange}
-                      placeholder="VD: 0 (ngày đầu), 7 (sau 1 tuần)..."
                       required
-                    />
+                      style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                    >
+                      <option value="">Chọn ngày (1-400)</option>
+                      {Array.from({ length: 400 }, (_, i) => i + 1).map(day => {
+                        const isTaken = tasks.some(t => t.workDate === day && t.id !== editingTask?.id);
+                        if (isTaken) return null;
+                        return (
+                          <option key={day} value={day}>
+                            Ngày thứ {day}
+                          </option>
+                        );
+                      })}
+                    </select>
                   </div>
                   <div className="form-group-modal">
                     <label htmlFor="quantity">Quy mô (Tùy chọn)</label>
@@ -452,16 +479,17 @@ const ObjectDetail: React.FC = () => {
                 </div>
 
                 <div className="form-group-modal">
-                  <label htmlFor="description">Ghi chú / Hướng dẫn công việc</label>
-                  <textarea
-                    id="description"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    placeholder="Mô tả chi tiết các bước thực hiện..."
-                    rows={3}
-                    style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', resize: 'vertical' }}
-                  />
+                  <label>Ghi chú / Hướng dẫn công việc</label>
+                  <div style={{ marginBottom: '40px' }}>
+                    <ReactQuill 
+                      theme="snow" 
+                      value={formData.description} 
+                      onChange={handleDescriptionChange}
+                      modules={quillModules}
+                      placeholder="Nhập hướng dẫn chi tiết (có thể xuống dòng, tô đậm...)"
+                      style={{ height: '150px' }}
+                    />
+                  </div>
                 </div>
               </div>
               
