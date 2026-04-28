@@ -20,6 +20,9 @@ const ObjectTypes = [
 const ObjectManagement: React.FC = () => {
   const [objects, setObjects] = useState<ObjectData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 10;
   const navigate = useNavigate();
   
   // Modal states
@@ -35,12 +38,15 @@ const ObjectManagement: React.FC = () => {
   const [error, setError] = useState('');
 
   // Fetch objects
-  const fetchObjects = async () => {
+  const fetchObjects = async (page: number = 1) => {
     try {
       setIsLoading(true);
-      const response = await api.get('/objects');
+      const response = await api.get(`/objects?page=${page}&limit=${limit}`);
       if (response.data && Array.isArray(response.data.data)) {
         setObjects(response.data.data);
+        const total = response.data.total || 0;
+        setTotalPages(Math.ceil(total / limit) || 1);
+        setCurrentPage(page);
       }
     } catch (err) {
       console.error('Error fetching objects:', err);
@@ -50,7 +56,7 @@ const ObjectManagement: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchObjects();
+    fetchObjects(1);
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -82,7 +88,7 @@ const ObjectManagement: React.FC = () => {
 
     try {
       await api.delete(`/objects/${id}`);
-      fetchObjects();
+      fetchObjects(currentPage);
     } catch (err) {
       console.error('Lỗi khi xóa object:', err);
       alert('Có lỗi xảy ra khi xóa dữ liệu.');
@@ -115,7 +121,7 @@ const ObjectManagement: React.FC = () => {
       }
       
       setIsModalOpen(false);
-      fetchObjects();
+      fetchObjects(editingObject ? currentPage : 1);
     } catch (err: any) {
       console.error('Lỗi khi lưu object:', err);
       setError(err.response?.data?.message || 'Có lỗi xảy ra khi lưu dữ liệu.');
@@ -215,6 +221,30 @@ const ObjectManagement: React.FC = () => {
                 )}
               </tbody>
             </table>
+          </div>
+        )}
+        
+        {!isLoading && totalPages > 1 && (
+          <div className="pagination-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem', gap: '1rem', borderTop: '1px solid #e2e8f0', background: 'white', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px' }}>
+            <button 
+              type="button"
+              className="btn-secondary" 
+              disabled={currentPage === 1}
+              onClick={() => fetchObjects(currentPage - 1)}
+              style={{ padding: '0.5rem 1rem', borderRadius: '6px' }}
+            >
+              Trước
+            </button>
+            <span style={{ fontWeight: 500, color: '#64748b' }}>Trang {currentPage} / {totalPages}</span>
+            <button 
+              type="button"
+              className="btn-secondary" 
+              disabled={currentPage === totalPages}
+              onClick={() => fetchObjects(currentPage + 1)}
+              style={{ padding: '0.5rem 1rem', borderRadius: '6px' }}
+            >
+              Sau
+            </button>
           </div>
         )}
       </div>

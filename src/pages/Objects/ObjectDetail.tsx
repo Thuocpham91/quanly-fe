@@ -60,6 +60,10 @@ const ObjectDetail: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'tasks' | 'works'>('tasks');
   const [tasks, setTasks] = useState<TaskData[]>([]);
+  const [currentTaskPage, setCurrentTaskPage] = useState(1);
+  const [totalTaskPages, setTotalTaskPages] = useState(1);
+  const limit = 10;
+  
   const [works, setWorks] = useState<WorkData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -77,11 +81,14 @@ const ObjectDetail: React.FC = () => {
   });
   const [error, setError] = useState('');
 
-  const fetchTasks = async () => {
+  const fetchTasks = async (page: number = 1) => {
     try {
-      const response = await api.get(`/objects/${id}/tasks`);
+      const response = await api.get(`/objects/${id}/tasks?page=${page}&limit=${limit}`);
       if (response.data && Array.isArray(response.data.data)) {
         setTasks(response.data.data);
+        const total = response.data.total || 0;
+        setTotalTaskPages(Math.ceil(total / limit) || 1);
+        setCurrentTaskPage(page);
       }
     } catch (err) {
       console.error('Error fetching tasks:', err);
@@ -101,7 +108,7 @@ const ObjectDetail: React.FC = () => {
 
   const loadData = async () => {
     setIsLoading(true);
-    await Promise.all([fetchTasks(), fetchWorks()]);
+    await Promise.all([fetchTasks(1), fetchWorks()]);
     setIsLoading(false);
   };
 
@@ -169,7 +176,7 @@ const ObjectDetail: React.FC = () => {
       }
       
       setIsModalOpen(false);
-      fetchTasks();
+      fetchTasks(editingTask ? currentTaskPage : 1);
     } catch (err: any) {
       console.error('Lỗi khi lưu task:', err);
       setError(err.response?.data?.message || 'Có lỗi xảy ra khi lưu dữ liệu Task.');
@@ -183,7 +190,7 @@ const ObjectDetail: React.FC = () => {
 
     try {
       await api.delete(`/objects/${id}/tasks/${taskId}`);
-      fetchTasks();
+      fetchTasks(currentTaskPage);
     } catch (err: any) {
       console.error('Lỗi khi xóa task:', err);
       alert(err.response?.data?.message || 'Có lỗi xảy ra khi xóa Task.');
@@ -335,6 +342,30 @@ const ObjectDetail: React.FC = () => {
               </tbody>
             </table>
           </div>
+
+          {totalTaskPages > 1 && (
+            <div className="pagination-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem', gap: '1rem', borderTop: '1px solid #e2e8f0', background: 'white', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px' }}>
+              <button 
+                type="button"
+                className="btn-secondary" 
+                disabled={currentTaskPage === 1}
+                onClick={() => fetchTasks(currentTaskPage - 1)}
+                style={{ padding: '0.5rem 1rem', borderRadius: '6px' }}
+              >
+                Trước
+              </button>
+              <span style={{ fontWeight: 500, color: '#64748b' }}>Trang {currentTaskPage} / {totalTaskPages}</span>
+              <button 
+                type="button"
+                className="btn-secondary" 
+                disabled={currentTaskPage === totalTaskPages}
+                onClick={() => fetchTasks(currentTaskPage + 1)}
+                style={{ padding: '0.5rem 1rem', borderRadius: '6px' }}
+              >
+                Sau
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="section-card">
