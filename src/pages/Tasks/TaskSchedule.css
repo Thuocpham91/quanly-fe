@@ -186,6 +186,39 @@
   margin: 0;
 }
 
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.control-group label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #94a3b8;
+  letter-spacing: 0.025em;
+}
+
+.control-group input {
+  width: 70px;
+  padding: 0.4rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.control-group input:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.removal-input {
+  color: #ef4444 !important;
+}
+
 .task-actions-btns {
   display: flex;
   gap: 0.75rem;

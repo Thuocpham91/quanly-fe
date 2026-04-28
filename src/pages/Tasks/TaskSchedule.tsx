@@ -96,6 +96,16 @@ const TaskSchedule: React.FC = () => {
     }
   };
 
+  const handleUpdateData = async (taskId: string, field: 'quantity' | 'removalCount', val: string) => {
+    const numVal = val === '' ? null : Number(val);
+    try {
+      await api.put(`/works/tasks/${taskId}`, { [field]: numVal });
+      setTasks(prev => prev.map(t => t.id === taskId ? { ...t, [field]: numVal ?? undefined } : t));
+    } catch (err) {
+      console.error('Error updating task data:', err);
+    }
+  };
+
   const isToday = (date: Date) => {
     const today = new Date();
     return date.toDateString() === today.toDateString();
@@ -172,6 +182,28 @@ const TaskSchedule: React.FC = () => {
                     {task.description && <div className="task-desc" dangerouslySetInnerHTML={{ __html: task.description }}></div>}
                   </div>
                   
+                  <div className="task-data-inputs" style={{ display: 'flex', gap: '1.5rem', marginTop: '0.5rem', marginBottom: '0.5rem' }}>
+                    <div className="control-group">
+                      <label>Số lượng (QTY)</label>
+                      <input 
+                        type="number" 
+                        defaultValue={task.quantity || ''}
+                        onBlur={(e) => handleUpdateData(task.id, 'quantity', e.target.value)}
+                        placeholder="-"
+                      />
+                    </div>
+                    <div className="control-group">
+                      <label>Loại bỏ (Removal)</label>
+                      <input 
+                        type="number" 
+                        defaultValue={task.removalCount || ''}
+                        onBlur={(e) => handleUpdateData(task.id, 'removalCount', e.target.value)}
+                        placeholder="-"
+                        className="removal-input"
+                      />
+                    </div>
+                  </div>
+
                   <div className="task-actions-btns">
                     <button 
                       className={`status-toggle employee ${task.employeeChecked ? 'checked' : ''}`}
