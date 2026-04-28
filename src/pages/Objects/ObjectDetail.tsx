@@ -62,7 +62,7 @@ const ObjectDetail: React.FC = () => {
   const [tasks, setTasks] = useState<TaskData[]>([]);
   const [currentTaskPage, setCurrentTaskPage] = useState(1);
   const [totalTaskPages, setTotalTaskPages] = useState(1);
-  const limit = 10;
+  const [limit, setLimit] = useState(10);
   
   const [works, setWorks] = useState<WorkData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -81,13 +81,14 @@ const ObjectDetail: React.FC = () => {
   });
   const [error, setError] = useState('');
 
-  const fetchTasks = async (page: number = 1) => {
+  const fetchTasks = async (page: number = 1, customLimit?: number) => {
+    const fetchLimit = customLimit || limit;
     try {
-      const response = await api.get(`/objects/${id}/tasks?page=${page}&limit=${limit}`);
+      const response = await api.get(`/objects/${id}/tasks?page=${page}&limit=${fetchLimit}`);
       if (response.data && Array.isArray(response.data.data)) {
         setTasks(response.data.data);
         const total = response.data.total || 0;
-        setTotalTaskPages(Math.ceil(total / limit) || 1);
+        setTotalTaskPages(Math.ceil(total / fetchLimit) || 1);
         setCurrentTaskPage(page);
       }
     } catch (err) {
@@ -343,27 +344,59 @@ const ObjectDetail: React.FC = () => {
             </table>
           </div>
 
-          {totalTaskPages > 1 && (
-            <div className="pagination-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem', gap: '1rem', borderTop: '1px solid #e2e8f0', background: 'white', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px' }}>
-              <button 
-                type="button"
-                className="btn-secondary" 
-                disabled={currentTaskPage === 1}
-                onClick={() => fetchTasks(currentTaskPage - 1)}
-                style={{ padding: '0.5rem 1rem', borderRadius: '6px' }}
-              >
-                Trước
-              </button>
-              <span style={{ fontWeight: 500, color: '#64748b' }}>Trang {currentTaskPage} / {totalTaskPages}</span>
-              <button 
-                type="button"
-                className="btn-secondary" 
-                disabled={currentTaskPage === totalTaskPages}
-                onClick={() => fetchTasks(currentTaskPage + 1)}
-                style={{ padding: '0.5rem 1rem', borderRadius: '6px' }}
-              >
-                Sau
-              </button>
+          {tasks.length > 0 && (
+            <div className="pagination-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', borderTop: '1px solid #e2e8f0', background: 'white', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '0.875rem', color: '#64748b' }}>Hiển thị:</span>
+                <select 
+                  value={limit} 
+                  onChange={(e) => {
+                    const newLimit = parseInt(e.target.value);
+                    setLimit(newLimit);
+                    fetchTasks(1, newLimit);
+                  }}
+                  style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '0.875rem', outline: 'none' }}
+                >
+                  <option value={10}>10 dòng</option>
+                  <option value={20}>20 dòng</option>
+                  <option value={50}>50 dòng</option>
+                  <option value={100}>100 dòng</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <button 
+                  type="button"
+                  className="btn-secondary" 
+                  disabled={currentTaskPage === 1}
+                  onClick={() => fetchTasks(currentTaskPage - 1)}
+                  style={{ padding: '0.5rem 1rem', borderRadius: '6px' }}
+                >
+                  Trước
+                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ fontWeight: 500, color: '#64748b' }}>Trang</span>
+                  <select 
+                    value={currentTaskPage}
+                    onChange={(e) => fetchTasks(parseInt(e.target.value))}
+                    style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid #cbd5e1', fontWeight: 600, color: '#0f172a', outline: 'none' }}
+                  >
+                    {Array.from({ length: totalTaskPages }, (_, i) => i + 1).map(page => (
+                      <option key={page} value={page}>{page}</option>
+                    ))}
+                  </select>
+                  <span style={{ fontWeight: 500, color: '#64748b' }}>/ {totalTaskPages}</span>
+                </div>
+                <button 
+                  type="button"
+                  className="btn-secondary" 
+                  disabled={currentTaskPage === totalTaskPages}
+                  onClick={() => fetchTasks(currentTaskPage + 1)}
+                  style={{ padding: '0.5rem 1rem', borderRadius: '6px' }}
+                >
+                  Sau
+                </button>
+              </div>
             </div>
           )}
         </div>
