@@ -29,6 +29,7 @@ interface TaskData {
   workDate: number;
   removalCount?: number;
   scheduledDate?: number;
+  feedPerAnimal?: number;
   description?: string;
 }
 
@@ -71,6 +72,7 @@ const ObjectDetail: React.FC = () => {
     quantity: '', 
     workDate: '', 
     removalCount: '',
+    feedPerAnimal: '',
     description: ''
   });
   const [error, setError] = useState('');
@@ -120,7 +122,7 @@ const ObjectDetail: React.FC = () => {
 
   const openAddModal = () => {
     setEditingTask(null);
-    setFormData({ taskName: '', quantity: '', workDate: '', removalCount: '', description: '' });
+    setFormData({ taskName: '', quantity: '', workDate: '', removalCount: '', feedPerAnimal: '', description: '' });
     setError('');
     setIsModalOpen(true);
   };
@@ -132,6 +134,7 @@ const ObjectDetail: React.FC = () => {
         quantity: task.quantity?.toString() || '', 
         workDate: task.workDate.toString(), 
         removalCount: task.removalCount?.toString() || '',
+        feedPerAnimal: task.feedPerAnimal?.toString() || '',
         description: task.description || ''
     });
     setError('');
@@ -155,6 +158,7 @@ const ObjectDetail: React.FC = () => {
         quantity: formData.quantity ? Number(formData.quantity) : null,
         workDate: Number(formData.workDate),
         removalCount: formData.removalCount ? Number(formData.removalCount) : null,
+        feedPerAnimal: formData.feedPerAnimal ? Number(formData.feedPerAnimal) : null,
         description: formData.description || null
       };
 
@@ -272,6 +276,7 @@ const ObjectDetail: React.FC = () => {
                   <th style={{ width: '80px' }}>ID</th>
                   <th>Tên Task</th>
                   <th>Quy mô</th>
+                  <th>Lượng cám (g/con)</th>
                   <th>Ngày làm (Offset)</th>
                   <th>Dự kiến (Tương đối)</th>
                   <th>Loại bỏ</th>
@@ -286,6 +291,7 @@ const ObjectDetail: React.FC = () => {
                       <td><span style={{ color: '#94a3b8' }}>#{task.id}</span></td>
                       <td style={{ fontWeight: 600, color: '#1e293b' }}>{task.taskName}</td>
                       <td>{task.quantity || '-'}</td>
+                      <td>{task.feedPerAnimal ? `${task.feedPerAnimal}g` : '-'}</td>
                       <td>
                         <span className="id-badge" style={{ backgroundColor: '#f0fdf4', color: '#16a34a' }}>
                           +{task.workDate} ngày
@@ -466,16 +472,30 @@ const ObjectDetail: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="form-group-modal">
-                  <label htmlFor="removalCount">Số lượng loại bỏ dự kiến</label>
-                  <input
-                    type="number"
-                    id="removalCount"
-                    name="removalCount"
-                    value={formData.removalCount}
-                    onChange={handleInputChange}
-                    placeholder="Số lượng hao hụt dự kiến..."
-                  />
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group-modal">
+                    <label htmlFor="removalCount">Số lượng loại bỏ dự kiến</label>
+                    <input
+                      type="number"
+                      id="removalCount"
+                      name="removalCount"
+                      value={formData.removalCount}
+                      onChange={handleInputChange}
+                      placeholder="Số lượng hao hụt dự kiến..."
+                    />
+                  </div>
+                  <div className="form-group-modal">
+                    <label htmlFor="feedPerAnimal">Số gam cám / 1 con (Không bắt buộc)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      id="feedPerAnimal"
+                      name="feedPerAnimal"
+                      value={formData.feedPerAnimal}
+                      onChange={handleInputChange}
+                      placeholder="VD: 15.5..."
+                    />
+                  </div>
                 </div>
 
                 <div className="form-group-modal">
