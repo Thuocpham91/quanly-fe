@@ -301,7 +301,7 @@ const WorkManagement: React.FC = () => {
                           <button 
                             className="btn-primary" 
                             style={{ padding: '0.4rem 0.8rem', borderRadius: '6px', fontSize: '0.75rem' }}
-                            onClick={() => navigate(`/works/${work.id}`)}
+                            onClick={() => navigate(`/admin/works/${work.id}`)}
                           >
                             <ChevronRight size={16} />
                             <span>Chi tiết</span>

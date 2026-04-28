@@ -120,7 +120,7 @@ const WorkDetail: React.FC = () => {
       <div className="error-container">
         <AlertCircle size={48} color="#ef4444" />
         <p>{error || 'Không tìm thấy thông tin đợt công việc.'}</p>
-        <button className="btn-secondary" onClick={() => navigate('/works')}>Quay lại</button>
+        <button className="btn-secondary" onClick={() => navigate('/admin/works')}>Quay lại</button>
       </div>
     );
   }
@@ -132,7 +132,7 @@ const WorkDetail: React.FC = () => {
   return (
     <div className="work-detail-container">
       <div className="detail-header">
-        <button className="back-btn" onClick={() => navigate('/works')}>
+        <button className="back-btn" onClick={() => navigate('/admin/works')}>
           <ArrowLeft size={20} />
           <span>Danh sách đợt</span>
         </button>
@@ -289,7 +289,7 @@ const WorkDetail: React.FC = () => {
                       <button 
                         className="btn-primary" 
                         style={{ padding: '0.4rem 0.8rem', borderRadius: '6px', fontSize: '0.75rem' }}
-                        onClick={() => navigate(`/orders/${order.id}`)}
+                        onClick={() => navigate(`/admin/orders/${order.id}`)}
                       >
                         <span>Chi tiết Đơn</span>
                         <ChevronRight size={14} />
