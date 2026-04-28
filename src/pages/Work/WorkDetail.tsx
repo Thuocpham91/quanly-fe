@@ -182,8 +182,8 @@ const WorkDetail: React.FC = () => {
                     <h4>{task.taskName}</h4>
                     {task.description && (
                       <div className="task-desc">
-                        <Info size={12} />
-                        <span>{task.description}</span>
+                        <Info size={12} style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <span dangerouslySetInnerHTML={{ __html: task.description }}></span>
                       </div>
                     )}
                   </div>
