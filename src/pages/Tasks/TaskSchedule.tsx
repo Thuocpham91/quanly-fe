@@ -21,6 +21,8 @@ interface WorkTask {
   startDate: string;
   employeeChecked: boolean;
   managerChecked: boolean;
+  quantity?: number;
+  removalCount?: number;
   workId: string;
   work?: {
     title: string;
