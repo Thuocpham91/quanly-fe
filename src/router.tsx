@@ -21,6 +21,7 @@ import Settings from './pages/Settings/Settings';
 import RevenueManagement from './pages/Revenue/RevenueManagement';
 import MilestoneManagement from './pages/Revenue/MilestoneManagement';
 import ChickenPriceManagement from './pages/ChickenPrice/ChickenPriceManagement';
+import ExpenseManagement from './pages/Expense/ExpenseManagement';
 
 export const router = createBrowserRouter([
   {
@@ -111,6 +112,10 @@ export const router = createBrowserRouter([
           {
             path: 'chicken-prices',
             element: <ChickenPriceManagement />,
+          },
+          {
+            path: 'expenses',
+            element: <ExpenseManagement />,
           },
         ],
       },
