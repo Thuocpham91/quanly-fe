@@ -513,6 +513,8 @@ const TaskSchedule: React.FC = () => {
             </div>
           </div>
         </>
+      )}
+
       {/* ADD TASK MODAL */}
       {isAddModalOpen && (
         <>
