@@ -17,8 +17,9 @@ import {
   Paperclip,
   Image as ImageIcon,
   File as FileIcon,
-  Loader2,
-  Trash2
+  Trash2,
+  Plus,
+  Loader2
 } from 'lucide-react';
 import api from '../../api/axios';
 import './TaskSchedule.css';
@@ -64,6 +65,17 @@ const TaskSchedule: React.FC = () => {
   const [taskHistories, setTaskHistories] = useState<TaskHistoryData[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
 
+  // Add Task Modal State
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [works, setWorks] = useState<any[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newTaskForm, setNewTaskForm] = useState({
+    taskName: '',
+    workId: '',
+    description: '',
+    time: '08:00'
+  });
+
   const formatDate = (date: Date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -94,6 +106,50 @@ const TaskSchedule: React.FC = () => {
   useEffect(() => {
     fetchTasks();
   }, [fetchTasks]);
+
+  const fetchWorks = async () => {
+    try {
+      const res = await api.get('/works', { params: { limit: 100 } });
+      if (res.data && res.data.data) {
+        setWorks(res.data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching works:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (isAddModalOpen && works.length === 0) {
+      fetchWorks();
+    }
+  }, [isAddModalOpen, works.length]);
+
+  const handleCreateTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTaskForm.taskName || !newTaskForm.workId) return;
+
+    try {
+      setIsSubmitting(true);
+      const dateStr = formatDate(selectedDate);
+      const startDateTime = new Date(`${dateStr}T${newTaskForm.time}:00`);
+
+      await api.post('/works/tasks', {
+        taskName: newTaskForm.taskName,
+        workId: Number(newTaskForm.workId),
+        description: newTaskForm.description,
+        startDate: startDateTime
+      });
+
+      setIsAddModalOpen(false);
+      setNewTaskForm({ taskName: '', workId: '', description: '', time: '08:00' });
+      fetchTasks();
+    } catch (err) {
+      console.error('Error creating task:', err);
+      alert('Có lỗi xảy ra khi tạo nhiệm vụ.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleDateChange = (days: number) => {
     const newDate = new Date(selectedDate);
@@ -248,6 +304,15 @@ const TaskSchedule: React.FC = () => {
           </div>
           <button className="arrow-btn" onClick={() => handleDateChange(1)}>
             <ChevronRight size={20} />
+          </button>
+          
+          <button 
+            className="btn-primary" 
+            style={{ marginLeft: '1rem', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            onClick={() => setIsAddModalOpen(true)}
+          >
+            <Plus size={16} />
+            <span>Thêm nhiệm vụ</span>
           </button>
         </div>
       </div>
@@ -446,6 +511,68 @@ const TaskSchedule: React.FC = () => {
                 </div>
               )}
             </div>
+          </div>
+        </>
+      {/* ADD TASK MODAL */}
+      {isAddModalOpen && (
+        <>
+          <div className="history-overlay" onClick={() => setIsAddModalOpen(false)}></div>
+          <div className="add-task-modal">
+            <div className="modal-header">
+              <h3>Thêm nhiệm vụ mới</h3>
+              <button className="close-modal-btn" onClick={() => setIsAddModalOpen(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleCreateTask} className="modal-content">
+              <div className="form-group">
+                <label>Đợt công việc (Work)</label>
+                <select 
+                  required 
+                  value={newTaskForm.workId} 
+                  onChange={(e) => setNewTaskForm({ ...newTaskForm, workId: e.target.value })}
+                >
+                  <option value="">-- Chọn đợt công việc --</option>
+                  {works.map((w) => (
+                    <option key={w.id} value={w.id}>{w.title} ({w.object?.name || 'N/A'})</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Tên nhiệm vụ</label>
+                <input 
+                  type="text" 
+                  required 
+                  placeholder="Ví dụ: Kiểm tra sức khỏe, Vệ sinh chuồng..."
+                  value={newTaskForm.taskName}
+                  onChange={(e) => setNewTaskForm({ ...newTaskForm, taskName: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
+                <label>Thời gian dự kiến (Ngày {selectedDate.toLocaleDateString('vi-VN')})</label>
+                <input 
+                  type="time" 
+                  required 
+                  value={newTaskForm.time}
+                  onChange={(e) => setNewTaskForm({ ...newTaskForm, time: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
+                <label>Mô tả (tuỳ chọn)</label>
+                <textarea 
+                  rows={3}
+                  placeholder="Nhập ghi chú thêm nếu có..."
+                  value={newTaskForm.description}
+                  onChange={(e) => setNewTaskForm({ ...newTaskForm, description: e.target.value })}
+                />
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={() => setIsAddModalOpen(false)}>Hủy</button>
+                <button type="submit" className="btn-primary" disabled={isSubmitting}>
+                  {isSubmitting ? <Loader2 size={16} className="spin" /> : 'Tạo nhiệm vụ'}
+                </button>
+              </div>
+            </form>
           </div>
         </>
       )}
