@@ -9,10 +9,15 @@ import {
   Save,
   Trash2,
   Edit,
-  Info,
   ChevronRight,
   ShoppingBag,
-  User as UserIcon
+  User as UserIcon,
+  Paperclip,
+  Image as ImageIcon,
+  File as FileIcon,
+  Loader2,
+  X,
+  AlertCircle
 } from 'lucide-react';
 import api from '../../api/axios';
 import './WorkDetail.css';
@@ -26,6 +31,7 @@ interface WorkTaskData {
   managerChecked: boolean;
   quantity?: number;
   removalCount?: number;
+  fileUrls?: string[];
 }
 
 interface WorkData {
@@ -50,6 +56,7 @@ const WorkDetail: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
+  const [uploadingTaskId, setUploadingTaskId] = useState<string | null>(null);
 
   const fetchWorkDetail = useCallback(async () => {
     try {
@@ -103,6 +110,54 @@ const WorkDetail: React.FC = () => {
       setTasks(prev => prev.filter(t => t.id !== taskId));
     } catch (err) {
       console.error('Error deleting task:', err);
+    }
+  };
+
+  const handleFileUpload = async (taskId: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingTaskId(taskId);
+    const formData = new FormData();
+    Array.from(files).forEach((file) => {
+      formData.append('files', file);
+    });
+
+    try {
+      const res = await api.post('/files/upload-multiple', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      if (res.data && res.data.data) {
+        const newUrls = res.data.data.map((f: any) => f.url);
+        
+        const task = tasks.find(t => t.id === taskId);
+        if (task) {
+          const updatedUrls = [...(task.fileUrls || []), ...newUrls];
+          await api.put(`/works/tasks/${taskId}`, { fileUrls: updatedUrls });
+          setTasks(prev => prev.map(t => t.id === taskId ? { ...t, fileUrls: updatedUrls } : t));
+        }
+      }
+    } catch (err) {
+      console.error('Error uploading files:', err);
+      alert('Có lỗi xảy ra khi tải file lên!');
+    } finally {
+      setUploadingTaskId(null);
+      event.target.value = '';
+    }
+  };
+
+  const handleRemoveFile = async (taskId: string, urlToRemove: string) => {
+    if (!window.confirm('Bạn có chắc muốn xoá file này?')) return;
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      const updatedUrls = (task.fileUrls || []).filter(url => url !== urlToRemove);
+      try {
+        await api.put(`/works/tasks/${taskId}`, { fileUrls: updatedUrls });
+        setTasks(prev => prev.map(t => t.id === taskId ? { ...t, fileUrls: updatedUrls } : t));
+      } catch (err) {
+        console.error('Error removing file:', err);
+      }
     }
   };
 
@@ -239,6 +294,35 @@ const WorkDetail: React.FC = () => {
                   <button className="delete-task-btn" onClick={() => handleDeleteTask(task.id)} title="Xóa nhiệm vụ">
                     <Trash2 size={18} />
                   </button>
+                </div>
+
+                <div className="task-files-section-detail">
+                  <div className="task-files-header-detail">
+                    <span className="files-title-detail">Đính kèm:</span>
+                    <label className="upload-file-btn-detail">
+                      {uploadingTaskId === task.id ? <Loader2 size={14} className="spin" /> : <Paperclip size={14} />}
+                      <span>Tải lên</span>
+                      <input type="file" multiple onChange={(e) => handleFileUpload(task.id, e)} style={{ display: 'none' }} disabled={uploadingTaskId === task.id} />
+                    </label>
+                  </div>
+                  {task.fileUrls && task.fileUrls.length > 0 && (
+                    <div className="task-files-list-detail">
+                      {task.fileUrls.map((url, idx) => {
+                        const isImage = url.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null;
+                        return (
+                          <div key={idx} className="task-file-item-detail">
+                            <a href={url} target="_blank" rel="noreferrer" className="file-link-detail">
+                              {isImage ? <ImageIcon size={14} /> : <FileIcon size={14} />}
+                              <span className="file-name-detail">File {idx + 1}</span>
+                            </a>
+                            <button className="remove-file-btn-detail" onClick={() => handleRemoveFile(task.id, url)} title="Xóa file">
+                              <X size={12} />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
             ))

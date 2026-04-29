@@ -237,8 +237,9 @@ const WorkManagement: React.FC = () => {
                    <th>Tiêu đề</th>
                    <th>Ngày làm việc</th>
                    <th>Ngày xuất gà</th>
-                   <th>Quy mô</th>
+                   <th>Quy mô (Ban đầu)</th>
                    <th>Tổng số đặt</th>
+                   <th>Số lượng hiện tại</th>
                    <th>Tổng số nhiệm vụ</th>
                    <th>Trạng thái</th>
                    <th style={{ textAlign: 'right' }}>Thao tác</th>
@@ -284,6 +285,20 @@ const WorkManagement: React.FC = () => {
                             {work.purchaseQuantity !== null && work.purchaseQuantity !== undefined ? work.purchaseQuantity.toLocaleString('vi-VN') : '0'}
                           </span>
                           <span style={{ fontSize: '0.65rem', color: '#64748b' }}>Từ đơn hàng</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontWeight: 600, color: '#ef4444' }}>
+                            {(() => {
+                              const totalRemoval = work.workTasks?.reduce((sum, t) => sum + (t.removalCount || 0), 0) || 0;
+                              const currentQty = (work.quantity || 0) - totalRemoval;
+                              return Math.max(0, currentQty).toLocaleString('vi-VN');
+                            })()}
+                          </span>
+                          <span style={{ fontSize: '0.65rem', color: '#64748b' }}>
+                            Đã loại: {work.workTasks?.reduce((sum, t) => sum + (t.removalCount || 0), 0) || 0}
+                          </span>
                         </div>
                       </td>
                       <td>
