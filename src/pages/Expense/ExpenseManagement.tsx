@@ -7,6 +7,7 @@ interface ExpenseData {
   id: string;
   title: string;
   amount: number;
+  type: 'INCOME' | 'EXPENSE';
   date: string;
   category: string;
   workId?: string;
@@ -59,6 +60,7 @@ const ExpenseManagement: React.FC = () => {
   const [formData, setFormData] = useState({
     title: '',
     amount: '',
+    type: 'EXPENSE' as 'INCOME' | 'EXPENSE',
     date: new Date().toISOString().split('T')[0],
     category: CATEGORIES[0],
     workId: '',
@@ -130,6 +132,7 @@ const ExpenseManagement: React.FC = () => {
     setFormData({
       title: expense.title,
       amount: expense.amount.toString(),
+      type: expense.type,
       date: new Date(expense.date).toISOString().split('T')[0],
       category: expense.category,
       workId: expense.workId || '',
@@ -292,6 +295,11 @@ const ExpenseManagement: React.FC = () => {
                       </td>
                       <td>{new Date(exp.date).toLocaleDateString('vi-VN')}</td>
                       <td>
+                        <span className={`type-badge ${exp.type.toLowerCase()}`}>
+                          {exp.type === 'INCOME' ? 'Thu nhập' : 'Chi phí'}
+                        </span>
+                      </td>
+                      <td>
                         <div style={{ fontWeight: 600 }}>{exp.title}</div>
                         {exp.description && <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{exp.description}</div>}
                       </td>
@@ -306,8 +314,8 @@ const ExpenseManagement: React.FC = () => {
                           </div>
                         ) : <span style={{ color: '#cbd5e1' }}>Không gắn đợt</span>}
                       </td>
-                      <td style={{ textAlign: 'right', fontWeight: 700, color: '#ef4444' }}>
-                        {formatCurrency(exp.amount)}
+                      <td style={{ textAlign: 'right', fontWeight: 700, color: exp.type === 'INCOME' ? '#059669' : '#ef4444' }}>
+                        {exp.type === 'INCOME' ? '+' : '-'}{formatCurrency(exp.amount)}
                       </td>
                     </tr>
                   ))
@@ -351,6 +359,22 @@ const ExpenseManagement: React.FC = () => {
 
                 <div className="form-row">
                   <div className="form-group-modal">
+                    <label>Loại giao dịch *</label>
+                    <select name="type" value={formData.type} onChange={handleInputChange}>
+                      <option value="EXPENSE">Chi phí (-)</option>
+                      <option value="INCOME">Thu nhập (+)</option>
+                    </select>
+                  </div>
+                  <div className="form-group-modal">
+                    <label>Danh mục</label>
+                    <select name="category" value={formData.category} onChange={handleInputChange}>
+                      {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group-modal">
                     <label>Số tiền (VNĐ) *</label>
                     <input
                       type="number"
@@ -373,20 +397,12 @@ const ExpenseManagement: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="form-row">
-                  <div className="form-group-modal">
-                    <label>Danh mục</label>
-                    <select name="category" value={formData.category} onChange={handleInputChange}>
-                      {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                    </select>
-                  </div>
-                  <div className="form-group-modal">
-                    <label>Gắn vào đợt nuôi (Work)</label>
-                    <select name="workId" value={formData.workId} onChange={handleInputChange}>
-                      <option value="">Không gắn đợt</option>
-                      {works.map(w => <option key={w.id} value={w.id}>{w.title}</option>)}
-                    </select>
-                  </div>
+                <div className="form-group-modal">
+                  <label>Gắn vào đợt nuôi (Work)</label>
+                  <select name="workId" value={formData.workId} onChange={handleInputChange}>
+                    <option value="">Không gắn đợt</option>
+                    {works.map(w => <option key={w.id} value={w.id}>{w.title}</option>)}
+                  </select>
                 </div>
 
                 <div className="form-group-modal">

@@ -144,6 +144,24 @@
   font-weight: 600;
 }
 
+.type-badge {
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.type-badge.income {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.type-badge.expense {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
 .work-link {
   display: block;
 }
