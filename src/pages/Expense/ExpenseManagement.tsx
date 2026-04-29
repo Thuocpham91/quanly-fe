@@ -119,6 +119,7 @@ const ExpenseManagement: React.FC = () => {
     setFormData({
       title: '',
       amount: '',
+      type: 'EXPENSE',
       date: new Date().toISOString().split('T')[0],
       category: CATEGORIES[0],
       workId: '',
