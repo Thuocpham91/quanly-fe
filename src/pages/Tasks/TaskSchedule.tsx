@@ -130,8 +130,11 @@ const TaskSchedule: React.FC = () => {
 
     try {
       setIsSubmitting(true);
-      const dateStr = formatDate(selectedDate);
-      const startDateTime = new Date(`${dateStr}T${newTaskForm.time}:00`);
+      
+      // Construct date correctly by setting time on a copy of selectedDate
+      const startDateTime = new Date(selectedDate);
+      const [hours, minutes] = newTaskForm.time.split(':').map(Number);
+      startDateTime.setHours(hours, minutes, 0, 0);
 
       await api.post('/works/tasks', {
         taskName: newTaskForm.taskName,
