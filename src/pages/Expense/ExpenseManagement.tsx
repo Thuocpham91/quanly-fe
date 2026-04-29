@@ -47,6 +47,7 @@ const ExpenseManagement: React.FC = () => {
     keyword: '',
     category: '',
     workId: '',
+    type: '',
     fromDate: '',
     toDate: ''
   });
@@ -192,23 +193,36 @@ const ExpenseManagement: React.FC = () => {
     <div className="expense-page-container">
       <div className="page-header">
         <div className="page-title">
-          <h2>Quản Lý Chi Tiêu</h2>
-          <p>Theo dõi các khoản chi phí chăn nuôi và vận hành</p>
+          <h2>Quản Lý Thu & Chi</h2>
+          <p>Theo dõi các khoản doanh thu và chi phí vận hành</p>
         </div>
         <button className="btn-primary" onClick={openAddModal}>
           <Plus size={18} />
-          <span>Ghi chép chi phí</span>
+          <span>Thêm giao dịch</span>
         </button>
       </div>
 
       <div className="stats-grid">
         <div className="stat-card">
+          <div className="stat-icon" style={{ backgroundColor: '#dcfce7', color: '#15803d' }}>
+            <Info size={24} />
+          </div>
+          <div className="stat-info">
+            <div className="stat-label">Lợi nhuận dự tính</div>
+            <div className="stat-value" style={{ color: totalAmount >= 0 ? '#15803d' : '#ef4444' }}>
+              {formatCurrency(totalAmount)}
+            </div>
+          </div>
+        </div>
+        <div className="stat-card">
           <div className="stat-icon" style={{ backgroundColor: '#fee2e2', color: '#ef4444' }}>
             <CreditCard size={24} />
           </div>
           <div className="stat-info">
-            <div className="stat-label">Tổng chi tiêu (theo lọc)</div>
-            <div className="stat-value">{formatCurrency(totalAmount)}</div>
+            <div className="stat-label">Tổng chi tiêu</div>
+            <div className="stat-value">
+              {formatCurrency(expenses.filter(e => e.type === 'EXPENSE').reduce((sum, e) => sum + Number(e.amount), 0))}
+            </div>
           </div>
         </div>
         <div className="stat-card">
@@ -216,7 +230,7 @@ const ExpenseManagement: React.FC = () => {
             <Filter size={24} />
           </div>
           <div className="stat-info">
-            <div className="stat-label">Số lượng bản ghi</div>
+            <div className="stat-label">Số lượng giao dịch</div>
             <div className="stat-value">{expenses.length}</div>
           </div>
         </div>
@@ -248,6 +262,14 @@ const ExpenseManagement: React.FC = () => {
               {works.map(w => <option key={w.id} value={w.id}>{w.title}</option>)}
             </select>
           </div>
+          <div className="filter-group">
+            <label>Loại giao dịch</label>
+            <select name="type" value={filters.type} onChange={handleFilterChange}>
+              <option value="">Tất cả</option>
+              <option value="INCOME">Chỉ thu nhập</option>
+              <option value="EXPENSE">Chỉ chi phí</option>
+            </select>
+          </div>
         </div>
         <div className="filter-row" style={{ marginTop: '1rem' }}>
           <div className="filter-group">
@@ -258,7 +280,7 @@ const ExpenseManagement: React.FC = () => {
             <label><Calendar size={14} /> Đến ngày</label>
             <input type="date" name="toDate" value={filters.toDate} onChange={handleFilterChange} />
           </div>
-          <button className="btn-secondary" onClick={() => setFilters({ keyword: '', category: '', workId: '', fromDate: '', toDate: '' })}>
+          <button className="btn-secondary" onClick={() => setFilters({ keyword: '', category: '', workId: '', type: '', fromDate: '', toDate: '' })}>
             Xóa lọc
           </button>
         </div>
@@ -276,8 +298,9 @@ const ExpenseManagement: React.FC = () => {
               <thead>
                 <tr>
                   <th style={{ width: '100px' }}>Hành động</th>
-                  <th>Ngày chi</th>
-                  <th>Tên chi phí</th>
+                  <th>Ngày</th>
+                  <th>Loại</th>
+                  <th>Nội dung giao dịch</th>
                   <th>Danh mục</th>
                   <th>Đợt nuôi</th>
                   <th style={{ textAlign: 'right' }}>Số tiền</th>
@@ -321,7 +344,7 @@ const ExpenseManagement: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="empty-state">Chưa có dữ liệu chi tiêu.</td>
+                    <td colSpan={7} className="empty-state">Chưa có dữ liệu thu chi.</td>
                   </tr>
                 )}
               </tbody>
@@ -335,7 +358,7 @@ const ExpenseManagement: React.FC = () => {
         <div className="modal-overlay" onClick={() => !isSubmitting && setIsModalOpen(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>{editingExpense ? 'Cập Nhật Chi Phí' : 'Ghi Chép Chi Phí Mới'}</h3>
+              <h3>{editingExpense ? 'Cập Nhật Giao Dịch' : 'Ghi Chép Thu/Chi Mới'}</h3>
               <button className="close-btn" onClick={() => setIsModalOpen(false)} disabled={isSubmitting}>
                 <X size={20} />
               </button>

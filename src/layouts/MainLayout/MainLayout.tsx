@@ -44,7 +44,7 @@ const MainLayout: React.FC = () => {
     { path: '/admin/revenue', label: 'Quản lý Doanh thu', icon: DollarSign },
     { path: '/admin/milestones', label: 'Cài đặt Mốc Thưởng', icon: Target },
     { path: '/admin/chicken-prices', label: 'Giá Gà Hôm Nay', icon: BarChart2 },
-    { path: '/admin/expenses', label: 'Quản lý Chi tiêu', icon: CreditCard },
+    { path: '/admin/expenses', label: 'Quản lý Thu & Chi', icon: CreditCard },
   ];
 
 
