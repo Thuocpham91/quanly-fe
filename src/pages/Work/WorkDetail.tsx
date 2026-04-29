@@ -58,6 +58,10 @@ const WorkDetail: React.FC = () => {
   const [error, setError] = useState('');
   const [uploadingTaskId, setUploadingTaskId] = useState<string | null>(null);
 
+  // Pagination states for tasks
+  const [currentPage, setCurrentPage] = useState(1);
+  const tasksPerPage = 10;
+
   const fetchWorkDetail = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -184,6 +188,12 @@ const WorkDetail: React.FC = () => {
     ? Math.round((tasks.filter(t => t.employeeChecked).length / tasks.length) * 100) 
     : 0;
 
+  // Pagination calculations
+  const indexOfLastTask = currentPage * tasksPerPage;
+  const indexOfFirstTask = indexOfLastTask - tasksPerPage;
+  const currentTasks = tasks.slice(indexOfFirstTask, indexOfLastTask);
+  const totalPages = Math.ceil(tasks.length / tasksPerPage);
+
   return (
     <div className="work-detail-container">
       <div className="detail-header">
@@ -229,8 +239,8 @@ const WorkDetail: React.FC = () => {
         </div>
 
         <div className="task-list">
-          {tasks.length > 0 ? (
-            tasks.map((task) => (
+          {currentTasks.length > 0 ? (
+            currentTasks.map((task) => (
               <div key={task.id} className={`task-card ${task.employeeChecked ? 'checked' : ''}`}>
                 <div className="task-main-info">
                   <div className="task-title-group">
@@ -332,6 +342,29 @@ const WorkDetail: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="pagination" style={{ display: 'flex', justifyContent: 'center', marginTop: '1.5rem', gap: '0.5rem' }}>
+            <button 
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
+              disabled={currentPage === 1}
+              style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: '1px solid #e2e8f0', background: currentPage === 1 ? '#f1f5f9' : 'white', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', color: currentPage === 1 ? '#94a3b8' : '#1e293b' }}
+            >
+              Trước
+            </button>
+            <span style={{ display: 'flex', alignItems: 'center', margin: '0 0.5rem', fontWeight: 500, fontSize: '0.875rem' }}>
+              Trang {currentPage} / {totalPages}
+            </span>
+            <button 
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} 
+              disabled={currentPage === totalPages}
+              style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: '1px solid #e2e8f0', background: currentPage === totalPages ? '#f1f5f9' : 'white', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', color: currentPage === totalPages ? '#94a3b8' : '#1e293b' }}
+            >
+              Sau
+            </button>
+          </div>
+        )}
       </div>
 
       {work.orders && work.orders.length > 0 && (
