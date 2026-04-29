@@ -9,7 +9,11 @@ import {
   AlertCircle,
   Briefcase,
   User as UserIcon,
-  ShieldCheck
+  ShieldCheck,
+  History,
+  X,
+  Activity,
+  ArrowRight
 } from 'lucide-react';
 import api from '../../api/axios';
 import './TaskSchedule.css';
@@ -32,11 +36,24 @@ interface WorkTask {
   }
 }
 
+interface TaskHistoryData {
+  id: string;
+  action: string;
+  oldValue?: string;
+  newValue?: string;
+  createdBy?: string;
+  createdAt: string;
+}
+
 const TaskSchedule: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [tasks, setTasks] = useState<WorkTask[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  
+  const [selectedHistoryTask, setSelectedHistoryTask] = useState<WorkTask | null>(null);
+  const [taskHistories, setTaskHistories] = useState<TaskHistoryData[]>([]);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
 
   const formatDate = (date: Date) => {
     const year = date.getFullYear();
@@ -106,6 +123,26 @@ const TaskSchedule: React.FC = () => {
     } catch (err) {
       console.error('Error updating task data:', err);
     }
+  };
+
+  const handleOpenHistory = async (task: WorkTask) => {
+    setSelectedHistoryTask(task);
+    setIsHistoryLoading(true);
+    setTaskHistories([]);
+    try {
+      const res = await api.get(`/works/tasks/${task.id}/history`);
+      if (res.data && res.data.data) {
+        setTaskHistories(res.data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching task history:', err);
+    } finally {
+      setIsHistoryLoading(false);
+    }
+  };
+
+  const handleCloseHistory = () => {
+    setSelectedHistoryTask(null);
   };
 
   const isToday = (date: Date) => {
@@ -232,12 +269,18 @@ const TaskSchedule: React.FC = () => {
                      <Clock size={14} />
                      <span>Hạn: {new Date(task.startDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
-                  {task.employeeChecked && task.managerChecked && (
-                    <div className="all-done-tag">
-                      <CheckCircle2 size={12} />
-                      <span>Đã hoàn tất</span>
-                    </div>
-                  )}
+                  <div className="footer-actions" style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                    <button className="history-btn" onClick={() => handleOpenHistory(task)}>
+                      <History size={14} />
+                      <span>Lịch sử</span>
+                    </button>
+                    {task.employeeChecked && task.managerChecked && (
+                      <div className="all-done-tag">
+                        <CheckCircle2 size={12} />
+                        <span>Đã hoàn tất</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -252,6 +295,62 @@ const TaskSchedule: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* HISTORY DRAWER */}
+      {selectedHistoryTask && (
+        <>
+          <div className="history-overlay" onClick={handleCloseHistory}></div>
+          <div className="history-drawer">
+            <div className="history-drawer-header">
+              <h3>Lịch sử cập nhật</h3>
+              <button className="close-drawer-btn" onClick={handleCloseHistory}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="history-drawer-content">
+              <div className="history-task-context">
+                <h4>{selectedHistoryTask.taskName}</h4>
+                <p>{selectedHistoryTask.work?.title || 'Đợt nuôi'} - {selectedHistoryTask.work?.object?.name || 'Đối tượng'}</p>
+              </div>
+
+              {isHistoryLoading ? (
+                <div className="loading-state-small">
+                  <div className="loader"></div>
+                  <p>Đang tải lịch sử...</p>
+                </div>
+              ) : taskHistories.length > 0 ? (
+                <div className="history-timeline">
+                  {taskHistories.map((hist) => (
+                    <div key={hist.id} className="history-item">
+                      <div className="history-icon">
+                         <Activity size={16} />
+                      </div>
+                      <div className="history-details">
+                        <div className="history-action">{hist.action}</div>
+                        <div className="history-change">
+                          <span className="old-val">{hist.oldValue || 'Trống'}</span>
+                          <ArrowRight size={12} className="val-arrow" />
+                          <span className="new-val">{hist.newValue || 'Trống'}</span>
+                        </div>
+                        <div className="history-meta">
+                          <span>Bởi: {hist.createdBy || 'Hệ thống'}</span>
+                          <span>•</span>
+                          <span>{new Date(hist.createdAt).toLocaleString('vi-VN')}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="empty-history">
+                  <Activity size={32} />
+                  <p>Chưa có lịch sử cập nhật nào cho nhiệm vụ này.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
