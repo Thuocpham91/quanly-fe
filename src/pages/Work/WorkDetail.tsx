@@ -17,7 +17,7 @@ import {
   File as FileIcon,
   Loader2,
   X,
-  AlertCircle
+  Info
 } from 'lucide-react';
 import api from '../../api/axios';
 import './WorkDetail.css';
