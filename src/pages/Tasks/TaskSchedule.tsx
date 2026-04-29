@@ -36,9 +36,11 @@ interface WorkTask {
   workId: string;
   work?: {
     title: string;
+    quantity?: number;
     object?: {
       name: string;
-    }
+    };
+    workTasks?: { removalCount?: number }[];
   }
 }
 
@@ -268,6 +270,17 @@ const TaskSchedule: React.FC = () => {
                   <div className="object-tag">
                     <span>{task.work?.object?.name || 'Đối tượng'}</span>
                   </div>
+                  {task.work?.quantity !== undefined && task.work.quantity !== null && (
+                    <div className="object-tag" style={{ backgroundColor: '#fee2e2', color: '#ef4444', border: '1px solid #fecaca' }}>
+                      <span style={{ fontWeight: 600 }}>
+                        Còn: {(() => {
+                          const totalRemoval = task.work.workTasks?.reduce((sum, t) => sum + (t.removalCount || 0), 0) || 0;
+                          const currentQty = task.work.quantity! - totalRemoval;
+                          return Math.max(0, currentQty).toLocaleString('vi-VN');
+                        })()}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="task-main">
