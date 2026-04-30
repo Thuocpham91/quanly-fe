@@ -247,6 +247,7 @@
 
 .task-data-inputs {
   display: flex;
+  justify-content: center;
   gap: 0.75rem;
   margin: 0.25rem 0;
   padding: 0.75rem;

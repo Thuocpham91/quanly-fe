@@ -360,15 +360,7 @@ const TaskSchedule: React.FC = () => {
                   </div>
                   
                   <div className="task-data-inputs">
-                    <div className="control-group">
-                      <label>Số lượng</label>
-                      <input 
-                        type="number" 
-                        defaultValue={task.quantity || ''}
-                        onBlur={(e) => handleUpdateData(task.id, 'quantity', e.target.value)}
-                        placeholder="-"
-                      />
-                    </div>
+
                     <div className="control-group">
                       <label>Loại bỏ</label>
                       <input 
