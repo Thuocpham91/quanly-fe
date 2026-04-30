@@ -357,7 +357,7 @@ const TaskSchedule: React.FC = () => {
                     {task.description && <div className="task-desc" dangerouslySetInnerHTML={{ __html: task.description }}></div>}
                   </div>
                   
-                  <div className="task-data-inputs" style={{ display: 'flex', gap: '1.5rem', marginTop: '0.5rem', marginBottom: '0.5rem' }}>
+                  <div className="task-data-inputs">
                     <div className="control-group">
                       <label>Số lượng (QTY)</label>
                       <input 

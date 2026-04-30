@@ -1,6 +1,6 @@
 .task-schedule-container {
-  padding: 2rem;
-  max-width: 1200px;
+  padding: 1rem;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
@@ -72,6 +72,7 @@
   gap: 2rem;
   padding-top: 1rem;
   border-top: 1px solid #f1f5f9;
+  flex-wrap: wrap;
 }
 
 .current-date {
@@ -150,8 +151,8 @@
 
 .task-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
 }
 
 .task-card-schedule {
@@ -209,10 +210,11 @@
 }
 
 .task-name {
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: #1e293b;
   margin: 0;
+  line-height: 1.3;
 }
 
 .task-desc {
@@ -220,10 +222,21 @@
   color: #64748b;
   margin: 0;
   line-height: 1.5;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .task-desc p {
   margin: 0;
+}
+
+.task-data-inputs {
+  display: flex;
+  gap: 1rem;
+  margin: 0.25rem 0;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: 12px;
 }
 
 .control-group {
@@ -269,15 +282,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.6rem;
-  border-radius: 10px;
+  gap: 0.4rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
   border: 1px solid #e2e8f0;
   background: white;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
 }
 
 .status-toggle.employee.checked {
