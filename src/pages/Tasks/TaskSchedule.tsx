@@ -361,7 +361,7 @@ const TaskSchedule: React.FC = () => {
                   
                   <div className="task-data-inputs">
                     <div className="control-group">
-                      <label>Số lượng (QTY)</label>
+                      <label>Số lượng</label>
                       <input 
                         type="number" 
                         defaultValue={task.quantity || ''}
@@ -370,7 +370,7 @@ const TaskSchedule: React.FC = () => {
                       />
                     </div>
                     <div className="control-group">
-                      <label>Loại bỏ (Removal)</label>
+                      <label>Loại bỏ</label>
                       <input 
                         type="number" 
                         defaultValue={task.removalCount || ''}
