@@ -169,7 +169,7 @@
   transition: all 0.2s;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .task-card-schedule:hover {
@@ -212,7 +212,7 @@
 .task-main {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .task-name {
@@ -226,8 +226,8 @@
 .task-desc {
   font-size: 0.875rem;
   color: #64748b;
-  margin: 0.5rem 0;
-  line-height: 1.6;
+  margin: 0.25rem 0;
+  line-height: 1.5;
   word-break: break-word;
   overflow-wrap: break-word;
 }
@@ -247,9 +247,9 @@
 
 .task-data-inputs {
   display: flex;
-  gap: 1rem;
-  margin: 0.5rem 0;
-  padding: 1rem;
+  gap: 0.75rem;
+  margin: 0.25rem 0;
+  padding: 0.75rem;
   background: #f8fafc;
   border: 1px solid #f1f5f9;
   border-radius: 12px;
@@ -295,7 +295,7 @@
 
 .task-actions-btns {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .status-toggle {
@@ -340,7 +340,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 1rem;
+  padding-top: 0.75rem;
   border-top: 1px dashed #e2e8f0;
   margin-top: auto;
 }
