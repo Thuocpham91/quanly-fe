@@ -100,6 +100,16 @@ const WorkManagement: React.FC = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+    
+    if (name === 'objectId' && value) {
+      const selectedObj = objects.find(o => o.id === value);
+      if (selectedObj && (selectedObj as any).startDate) {
+        const objDate = new Date((selectedObj as any).startDate).toISOString().split('T')[0];
+        setFormData((prev) => ({ ...prev, [name]: value, startDate: objDate }));
+        return;
+      }
+    }
+    
     setFormData((prev) => ({ ...prev, [name]: val }));
   };
 
@@ -151,12 +161,19 @@ const WorkManagement: React.FC = () => {
     try {
       setIsSubmitting(true);
       
+      const constructLocalDate = (dateStr: string) => {
+        if (!dateStr) return null;
+        const d = new Date(dateStr);
+        d.setHours(0, 0, 0, 0);
+        return d;
+      };
+
       const payload = {
         title: formData.title,
         objectId: Number(formData.objectId),
         description: formData.description,
-        workDate: formData.workDate ? new Date(formData.workDate) : null,
-        startDate: formData.startDate ? new Date(formData.startDate) : new Date(),
+        workDate: constructLocalDate(formData.workDate as string),
+        startDate: constructLocalDate(formData.startDate as string) || new Date(),
         quantity: formData.quantity !== '' ? Number(formData.quantity) : null,
         purchaseQuantity: formData.purchaseQuantity !== '' ? Number(formData.purchaseQuantity) : null,
         removalCount: formData.removalCount !== '' ? Number(formData.removalCount) : null,
@@ -402,9 +419,9 @@ const WorkManagement: React.FC = () => {
                 </div>
 
                 <div className="form-group-modal">
-                  <label>Ngày bắt đầu gốc (Start Date) *</label>
+                  <label>Ngày bắt đầu đợt *</label>
                   <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>
-                    Sử dụng để tính toán chuỗi công việc dựa trên Task
+                    Ngày làm mốc để tính lịch trình các nhiệm vụ mẫu
                   </div>
                   <input
                     type="date"
