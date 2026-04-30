@@ -22,10 +22,15 @@ import {
 import api from '../../api/axios';
 import './WorkDetail.css';
 
-const stripHtml = (html: string) => {
-  const tmp = document.createElement("DIV");
-  tmp.innerHTML = html;
-  return tmp.textContent || tmp.innerText || "";
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
+
+const quillModules = {
+  toolbar: [
+    ['bold', 'italic', 'underline'],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    ['clean']
+  ],
 };
 
 interface WorkTaskData {
@@ -181,7 +186,7 @@ const WorkDetail: React.FC = () => {
     setEditingTask(task);
     setEditForm({
       taskName: task.taskName,
-      description: stripHtml(task.description || ''),
+      description: task.description || '',
       startDate: task.startDate ? new Date(task.startDate).toISOString().split('T')[0] : ''
     });
   };
@@ -284,7 +289,10 @@ const WorkDetail: React.FC = () => {
                     {task.description && (
                       <div className="task-desc">
                         <Info size={12} style={{ flexShrink: 0, marginTop: '2px' }} />
-                        <span style={{ whiteSpace: 'pre-wrap' }}>{stripHtml(task.description)}</span>
+                        <div 
+                          className="task-desc-html"
+                          dangerouslySetInnerHTML={{ __html: task.description }}
+                        ></div>
                       </div>
                     )}
                   </div>
@@ -483,10 +491,11 @@ const WorkDetail: React.FC = () => {
               </div>
               <div className="form-group-modal">
                 <label>Mô tả</label>
-                <textarea 
+                <ReactQuill 
+                  theme="snow"
                   value={editForm.description} 
-                  onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
-                  rows={3}
+                  onChange={(val) => setEditForm(prev => ({ ...prev, description: val }))}
+                  modules={quillModules}
                 />
               </div>
               <div className="form-group-modal">

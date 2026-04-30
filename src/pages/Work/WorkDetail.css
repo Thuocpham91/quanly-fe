@@ -167,8 +167,39 @@
   margin-top: 0.25rem;
 }
 
-.task-desc p {
+.task-desc-html {
+  flex: 1;
+}
+
+.task-desc-html p {
   margin: 0;
+}
+
+.task-desc-html ul, .task-desc-html ol {
+  padding-left: 1.2rem;
+  margin: 0.25rem 0;
+}
+
+/* React Quill Overrides in Modal */
+.quill {
+  background: white;
+  border-radius: 8px;
+}
+
+.ql-container {
+  min-height: 120px;
+  max-height: 250px;
+  overflow-y: auto;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+
+.ql-toolbar {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  background: #f8fafc;
 }
 
 .task-date {
