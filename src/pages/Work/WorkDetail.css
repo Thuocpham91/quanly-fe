@@ -1,5 +1,5 @@
 .work-detail-container {
-  padding: 1.5rem;
+  padding: 1rem;
   max-width: 1100px;
   margin: 0 auto;
 }
@@ -275,11 +275,26 @@
 }
 
 @media (max-width: 768px) {
+  .detail-header {
+    padding: 1.25rem 1rem;
+  }
+
   .header-main {
     flex-direction: column;
     align-items: flex-start;
+    gap: 1.5rem;
   }
   
+  .subtitle {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .subtitle .divider {
+    display: none;
+  }
+
   .progress-section {
     width: 100%;
   }
@@ -287,12 +302,60 @@
   .task-card {
     flex-direction: column;
     align-items: flex-start;
-    gap: 1.5rem;
+    gap: 1rem;
+    padding: 1rem;
   }
   
   .task-controls {
     width: 100%;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 8px;
+  }
+
+  .check-buttons {
+    width: 100%;
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .check-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 0.6rem 0.4rem;
+    font-size: 0.75rem;
+  }
+
+  .delete-task-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+  }
+
+  .task-card {
+    position: relative;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .data-table {
+    min-width: 600px;
+  }
+}
+
+@media (max-width: 480px) {
+  .title-section h2 {
+    font-size: 1.5rem;
+  }
+
+  .task-main-info h4 {
+    font-size: 0.9375rem;
   }
 }
 /* File Upload Styles for Work Detail */
