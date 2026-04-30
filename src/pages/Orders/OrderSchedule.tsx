@@ -189,9 +189,24 @@ const OrderSchedule: React.FC = () => {
           <UserIcon size={16} />
           <span style={{ fontWeight: 500 }}>{order.user?.fullName || order.user?.username || 'Khách hàng'}</span>
         </div>
-        <div className="quantity-info">
-          <span className="qty-value">{order.quantity.toLocaleString('vi-VN')}</span>
-          <span className="qty-unit">con</span>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+            <div className="quantity-info">
+              <span className="qty-value">{order.quantity.toLocaleString('vi-VN')}</span>
+              <span className="qty-unit">con</span>
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {order.unitPrice !== undefined && order.unitPrice !== null && (
+                    <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
+                      {order.unitPrice.toLocaleString('vi-VN')} đ/c
+                    </div>
+                )}
+                {order.amount !== undefined && order.amount !== null && (
+                    <div style={{ fontWeight: 700, color: '#dc2626', fontSize: '0.875rem' }}>
+                      {order.amount.toLocaleString('vi-VN')} đ
+                    </div>
+                )}
+            </div>
         </div>
       </div>
 
@@ -201,18 +216,7 @@ const OrderSchedule: React.FC = () => {
           <span>{order.work?.title || 'Đang chờ xử lý'}</span>
         </div>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginLeft: 'auto' }}>
-            {order.unitPrice !== undefined && order.unitPrice !== null && (
-                <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
-                  {order.unitPrice.toLocaleString('vi-VN')} đ/c
-                </div>
-            )}
-
-            {order.amount !== undefined && order.amount !== null && (
-                <div style={{ fontWeight: 700, color: '#dc2626', fontSize: '0.9rem' }}>
-                  {order.amount.toLocaleString('vi-VN')} đ
-                </div>
-            )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: 'auto' }}>
 
             {order.user?.lat && order.user?.lng && (
               <a 
