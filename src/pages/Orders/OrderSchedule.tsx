@@ -29,6 +29,7 @@ interface Order {
   orderDate?: string;
   exportDate?: string;
   work?: { title: string };
+  unitPrice?: number;
   amount?: number;
 }
 
@@ -200,7 +201,13 @@ const OrderSchedule: React.FC = () => {
           <span>{order.work?.title || 'Đang chờ xử lý'}</span>
         </div>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginLeft: 'auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginLeft: 'auto' }}>
+            {order.unitPrice !== undefined && order.unitPrice !== null && (
+                <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
+                  {order.unitPrice.toLocaleString('vi-VN')} đ/c
+                </div>
+            )}
+
             {order.amount !== undefined && order.amount !== null && (
                 <div style={{ fontWeight: 700, color: '#dc2626', fontSize: '0.9rem' }}>
                   {order.amount.toLocaleString('vi-VN')} đ
