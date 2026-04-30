@@ -267,8 +267,6 @@ const CustomerDetail: React.FC = () => {
           )}
         </div>
       </div>
-        </div>
-      </div>
 
       {/* Edit Modal */}
       {isModalOpen && (
