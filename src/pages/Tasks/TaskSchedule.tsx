@@ -401,16 +401,8 @@ const TaskSchedule: React.FC = () => {
                     </button>
                   </div>
 
-                  {/* FIle Upload & Display */}
+                  {/* File Upload & Display */}
                   <div className="task-files-section">
-                    <div className="task-files-header">
-                      <span className="files-title">Đính kèm:</span>
-                      <label className="upload-file-btn">
-                        {uploadingTaskId === task.id ? <Loader2 size={14} className="spin" /> : <Paperclip size={14} />}
-                        <span>Tải lên</span>
-                        <input type="file" multiple onChange={(e) => handleFileUpload(task.id, e)} style={{ display: 'none' }} disabled={uploadingTaskId === task.id} />
-                      </label>
-                    </div>
                     {task.fileUrls && task.fileUrls.length > 0 && (
                       <div className="task-files-list">
                         {task.fileUrls.map((url, idx) => {
@@ -419,10 +411,9 @@ const TaskSchedule: React.FC = () => {
                             <div key={idx} className="task-file-item">
                               <a href={url} target="_blank" rel="noreferrer" className="file-link">
                                 {isImage ? <ImageIcon size={14} /> : <FileIcon size={14} />}
-                                <span className="file-name">File {idx + 1}</span>
                               </a>
                               <button className="remove-file-btn" onClick={() => handleRemoveFile(task.id, url)} title="Xóa file">
-                                <X size={12} />
+                                <X size={10} />
                               </button>
                             </div>
                           );
@@ -433,21 +424,21 @@ const TaskSchedule: React.FC = () => {
                 </div>
 
                 <div className="task-footer">
-                  <div className="time-info">
-                     <Clock size={14} />
-                     <span>Hạn: {new Date(task.startDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
+                  <div className="footer-left">
+                    <label className="upload-file-btn">
+                      {uploadingTaskId === task.id ? <Loader2 size={14} className="spin" /> : <Paperclip size={14} />}
+                      <span>Đính kèm</span>
+                      <input type="file" multiple onChange={(e) => handleFileUpload(task.id, e)} style={{ display: 'none' }} disabled={uploadingTaskId === task.id} />
+                    </label>
                   </div>
-                  <div className="footer-actions" style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                  <div className="footer-right">
+                    <div className="time-info">
+                      <Clock size={14} />
+                      <span>{new Date(task.startDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
                     <button className="history-btn" onClick={() => handleOpenHistory(task)}>
                       <History size={14} />
-                      <span>Lịch sử</span>
                     </button>
-                    {task.employeeChecked && task.managerChecked && (
-                      <div className="all-done-tag">
-                        <CheckCircle2 size={12} />
-                        <span>Đã hoàn tất</span>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
