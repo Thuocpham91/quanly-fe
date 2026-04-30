@@ -22,6 +22,12 @@ import {
 import api from '../../api/axios';
 import './WorkDetail.css';
 
+const stripHtml = (html: string) => {
+  const tmp = document.createElement("DIV");
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || "";
+};
+
 interface WorkTaskData {
   id: string;
   taskName: string;
@@ -175,7 +181,7 @@ const WorkDetail: React.FC = () => {
     setEditingTask(task);
     setEditForm({
       taskName: task.taskName,
-      description: task.description || '',
+      description: stripHtml(task.description || ''),
       startDate: task.startDate ? new Date(task.startDate).toISOString().split('T')[0] : ''
     });
   };
@@ -278,7 +284,7 @@ const WorkDetail: React.FC = () => {
                     {task.description && (
                       <div className="task-desc">
                         <Info size={12} style={{ flexShrink: 0, marginTop: '2px' }} />
-                        <span dangerouslySetInnerHTML={{ __html: task.description }}></span>
+                        <span style={{ whiteSpace: 'pre-wrap' }}>{stripHtml(task.description)}</span>
                       </div>
                     )}
                   </div>
