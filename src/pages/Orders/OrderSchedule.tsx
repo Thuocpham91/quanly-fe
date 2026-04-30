@@ -93,6 +93,21 @@ const OrderSchedule: React.FC = () => {
     setSelectedDate(new Date());
   };
 
+  const handleCustomerClick = async (userId: string) => {
+    try {
+      // Find customer by user ID
+      const res = await api.get(`/customers/user/${userId}`);
+      if (res.data && res.data.data) {
+        navigate(`/admin/customers/${res.data.data.id}`);
+      } else {
+        alert('Không tìm thấy thông tin khách hàng chi tiết cho người dùng này.');
+      }
+    } catch (err) {
+      console.error('Error finding customer:', err);
+      alert('Có lỗi xảy ra khi tìm kiếm thông tin khách hàng.');
+    }
+  };
+
   const renderOrderCard = (order: Order) => (
     <div key={order.id} className="order-schedule-card" onClick={() => navigate(`/admin/orders/${order.id}`)}>
       <div className="card-top">
@@ -107,7 +122,7 @@ const OrderSchedule: React.FC = () => {
           className="user-info" 
           onClick={(e) => {
             e.stopPropagation();
-            if (order.userId) navigate(`/admin/customers/${order.userId}`);
+            if (order.userId) handleCustomerClick(order.userId);
           }}
           style={{ cursor: 'pointer', color: '#2563eb' }}
           title="Xem chi tiết khách hàng"
