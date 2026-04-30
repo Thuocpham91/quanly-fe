@@ -9,7 +9,9 @@ import {
   Package,
   TrendingUp,
   ChevronDown,
-  ArrowRight
+  ArrowRight,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
@@ -108,12 +110,30 @@ const OrderSchedule: React.FC = () => {
     }
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'DA_DUYET':
+        return <span className="status-dot success" title="Đã duyệt"><CheckCircle2 size={12} /></span>;
+      case 'DA_HOAN_THANH':
+        return <span className="status-dot completed" title="Đã hoàn thành"><CheckCircle2 size={12} /></span>;
+      case 'TU_CHOI':
+        return <span className="status-dot danger" title="Từ chối"><AlertCircle size={12} /></span>;
+      case 'HUY_DON':
+        return <span className="status-dot secondary" title="Đã hủy"><AlertCircle size={12} /></span>;
+      default:
+        return <span className="status-dot warning" title="Chờ duyệt"><Clock size={12} /></span>;
+    }
+  };
+
   const renderOrderCard = (order: Order) => (
     <div key={order.id} className="order-schedule-card" onClick={() => navigate(`/admin/orders/${order.id}`)}>
       <div className="card-top">
         <div className="order-id-badge">#{order.id}</div>
-        <div className={`type-tag ${(order.type || '').toLowerCase()}`}>
-          {order.type === 'MUA_GA' ? 'Mua gà' : 'Đặt gà'}
+        <div className="card-badges">
+          {getStatusBadge(order.status)}
+          <div className={`type-tag ${(order.type || '').toLowerCase()}`}>
+            {order.type === 'MUA_GA' ? 'Mua gà' : 'Đặt gà'}
+          </div>
         </div>
       </div>
       

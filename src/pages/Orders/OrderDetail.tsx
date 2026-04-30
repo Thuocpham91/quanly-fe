@@ -11,7 +11,9 @@ import {
   ChevronRight,
   Package,
   MapPin,
-  Navigation
+  Navigation,
+  DollarSign,
+  Coins
 } from 'lucide-react';
 import api from '../../api/axios';
 import './OrderDetail.css';
@@ -28,6 +30,15 @@ interface OrderData {
   saleDate?: string;
   workId?: string;
   work?: any;
+  amount?: number;
+  unitPrice?: number;
+  gaSo?: number;
+  gaTrong?: number;
+  gaMai?: number;
+  priceGaSo?: number;
+  priceGaTrong?: number;
+  priceGaMai?: number;
+  description?: string;
 }
 
 interface WorkBatch {
@@ -103,8 +114,16 @@ const OrderDetail: React.FC = () => {
     switch (status) {
       case 'DA_DUYET':
         return <span className="badge badge-success"><CheckCircle2 size={12} /> Đã duyệt</span>;
+      case 'DA_HOAN_THANH':
+        return <span className="badge" style={{ backgroundColor: '#10b981', color: 'white', display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 12px', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 600 }}>
+          <CheckCircle2 size={12} /> Đã hoàn thành
+        </span>;
       case 'TU_CHOI':
         return <span className="badge badge-danger"><AlertCircle size={12} /> Từ chối</span>;
+      case 'HUY_DON':
+        return <span className="badge" style={{ backgroundColor: '#64748b', color: 'white', display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 12px', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 600 }}>
+          <AlertCircle size={12} /> Đã hủy
+        </span>;
       default:
         return <span className="badge badge-warning"><Clock size={12} /> Chờ duyệt</span>;
     }
@@ -285,6 +304,64 @@ const OrderDetail: React.FC = () => {
               </div>
           </div>
         )}
+
+        {/* Price and Classification Card */}
+        <div className="info-card price-card">
+          <div className="card-header">
+            <Coins size={18} />
+            <h3>Chi tiết giá & Phân loại</h3>
+          </div>
+          <div className="info-list">
+            <div className="info-item">
+              <span className="label">Đơn giá:</span>
+              <span className="value highlight-price">
+                {order.unitPrice ? `${order.unitPrice.toLocaleString('vi-VN')} đ` : 'Chưa có'}
+              </span>
+            </div>
+            <div className="info-item">
+              <span className="label">Tổng tiền:</span>
+              <span className="value highlight-total">
+                {order.amount ? `${order.amount.toLocaleString('vi-VN')} đ` : 'Tự động tính'}
+              </span>
+            </div>
+            
+            {(order.gaSo || order.gaTrong || order.gaMai) ? (
+              <div className="info-item full-width" style={{ gridColumn: 'span 2', marginTop: '0.5rem', padding: '0.75rem', background: '#f8fafc', borderRadius: '8px' }}>
+                <span className="label" style={{ marginBottom: '0.5rem' }}>Phân loại gà:</span>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                  {order.gaSo > 0 && (
+                    <div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Gà xô</div>
+                      <div style={{ fontWeight: 600 }}>{order.gaSo} con</div>
+                      {order.priceGaSo > 0 && <div style={{ fontSize: '0.7rem', color: '#2563eb' }}>{order.priceGaSo.toLocaleString('vi-VN')}đ</div>}
+                    </div>
+                  )}
+                  {order.gaTrong > 0 && (
+                    <div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Gà trống</div>
+                      <div style={{ fontWeight: 600 }}>{order.gaTrong} con</div>
+                      {order.priceGaTrong > 0 && <div style={{ fontSize: '0.7rem', color: '#2563eb' }}>{order.priceGaTrong.toLocaleString('vi-VN')}đ</div>}
+                    </div>
+                  )}
+                  {order.gaMai > 0 && (
+                    <div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Gà mái</div>
+                      <div style={{ fontWeight: 600 }}>{order.gaMai} con</div>
+                      {order.priceGaMai > 0 && <div style={{ fontSize: '0.7rem', color: '#2563eb' }}>{order.priceGaMai.toLocaleString('vi-VN')}đ</div>}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : null}
+
+            {order.description && (
+              <div className="info-item full-width" style={{ gridColumn: 'span 2' }}>
+                <span className="label">Ghi chú:</span>
+                <span className="value" style={{ fontSize: '0.875rem', fontStyle: 'italic' }}>{order.description}</span>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="works-selection-section">

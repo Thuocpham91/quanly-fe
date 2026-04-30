@@ -158,6 +158,27 @@
   border-radius: 4px;
 }
 
+.card-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.status-dot.success { background: #dcfce7; color: #166534; }
+.status-dot.completed { background: #10b981; color: white; }
+.status-dot.danger { background: #fee2e2; color: #991b1b; }
+.status-dot.warning { background: #fef3c7; color: #92400e; }
+.status-dot.secondary { background: #f1f5f9; color: #64748b; }
+
 .type-tag {
   font-size: 0.75rem;
   font-weight: 700;
