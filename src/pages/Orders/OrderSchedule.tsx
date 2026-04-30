@@ -11,7 +11,9 @@ import {
   ChevronDown,
   ArrowRight,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  MapPin,
+  Navigation
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
@@ -20,14 +22,16 @@ import './OrderSchedule.css';
 interface Order {
   id: string;
   userId: string;
-  user?: { username: string; fullName: string };
+  user?: { username: string; fullName: string; lat?: number; lng?: number };
   quantity: number;
   type: string;
   status: string;
   orderDate?: string;
   exportDate?: string;
   work?: { title: string };
+  amount?: number;
 }
+
 
 interface ScheduleData {
   current: {
@@ -42,9 +46,10 @@ interface ScheduleData {
 }
 
 const OrderSchedule: React.FC = () => {
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [schedule, setSchedule] = useState<ScheduleData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const formatDate = (date: Date) => {
@@ -110,6 +115,39 @@ const OrderSchedule: React.FC = () => {
     }
   };
 
+  const handleUpdateUserLocation = (e: React.MouseEvent, userId: string) => {
+    e.stopPropagation();
+    if (!userId) return;
+    
+    if ("geolocation" in navigator) {
+      setUpdatingUserId(userId);
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            await api.put(`/users/${userId}`, {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            });
+            alert('Cập nhật vị trí khách hàng thành công!');
+            fetchSchedule(); // Refresh data to show new MapPin
+          } catch (error) {
+            console.error('Lỗi khi cập nhật vị trí user:', error);
+            alert('Có lỗi xảy ra khi lưu vị trí.');
+          } finally {
+            setUpdatingUserId(null);
+          }
+        },
+        (error) => {
+          console.error("Lỗi lấy vị trí:", error);
+          alert("Không thể lấy vị trí hiện tại. Vui lòng kiểm tra quyền truy cập vị trí của trình duyệt.");
+          setUpdatingUserId(null);
+        }
+      );
+    } else {
+      alert("Trình duyệt của bạn không hỗ trợ định vị.");
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'DA_DUYET':
@@ -161,7 +199,49 @@ const OrderSchedule: React.FC = () => {
           <Package size={14} />
           <span>{order.work?.title || 'Đang chờ xử lý'}</span>
         </div>
-        <ArrowRight size={16} className="arrow-icon" />
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginLeft: 'auto' }}>
+            {order.amount && (
+                <div style={{ fontWeight: 700, color: '#dc2626', fontSize: '0.9rem' }}>
+                  {order.amount.toLocaleString('vi-VN')} đ
+                </div>
+            )}
+
+            {order.user?.lat && order.user?.lng && (
+              <a 
+                href={`https://www.google.com/maps?q=${order.user.lat},${order.user.lng}`} 
+                target="_blank" 
+                rel="noreferrer"
+                style={{ color: '#2563eb', display: 'flex', alignItems: 'center' }}
+                title="Xem trên bản đồ"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MapPin size={16} />
+              </a>
+            )}
+            
+            <button
+              onClick={(e) => order.userId && handleUpdateUserLocation(e, order.userId)}
+              disabled={updatingUserId === order.userId}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#059669',
+                display: 'flex',
+                alignItems: 'center',
+                cursor: 'pointer',
+                padding: '4px',
+                borderRadius: '4px'
+              }}
+              title="Cập nhật vị trí hiện tại cho khách hàng này"
+            >
+              {updatingUserId === order.userId ? (
+                 <div className="loader-small" style={{ width: '14px', height: '14px', borderWidth: '2px' }} />
+              ) : (
+                 <Navigation size={14} />
+              )}
+            </button>
+        </div>
       </div>
     </div>
   );

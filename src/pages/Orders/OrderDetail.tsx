@@ -329,25 +329,25 @@ const OrderDetail: React.FC = () => {
               <div className="info-item full-width" style={{ gridColumn: 'span 2', marginTop: '0.5rem', padding: '0.75rem', background: '#f8fafc', borderRadius: '8px' }}>
                 <span className="label" style={{ marginBottom: '0.5rem' }}>Phân loại gà:</span>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
-                  {order.gaSo > 0 && (
+                  {(order.gaSo || 0) > 0 && (
                     <div>
                       <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Gà xô</div>
                       <div style={{ fontWeight: 600 }}>{order.gaSo} con</div>
-                      {order.priceGaSo > 0 && <div style={{ fontSize: '0.7rem', color: '#2563eb' }}>{order.priceGaSo.toLocaleString('vi-VN')}đ</div>}
+                      {(order.priceGaSo || 0) > 0 && <div style={{ fontSize: '0.7rem', color: '#2563eb' }}>{order.priceGaSo?.toLocaleString('vi-VN')}đ</div>}
                     </div>
                   )}
-                  {order.gaTrong > 0 && (
+                  {(order.gaTrong || 0) > 0 && (
                     <div>
                       <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Gà trống</div>
                       <div style={{ fontWeight: 600 }}>{order.gaTrong} con</div>
-                      {order.priceGaTrong > 0 && <div style={{ fontSize: '0.7rem', color: '#2563eb' }}>{order.priceGaTrong.toLocaleString('vi-VN')}đ</div>}
+                      {(order.priceGaTrong || 0) > 0 && <div style={{ fontSize: '0.7rem', color: '#2563eb' }}>{order.priceGaTrong?.toLocaleString('vi-VN')}đ</div>}
                     </div>
                   )}
-                  {order.gaMai > 0 && (
+                  {(order.gaMai || 0) > 0 && (
                     <div>
                       <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Gà mái</div>
                       <div style={{ fontWeight: 600 }}>{order.gaMai} con</div>
-                      {order.priceGaMai > 0 && <div style={{ fontSize: '0.7rem', color: '#2563eb' }}>{order.priceGaMai.toLocaleString('vi-VN')}đ</div>}
+                      {(order.priceGaMai || 0) > 0 && <div style={{ fontSize: '0.7rem', color: '#2563eb' }}>{order.priceGaMai?.toLocaleString('vi-VN')}đ</div>}
                     </div>
                   )}
                 </div>
