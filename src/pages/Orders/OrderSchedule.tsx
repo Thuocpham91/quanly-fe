@@ -201,7 +201,7 @@ const OrderSchedule: React.FC = () => {
         </div>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginLeft: 'auto' }}>
-            {order.amount && (
+            {order.amount !== undefined && order.amount !== null && (
                 <div style={{ fontWeight: 700, color: '#dc2626', fontSize: '0.9rem' }}>
                   {order.amount.toLocaleString('vi-VN')} đ
                 </div>

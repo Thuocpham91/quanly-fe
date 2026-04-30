@@ -209,37 +209,6 @@ const OrderDetail: React.FC = () => {
               <div className="value" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <UserIcon size={14} />
                 <span>{order.user?.fullName || order.user?.username || 'N/A'}</span>
-                {order.user?.lat && order.user?.lng && (
-                  <a 
-                    href={`https://www.google.com/maps?q=${order.user.lat},${order.user.lng}`} 
-                    target="_blank" 
-                    rel="noreferrer"
-                    style={{ color: '#2563eb', display: 'flex', alignItems: 'center', marginLeft: '0.5rem' }}
-                    title="Xem trên bản đồ"
-                  >
-                    <MapPin size={16} />
-                  </a>
-                )}
-                <button
-                  onClick={handleUpdateUserLocation}
-                  disabled={isUpdating}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#059669',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    cursor: 'pointer',
-                    marginLeft: 'auto',
-                    fontSize: '0.75rem',
-                    fontWeight: 600
-                  }}
-                  title="Cập nhật vị trí hiện tại cho khách hàng này"
-                >
-                  <Navigation size={14} />
-                  Cập nhật vị trí
-                </button>
               </div>
             </div>
             <div className="info-item">
@@ -281,6 +250,47 @@ const OrderDetail: React.FC = () => {
                    }}
                 />
               </div>
+            </div>
+            
+            <div className="info-item" style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'flex-end', gap: '0.75rem', paddingBottom: '0.25rem' }}>
+                {order.user?.lat && order.user?.lng && (
+                  <a 
+                    href={`https://www.google.com/maps?q=${order.user.lat},${order.user.lng}`} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    style={{ color: '#2563eb', display: 'flex', alignItems: 'center', background: '#eff6ff', padding: '6px', borderRadius: '6px' }}
+                    title="Xem trên bản đồ"
+                  >
+                    <MapPin size={18} />
+                  </a>
+                )}
+                <button
+                  onClick={handleUpdateUserLocation}
+                  disabled={isUpdating}
+                  style={{
+                    background: '#ecfdf5',
+                    border: 'none',
+                    color: '#059669',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    cursor: 'pointer',
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    fontSize: '0.8125rem',
+                    fontWeight: 600
+                  }}
+                  title="Cập nhật vị trí hiện tại cho khách hàng này"
+                >
+                  {isUpdating ? (
+                    <div className="loader-small" style={{ width: '16px', height: '16px', borderWidth: '2px', borderColor: '#059669 transparent #059669 transparent' }} />
+                  ) : (
+                    <>
+                      <Navigation size={16} />
+                      Cập nhật vị trí
+                    </>
+                  )}
+                </button>
             </div>
           </div>
         </div>
