@@ -320,7 +320,7 @@ const ExpenseManagement: React.FC = () => {
                       <td>{new Date(exp.date).toLocaleDateString('vi-VN')}</td>
                       <td>
                         <span className={`type-badge ${(exp.type || '').toLowerCase()}`}>
-                          {exp.type === 'INCOME' ? 'Thu nhập' : 'Chi phí'}
+                          {exp.type === 'INCOME' ? 'Lợi nhuận' : 'Chi phí'}
                         </span>
                       </td>
                       <td>
