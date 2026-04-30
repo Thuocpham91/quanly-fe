@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Phone, Calendar, Mail, MapPin, Clock, FileText, Edit2, X } from 'lucide-react';
+import { ArrowLeft, Phone, Calendar, Mail, MapPin, Clock, FileText, Edit2, X, Share2, Users } from 'lucide-react';
 import api from '../../api/axios';
 import './CustomerDetail.css';
 
@@ -14,6 +14,14 @@ interface CustomerData {
   isActive: boolean;
   isSelfCustomer: boolean;
   createdAt?: string;
+  userId?: string;
+  editorIds?: string[];
+}
+
+interface UserData {
+  id: string;
+  fullName: string;
+  username: string;
 }
 
 interface CallHistory {
@@ -44,6 +52,11 @@ const CustomerDetail: React.FC = () => {
     note: '',
   });
 
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [allUsers, setAllUsers] = useState<UserData[]>([]);
+  const [selectedEditorIds, setSelectedEditorIds] = useState<string[]>([]);
+  const [isSharing, setIsSharing] = useState(false);
+
   const fetchData = async () => {
     try {
       setIsLoading(true);
@@ -53,9 +66,12 @@ const CustomerDetail: React.FC = () => {
       ]);
 
       if (customerRes.data && customerRes.data.data) {
-        setCustomer(customerRes.data.data);
+        const custData = customerRes.data.data;
+        setCustomer(custData);
+        setSelectedEditorIds(custData.editorIds || []);
       } else if (customerRes.data) {
-          setCustomer(customerRes.data);
+        setCustomer(customerRes.data);
+        setSelectedEditorIds(customerRes.data.editorIds || []);
       }
 
       if (historyRes.data && Array.isArray(historyRes.data.data)) {
@@ -109,6 +125,42 @@ const CustomerDetail: React.FC = () => {
     } finally {
       setIsCalling(false);
     }
+  };
+
+  const handleShare = async () => {
+    try {
+      setIsSharing(true);
+      await api.post(`/customers/${id}/share`, { editorIds: selectedEditorIds });
+      setIsShareModalOpen(false);
+      fetchData();
+    } catch (err: any) {
+      console.error('Error sharing customer:', err);
+      alert(err.response?.data?.message || 'Có lỗi xảy ra khi cấp quyền.');
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
+  const openShareModal = async () => {
+    setIsShareModalOpen(true);
+    if (allUsers.length === 0) {
+      try {
+        const res = await api.get('/users');
+        if (res.data && Array.isArray(res.data.data)) {
+          setAllUsers(res.data.data);
+        } else if (Array.isArray(res.data)) {
+          setAllUsers(res.data);
+        }
+      } catch (err) {
+        console.error('Error fetching users:', err);
+      }
+    }
+  };
+
+  const toggleEditor = (userId: string) => {
+    setSelectedEditorIds(prev => 
+      prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
+    );
   };
 
   const openEditModal = () => {
@@ -181,13 +233,18 @@ const CustomerDetail: React.FC = () => {
 
   return (
     <div className="customer-detail-container">
-      <div className="detail-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="detail-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
         <button className="back-btn" onClick={() => navigate('/customers')}>
           <ArrowLeft size={18} /> Quay lại danh sách
         </button>
-        <button className="btn-secondary" onClick={openEditModal} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem' }}>
-          <Edit2 size={18} /> Sửa thông tin
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button className="btn-secondary" onClick={openShareModal} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', backgroundColor: '#f8fafc' }}>
+            <Share2 size={18} /> Cấp quyền
+          </button>
+          <button className="btn-secondary" onClick={openEditModal} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem' }}>
+            <Edit2 size={18} /> Sửa thông tin
+          </button>
+        </div>
       </div>
 
       <div className="customer-info-card">
@@ -307,6 +364,62 @@ const CustomerDetail: React.FC = () => {
                 <button type="submit" className="btn-primary" disabled={isSubmitting}>Lưu thay đổi</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Share Modal */}
+      {isShareModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '500px' }}>
+            <div className="modal-header">
+              <h3>Cấp quyền chỉnh sửa</h3>
+              <button className="close-btn" onClick={() => setIsShareModalOpen(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem' }}>
+                Chọn những người dùng được phép chỉnh sửa hồ sơ khách hàng này.
+              </p>
+              <div className="user-selection-list" style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+                {allUsers.length > 0 ? (
+                  allUsers.filter(u => u.id !== customer?.userId).map(u => (
+                    <div 
+                      key={u.id} 
+                      onClick={() => toggleEditor(u.id)}
+                      style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        padding: '0.75rem', 
+                        borderBottom: '1px solid #f1f5f9',
+                        cursor: 'pointer',
+                        backgroundColor: selectedEditorIds.includes(u.id) ? '#eff6ff' : 'transparent'
+                      }}
+                    >
+                      <input 
+                        type="checkbox" 
+                        checked={selectedEditorIds.includes(u.id)} 
+                        onChange={() => {}} // Handled by div click
+                        style={{ marginRight: '0.75rem' }}
+                      />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 500, fontSize: '0.9rem' }}>{u.fullName}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>@{u.username}</div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>Đang tải danh sách người dùng...</div>
+                )}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn-secondary" onClick={() => setIsShareModalOpen(false)}>Hủy</button>
+              <button type="button" className="btn-primary" onClick={handleShare} disabled={isSharing}>
+                {isSharing ? 'Đang lưu...' : 'Lưu thay đổi'}
+              </button>
+            </div>
           </div>
         </div>
       )}
