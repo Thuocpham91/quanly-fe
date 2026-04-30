@@ -9,7 +9,8 @@ import {
   AlertCircle,
   Clock,
   ChevronRight,
-  Package
+  Package,
+  MapPin
 } from 'lucide-react';
 import api from '../../api/axios';
 import './OrderDetail.css';
@@ -17,7 +18,7 @@ import './OrderDetail.css';
 interface OrderData {
   id: string;
   userId: string;
-  user?: { username: string; fullName: string };
+  user?: { username: string; fullName: string; lat?: number; lng?: number };
   quantity: number;
   type: string;
   status: string;
@@ -153,9 +154,20 @@ const OrderDetail: React.FC = () => {
           <div className="info-list">
             <div className="info-item">
               <span className="label">Khách hàng:</span>
-              <div className="value">
+              <div className="value" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <UserIcon size={14} />
                 <span>{order.user?.fullName || order.user?.username || 'N/A'}</span>
+                {order.user?.lat && order.user?.lng && (
+                  <a 
+                    href={`https://www.google.com/maps?q=${order.user.lat},${order.user.lng}`} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    style={{ color: '#2563eb', display: 'flex', alignItems: 'center', marginLeft: '0.5rem' }}
+                    title="Xem trên bản đồ"
+                  >
+                    <MapPin size={16} />
+                  </a>
+                )}
               </div>
             </div>
             <div className="info-item">
