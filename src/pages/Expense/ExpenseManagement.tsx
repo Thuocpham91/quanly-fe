@@ -320,7 +320,7 @@ const ExpenseManagement: React.FC = () => {
                       <td>{new Date(exp.date).toLocaleDateString('vi-VN')}</td>
                       <td>
                         <span className={`type-badge ${(exp.type || '').toLowerCase()}`}>
-                          {exp.type === 'INCOME' ? 'Lợi nhuận' : 'Chi phí'}
+                          {(exp.type || '').toUpperCase() === 'INCOME' ? 'Lợi nhuận' : 'Chi phí'}
                         </span>
                       </td>
                       <td>
@@ -338,8 +338,8 @@ const ExpenseManagement: React.FC = () => {
                           </div>
                         ) : <span style={{ color: '#cbd5e1' }}>Không gắn đợt</span>}
                       </td>
-                      <td style={{ textAlign: 'right', fontWeight: 700, color: exp.type === 'INCOME' ? '#059669' : '#ef4444' }}>
-                        {exp.type === 'INCOME' ? '+' : '-'}{formatCurrency(exp.amount)}
+                      <td style={{ textAlign: 'right', fontWeight: 700, color: (exp.type || '').toUpperCase() === 'INCOME' ? '#059669' : '#ef4444' }}>
+                        {(exp.type || '').toUpperCase() === 'INCOME' ? '+' : '-'}{formatCurrency(exp.amount)}
                       </td>
                     </tr>
                   ))
