@@ -343,7 +343,7 @@ const TaskSchedule: React.FC = () => {
                   {task.work?.quantity !== undefined && task.work.quantity !== null && (
                     <div className="object-tag" style={{ backgroundColor: '#fee2e2', color: '#ef4444', border: '1px solid #fecaca' }}>
                       <span style={{ fontWeight: 600 }}>
-                        Còn: {(() => {
+                        SL: {task.work.quantity.toLocaleString('vi-VN')} | Còn: {(() => {
                           const totalRemoval = task.work.workTasks?.reduce((sum, t) => sum + (t.removalCount || 0), 0) || 0;
                           const currentQty = task.work.quantity! - totalRemoval;
                           return Math.max(0, currentQty).toLocaleString('vi-VN');
