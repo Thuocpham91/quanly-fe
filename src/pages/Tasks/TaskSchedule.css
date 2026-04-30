@@ -220,47 +220,62 @@
 .task-desc {
   font-size: 0.875rem;
   color: #64748b;
-  margin: 0;
-  line-height: 1.5;
+  margin: 0.5rem 0;
+  line-height: 1.6;
   word-break: break-word;
   overflow-wrap: break-word;
 }
 
+.task-desc ol, .task-desc ul {
+  padding-left: 1.25rem;
+  margin: 0.5rem 0;
+}
+
+.task-desc li {
+  margin-bottom: 0.25rem;
+}
+
 .task-desc p {
-  margin: 0;
+  margin: 0 0 0.5rem 0;
 }
 
 .task-data-inputs {
   display: flex;
   gap: 1rem;
-  margin: 0.25rem 0;
-  padding: 0.75rem;
+  margin: 0.5rem 0;
+  padding: 1rem;
   background: #f8fafc;
+  border: 1px solid #f1f5f9;
   border-radius: 12px;
 }
 
 .control-group {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.4rem;
+  align-items: center;
 }
 
 .control-group label {
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   color: #94a3b8;
-  letter-spacing: 0.025em;
+  letter-spacing: 0.05em;
+  text-align: center;
 }
 
 .control-group input {
-  width: 70px;
-  padding: 0.4rem;
+  width: 100%;
+  max-width: 100px;
+  padding: 0.5rem;
   border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 600;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
   text-align: center;
+  color: #1e293b;
 }
 
 .control-group input:focus {
@@ -282,16 +297,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.6rem;
-  border-radius: 8px;
+  gap: 0.6rem;
+  padding: 0.75rem 0.6rem;
+  border-radius: 12px;
   border: 1px solid #e2e8f0;
   background: white;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 600;
+  color: #475569;
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
+}
+
+.status-toggle svg {
+  flex-shrink: 0;
 }
 
 .status-toggle.employee.checked {
@@ -794,4 +814,112 @@
   justify-content: flex-end;
   gap: 0.75rem;
   margin-top: 0.5rem;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .task-schedule-container {
+    padding: 0.75rem;
+  }
+
+  .schedule-header {
+    padding: 1.25rem 1rem;
+    border-radius: 12px;
+  }
+
+  .header-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.25rem;
+  }
+
+  .title-section h2 {
+    font-size: 1.25rem;
+  }
+
+  .quick-nav {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+  }
+
+  .nav-btn {
+    flex: 1;
+    white-space: nowrap;
+    padding: 0.4rem 0.75rem;
+  }
+
+  .date-selector {
+    gap: 1rem;
+    flex-direction: column;
+    padding-top: 1.25rem;
+  }
+
+  .current-date span {
+    min-width: unset;
+    font-size: 1rem;
+  }
+
+  .task-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .task-card-schedule {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .task-name {
+    font-size: 1.1rem;
+  }
+
+  .task-data-inputs {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .control-group input {
+    width: 100%;
+    text-align: left;
+    padding: 0.6rem;
+  }
+
+  .task-actions-btns {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .status-toggle {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 0.75rem 1rem;
+  }
+
+  .task-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .footer-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  /* Modal responsiveness */
+  .add-task-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .schedule-header {
+    margin-bottom: 1rem;
+  }
+  
+  .title-section h2 {
+    font-size: 1.1rem;
+  }
 }
