@@ -16,6 +16,8 @@ interface CustomerData {
   createdAt?: string;
   userId?: string;
   editorIds?: string[];
+  lat?: number;
+  lng?: number;
 }
 
 interface UserData {
@@ -50,6 +52,8 @@ const CustomerDetail: React.FC = () => {
     phone: '',
     address: '',
     note: '',
+    lat: '' as string | number,
+    lng: '' as string | number,
   });
 
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -171,6 +175,8 @@ const CustomerDetail: React.FC = () => {
       phone: customer.phone || '',
       address: customer.address || '',
       note: customer.note || '',
+      lat: customer.lat || '',
+      lng: customer.lng || '',
     });
     setError('');
     setIsModalOpen(true);
@@ -198,6 +204,8 @@ const CustomerDetail: React.FC = () => {
         phone: formData.phone || undefined,
         address: formData.address || undefined,
         note: formData.note || undefined,
+        lat: formData.lat !== '' ? Number(formData.lat) : undefined,
+        lng: formData.lng !== '' ? Number(formData.lng) : undefined,
       };
 
       await api.put(`/customers/${id}`, payload);
@@ -271,6 +279,22 @@ const CustomerDetail: React.FC = () => {
               <span className="label"><MapPin size={12} /> Địa chỉ</span>
               <span className="value">{customer.address || 'Chưa cập nhật'}</span>
             </div>
+            {customer.lat && customer.lng && (
+              <div className="info-item">
+                <span className="label"><MapPin size={12} /> Vị trí</span>
+                <span className="value">
+                  <a 
+                    href={`https://www.google.com/maps?q=${customer.lat},${customer.lng}`} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                  >
+                    {customer.lat}, {customer.lng}
+                    <Share2 size={12} />
+                  </a>
+                </span>
+              </div>
+            )}
             <div className="info-item">
               <span className="label"><Calendar size={12} /> Ngày tham gia</span>
               <span className="value">
@@ -352,6 +376,16 @@ const CustomerDetail: React.FC = () => {
                 <div className="form-group-modal">
                   <label>Địa chỉ</label>
                   <input name="address" type="text" value={formData.address} onChange={handleInputChange} />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group-modal">
+                    <label>Vĩ độ (Lat)</label>
+                    <input name="lat" type="number" step="any" value={formData.lat} onChange={handleInputChange} placeholder="10.123456" />
+                  </div>
+                  <div className="form-group-modal">
+                    <label>Kinh độ (Lng)</label>
+                    <input name="lng" type="number" step="any" value={formData.lng} onChange={handleInputChange} placeholder="106.123456" />
+                  </div>
                 </div>
                 <div className="form-group-modal">
                   <label>Ghi chú</label>
