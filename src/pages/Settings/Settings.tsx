@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
-import { Save, Lock, Landmark, User, ShieldCheck, Mail } from 'lucide-react';
+import { Save, Lock, Landmark, User, ShieldCheck, Mail, MapPin, Search } from 'lucide-react';
 import './Settings.css';
 
 interface UserSettingsData {
@@ -12,11 +12,13 @@ interface UserSettingsData {
   bankAccountName: string;
   bankName: string;
   bankCode: string;
+  lat: number | string;
+  lng: number | string;
 }
 
 const Settings: React.FC = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'security' | 'banking'>('security');
+  const [activeTab, setActiveTab] = useState<'security' | 'banking' | 'location'>('security');
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -28,7 +30,9 @@ const Settings: React.FC = () => {
     phone: '',
     bankAccountName: '',
     bankName: '',
-    bankCode: ''
+    bankCode: '',
+    lat: '',
+    lng: ''
   });
   
   const [passwordData, setPasswordData] = useState({
@@ -55,7 +59,9 @@ const Settings: React.FC = () => {
         phone: userData.phone || '',
         bankAccountName: userData.bankAccountName || '',
         bankName: userData.bankName || '',
-        bankCode: userData.bankCode || ''
+        bankCode: userData.bankCode || '',
+        lat: userData.lat ?? '',
+        lng: userData.lng ?? ''
       });
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -103,6 +109,9 @@ const Settings: React.FC = () => {
         payload.bankName = formData.bankName;
         payload.bankAccountName = formData.bankAccountName;
         payload.bankCode = formData.bankCode;
+      } else if (activeTab === 'location') {
+        payload.lat = formData.lat !== '' ? Number(formData.lat) : null;
+        payload.lng = formData.lng !== '' ? Number(formData.lng) : null;
       }
 
       await api.put(`/users/${user?.id}`, payload);
@@ -118,6 +127,27 @@ const Settings: React.FC = () => {
       showMessage('error', error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật.');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleGetLocation = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setFormData(prev => ({
+            ...prev,
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          }));
+          showMessage('success', 'Đã lấy vị trí hiện tại. Vui lòng nhấn Lưu.');
+        },
+        (error) => {
+          console.error("Lỗi lấy vị trí:", error);
+          showMessage('error', "Không thể lấy vị trí hiện tại. Vui lòng kiểm tra quyền truy cập vị trí.");
+        }
+      );
+    } else {
+      showMessage('error', "Trình duyệt của bạn không hỗ trợ định vị.");
     }
   };
 
@@ -166,6 +196,13 @@ const Settings: React.FC = () => {
               <Landmark size={18} />
               Thông tin Ngân hàng
             </button>
+            <button 
+              className={`nav-btn ${activeTab === 'location' ? 'active' : ''}`}
+              onClick={() => setActiveTab('location')}
+            >
+              <MapPin size={18} />
+              Vị trí của tôi
+            </button>
           </nav>
         </div>
 
@@ -174,7 +211,9 @@ const Settings: React.FC = () => {
           <div className="settings-card">
             <div className="card-header">
               <h3>
-                {activeTab === 'security' ? 'Tài khoản & Mật Khẩu' : 'Cập nhật Ngân Hàng'}
+                {activeTab === 'security' && 'Tài khoản & Mật Khẩu'}
+                {activeTab === 'banking' && 'Cập nhật Ngân Hàng'}
+                {activeTab === 'location' && 'Cập nhật Vị trí'}
               </h3>
             </div>
 
@@ -276,6 +315,49 @@ const Settings: React.FC = () => {
                       style={{ textTransform: 'uppercase' }}
                     />
                     <small className="help-text">Tên chủ thẻ nên viết hoa không dấu để khớp thông tin chuyển khoản.</small>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'location' && (
+                <div className="form-section">
+                  <div className="form-group">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <label style={{ marginBottom: 0 }}>Tọa độ hiện tại của bạn</label>
+                      <button 
+                        type="button" 
+                        onClick={handleGetLocation}
+                        style={{ fontSize: '0.875rem', color: '#2563eb', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer' }}
+                      >
+                        <Search size={14} />
+                        Lấy vị trí hiện tại
+                      </button>
+                    </div>
+                    <div className="form-row">
+                      <div className="input-with-icon">
+                        <MapPin size={18} />
+                        <input
+                          type="number"
+                          name="lat"
+                          value={formData.lat}
+                          onChange={handleInputChange}
+                          placeholder="Vĩ độ (Latitude)"
+                          step="any"
+                        />
+                      </div>
+                      <div className="input-with-icon">
+                        <MapPin size={18} />
+                        <input
+                          type="number"
+                          name="lng"
+                          value={formData.lng}
+                          onChange={handleInputChange}
+                          placeholder="Kinh độ (Longitude)"
+                          step="any"
+                        />
+                      </div>
+                    </div>
+                    <small className="help-text">Bấm "Lấy vị trí hiện tại" để tự động điền tọa độ nơi bạn đang đứng.</small>
                   </div>
                 </div>
               )}

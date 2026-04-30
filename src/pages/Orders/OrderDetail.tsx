@@ -10,7 +10,8 @@ import {
   Clock,
   ChevronRight,
   Package,
-  MapPin
+  MapPin,
+  Navigation
 } from 'lucide-react';
 import api from '../../api/axios';
 import './OrderDetail.css';
@@ -109,6 +110,38 @@ const OrderDetail: React.FC = () => {
     }
   };
 
+  const handleUpdateUserLocation = () => {
+    if (!order?.userId) return;
+    
+    if ("geolocation" in navigator) {
+      setIsUpdating(true);
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            await api.put(`/users/${order.userId}`, {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            });
+            alert('Cập nhật vị trí khách hàng thành công!');
+            fetchData(); // Tải lại thông tin để hiển thị icon
+          } catch (error) {
+            console.error('Lỗi khi cập nhật vị trí user:', error);
+            alert('Có lỗi xảy ra khi lưu vị trí.');
+          } finally {
+            setIsUpdating(false);
+          }
+        },
+        (error) => {
+          console.error("Lỗi lấy vị trí:", error);
+          alert("Không thể lấy vị trí hiện tại. Vui lòng kiểm tra quyền truy cập vị trí của trình duyệt.");
+          setIsUpdating(false);
+        }
+      );
+    } else {
+      alert("Trình duyệt của bạn không hỗ trợ định vị.");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="loading-container">
@@ -168,6 +201,26 @@ const OrderDetail: React.FC = () => {
                     <MapPin size={16} />
                   </a>
                 )}
+                <button
+                  onClick={handleUpdateUserLocation}
+                  disabled={isUpdating}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#059669',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    cursor: 'pointer',
+                    marginLeft: 'auto',
+                    fontSize: '0.75rem',
+                    fontWeight: 600
+                  }}
+                  title="Cập nhật vị trí hiện tại cho khách hàng này"
+                >
+                  <Navigation size={14} />
+                  Cập nhật vị trí
+                </button>
               </div>
             </div>
             <div className="info-item">
