@@ -57,6 +57,12 @@ const WorkDetail: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
   const [uploadingTaskId, setUploadingTaskId] = useState<string | null>(null);
+  const [editingTask, setEditingTask] = useState<WorkTaskData | null>(null);
+  const [editForm, setEditForm] = useState({
+    taskName: '',
+    description: '',
+    startDate: ''
+  });
 
   // Pagination states for tasks
   const [currentPage, setCurrentPage] = useState(1);
@@ -162,6 +168,30 @@ const WorkDetail: React.FC = () => {
       } catch (err) {
         console.error('Error removing file:', err);
       }
+    }
+  };
+
+  const handleEditClick = (task: WorkTaskData) => {
+    setEditingTask(task);
+    setEditForm({
+      taskName: task.taskName,
+      description: task.description || '',
+      startDate: task.startDate ? new Date(task.startDate).toISOString().split('T')[0] : ''
+    });
+  };
+
+  const handleSaveTaskEdit = async () => {
+    if (!editingTask) return;
+    try {
+      setIsSaving(true);
+      await api.put(`/works/tasks/${editingTask.id}`, editForm);
+      setTasks(prev => prev.map(t => t.id === editingTask.id ? { ...t, ...editForm, startDate: new Date(editForm.startDate).toISOString() } : t));
+      setEditingTask(null);
+    } catch (err) {
+      console.error('Error saving task edit:', err);
+      alert('Không thể lưu thay đổi.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -301,9 +331,14 @@ const WorkDetail: React.FC = () => {
                     </button>
                   </div>
 
-                  <button className="delete-task-btn" onClick={() => handleDeleteTask(task.id)} title="Xóa nhiệm vụ">
-                    <Trash2 size={18} />
-                  </button>
+                  <div className="task-actions-secondary">
+                    <button className="edit-task-btn" onClick={() => handleEditClick(task)} title="Chỉnh sửa nhiệm vụ">
+                      <Edit size={18} />
+                    </button>
+                    <button className="delete-task-btn" onClick={() => handleDeleteTask(task.id)} title="Xóa nhiệm vụ">
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="task-files-section-detail">
@@ -416,6 +451,54 @@ const WorkDetail: React.FC = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Task Modal */}
+      {editingTask && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3>Chỉnh sửa nhiệm vụ</h3>
+              <button className="close-btn" onClick={() => setEditingTask(null)}>
+                <X size={24} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group-modal">
+                <label>Tên nhiệm vụ *</label>
+                <input 
+                  type="text" 
+                  value={editForm.taskName} 
+                  onChange={(e) => setEditForm(prev => ({ ...prev, taskName: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="form-group-modal">
+                <label>Mô tả</label>
+                <textarea 
+                  value={editForm.description} 
+                  onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                  rows={3}
+                />
+              </div>
+              <div className="form-group-modal">
+                <label>Ngày thực hiện *</label>
+                <input 
+                  type="date" 
+                  value={editForm.startDate} 
+                  onChange={(e) => setEditForm(prev => ({ ...prev, startDate: e.target.value }))}
+                  required
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setEditingTask(null)}>Hủy</button>
+              <button className="btn-primary" onClick={handleSaveTaskEdit} disabled={isSaving}>
+                {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
+              </button>
+            </div>
           </div>
         </div>
       )}

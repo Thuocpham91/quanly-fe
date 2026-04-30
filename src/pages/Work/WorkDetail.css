@@ -250,6 +250,26 @@
   border-color: #3b82f6;
 }
 
+.task-actions-secondary {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.edit-task-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.edit-task-btn:hover {
+  background: #f1f5f9;
+  color: #2563eb;
+}
+
 .delete-task-btn {
   background: none;
   border: none;
