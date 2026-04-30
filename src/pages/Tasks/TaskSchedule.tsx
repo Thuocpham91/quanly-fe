@@ -298,16 +298,18 @@ const TaskSchedule: React.FC = () => {
         </div>
 
         <div className="date-selector">
-          <button className="arrow-btn" onClick={() => handleDateChange(-1)}>
-            <ChevronLeft size={20} />
-          </button>
-          <div className="current-date">
-            <Calendar size={20} />
-            <span>{selectedDate.toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+          <div className="date-nav-wrapper">
+            <button className="arrow-btn" onClick={() => handleDateChange(-1)}>
+              <ChevronLeft size={20} />
+            </button>
+            <div className="current-date">
+              <Calendar size={20} />
+              <span>{selectedDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+            </div>
+            <button className="arrow-btn" onClick={() => handleDateChange(1)}>
+              <ChevronRight size={20} />
+            </button>
           </div>
-          <button className="arrow-btn" onClick={() => handleDateChange(1)}>
-            <ChevronRight size={20} />
-          </button>
           
           <button 
             className="btn-primary" 
