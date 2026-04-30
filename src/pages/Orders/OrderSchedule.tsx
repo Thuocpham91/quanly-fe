@@ -94,7 +94,7 @@ const OrderSchedule: React.FC = () => {
   };
 
   const renderOrderCard = (order: Order) => (
-    <div key={order.id} className="order-schedule-card" onClick={() => navigate(`/orders/${order.id}`)}>
+    <div key={order.id} className="order-schedule-card" onClick={() => navigate(`/admin/orders/${order.id}`)}>
       <div className="card-top">
         <div className="order-id-badge">#{order.id}</div>
         <div className={`type-tag ${(order.type || '').toLowerCase()}`}>
@@ -103,9 +103,17 @@ const OrderSchedule: React.FC = () => {
       </div>
       
       <div className="card-body">
-        <div className="user-info">
+        <div 
+          className="user-info" 
+          onClick={(e) => {
+            e.stopPropagation();
+            if (order.userId) navigate(`/admin/customers/${order.userId}`);
+          }}
+          style={{ cursor: 'pointer', color: '#2563eb' }}
+          title="Xem chi tiết khách hàng"
+        >
           <UserIcon size={16} />
-          <span>{order.user?.fullName || order.user?.username || 'Khách hàng'}</span>
+          <span style={{ fontWeight: 500 }}>{order.user?.fullName || order.user?.username || 'Khách hàng'}</span>
         </div>
         <div className="quantity-info">
           <span className="qty-value">{order.quantity.toLocaleString('vi-VN')}</span>

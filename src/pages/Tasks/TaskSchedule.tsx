@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Calendar, 
   ChevronLeft, 
@@ -55,6 +56,7 @@ interface TaskHistoryData {
 }
 
 const TaskSchedule: React.FC = () => {
+  const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [tasks, setTasks] = useState<WorkTask[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -332,7 +334,12 @@ const TaskSchedule: React.FC = () => {
           <div className="task-grid">
             {tasks.map((task) => (
               <div key={task.id} className={`task-card-schedule ${task.employeeChecked ? 'completed' : ''}`}>
-                <div className="task-batch-info">
+                <div 
+                  className="task-batch-info" 
+                  onClick={() => navigate(`/admin/works/${task.workId}`)}
+                  style={{ cursor: 'pointer' }}
+                  title="Xem chi tiết đợt công việc"
+                >
                   <div className="batch-tag">
                     <Briefcase size={12} />
                     <span>{task.work?.title || 'Đợt nuôi'}</span>
