@@ -433,7 +433,7 @@ const OrderManagement: React.FC = () => {
   };
 
   const filteredOrders = orders.filter(o => 
-    o.user?.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (o.user?.username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     o.id.toString().includes(searchTerm)
   );
 

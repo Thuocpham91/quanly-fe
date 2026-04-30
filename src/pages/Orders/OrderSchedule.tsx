@@ -97,7 +97,7 @@ const OrderSchedule: React.FC = () => {
     <div key={order.id} className="order-schedule-card" onClick={() => navigate(`/orders/${order.id}`)}>
       <div className="card-top">
         <div className="order-id-badge">#{order.id}</div>
-        <div className={`type-tag ${order.type.toLowerCase()}`}>
+        <div className={`type-tag ${(order.type || '').toLowerCase()}`}>
           {order.type === 'MUA_GA' ? 'Mua gà' : 'Đặt gà'}
         </div>
       </div>

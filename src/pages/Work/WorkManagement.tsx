@@ -210,8 +210,8 @@ const WorkManagement: React.FC = () => {
   };
 
   const filteredWorks = works.filter(w => 
-    w.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    w.object?.name.toLowerCase().includes(searchTerm.toLowerCase())
+    (w.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (w.object?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
