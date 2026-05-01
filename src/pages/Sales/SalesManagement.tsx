@@ -283,9 +283,11 @@ const SalesManagement: React.FC = () => {
       if (i.customerId && statusMap.has(i.customerId)) {
         matchesCall = true;
         callData = statusMap.get(i.customerId);
-      } else if (!i.customerId) {
-        // Fallback for users without linked customer records (backend doesn't know about them)
-        if (callFilter === 'ALL' || callFilter === 'NOT_CALLED' || callFilter.startsWith('NO_CALL_')) {
+      } else {
+        if (callFilter === 'ALL') {
+          matchesCall = true;
+        } else if (!i.customerId && (callFilter === 'NOT_CALLED' || callFilter.startsWith('NO_CALL_'))) {
+          // Fallback for users without linked customer records
           matchesCall = true;
         }
       }
