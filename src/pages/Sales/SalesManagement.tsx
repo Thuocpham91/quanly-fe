@@ -249,8 +249,6 @@ const SalesManagement: React.FC = () => {
     });
   }, [users, orders, customers]);
 
-  }, [users, orders, customers]);
-
   const filteredInsights = useMemo(() => {
     // 1. Create lookup map from the backend response
     const statusMap = new Map(customerCallStatuses.map(c => [c.customerId, c]));
