@@ -156,7 +156,7 @@ const SalesManagement: React.FC = () => {
     if (days <= 60) return <span className="recency-tag active">Thường xuyên (60d)</span>;
     if (days <= 150) return <span className="recency-tag standard">Gần đây (5th)</span>;
     if (days <= 240) return <span className="recency-tag fading">Lâu ngày (8th)</span>;
-    return <span className="recency-tag dormant">Rất lâu rồi (>8th)</span>;
+    return <span className="recency-tag dormant">Rất lâu rồi (&gt;8th)</span>;
   };
 
   return (
@@ -186,7 +186,7 @@ const SalesManagement: React.FC = () => {
         <div className="stat-card orange">
           <div className="stat-icon"><UserIcon size={24} /></div>
           <div className="stat-content">
-            <span className="stat-label">Khách lâu ngày (>8th)</span>
+            <span className="stat-label">Khách lâu ngày (&gt;8th)</span>
             <span className="stat-value">{insights.filter(i => (i.daysSinceLastPurchase ?? 0) > 240).length}</span>
           </div>
         </div>
