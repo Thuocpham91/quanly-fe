@@ -193,7 +193,9 @@ const SalesManagement: React.FC = () => {
         totalOrders: 0,
         totalQuantity: 0,
         totalAmount: 0,
-        daysSinceLastPurchase: null
+        daysSinceLastPurchase: null,
+        lastCalledDate: null,
+        daysSinceLastCall: null,
       });
     });
 
