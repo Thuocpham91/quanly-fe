@@ -35,12 +35,14 @@ interface OrderData {
 interface CustomerInsight {
   userId: string;
   user: UserData;
-  customerId?: string; // Link to customer record for call history
+  customerId?: string;
   lastPurchaseDate: Date | null;
   totalOrders: number;
   totalQuantity: number;
   totalAmount: number;
   daysSinceLastPurchase: number | null;
+  lastCalledDate: Date | null;
+  daysSinceLastCall: number | null;
 }
 
 const SalesManagement: React.FC = () => {
@@ -50,6 +52,8 @@ const SalesManagement: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState<'ALL' | '10_DAYS' | '60_DAYS' | '5_MONTHS' | '8_MONTHS' | 'LONGER'>('ALL');
+  const [callFilter, setCallFilter] = useState<'ALL' | 'CALLED_10' | 'CALLED_60' | 'NOT_CALLED' | 'NO_CALL_10' | 'NO_CALL_60' | 'NO_CALL_5M'>('ALL');
+  const [allCallHistories, setAllCallHistories] = useState<any[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerInsight | null>(null);
   const [callHistory, setCallHistory] = useState<any[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
@@ -58,10 +62,11 @@ const SalesManagement: React.FC = () => {
   const fetchData = async () => {
     try {
       setIsLoading(true);
-      const [usersRes, ordersRes, customersRes] = await Promise.all([
+      const [usersRes, ordersRes, customersRes, callHistoriesRes] = await Promise.all([
         api.get('/users'),
         api.get('/orders'),
-        api.get('/customers?limit=1000').catch(() => ({ data: { data: [] } }))
+        api.get('/customers?limit=1000').catch(() => ({ data: { data: [] } })),
+        api.get('/call-histories').catch(() => ({ data: { data: [] } }))
       ]);
 
       if (usersRes.data && Array.isArray(usersRes.data.data)) {
@@ -72,6 +77,10 @@ const SalesManagement: React.FC = () => {
       }
       if (customersRes.data && Array.isArray(customersRes.data.data)) {
         setCustomers(customersRes.data.data);
+      }
+      const callData = callHistoriesRes.data?.data ?? callHistoriesRes.data;
+      if (Array.isArray(callData)) {
+        setAllCallHistories(callData);
       }
     } catch (err) {
       console.error('Error fetching sales data:', err);
@@ -223,30 +232,66 @@ const SalesManagement: React.FC = () => {
       if (!b.lastPurchaseDate) return -1;
       return b.lastPurchaseDate.getTime() - a.lastPurchaseDate.getTime();
     });
-  }, [users, orders]);
+  }, [users, orders, customers]);
+
+  // Build a map of customerId -> lastCalledDate from allCallHistories
+  const callHistoryMap = useMemo(() => {
+    const map = new Map<string, Date>();
+    allCallHistories.forEach(record => {
+      if (!record.customerId || !record.createdAt) return;
+      const d = new Date(record.createdAt);
+      const existing = map.get(record.customerId);
+      if (!existing || d > existing) {
+        map.set(record.customerId, d);
+      }
+    });
+    return map;
+  }, [allCallHistories]);
+
+  // Attach call info to insights
+  const insightsWithCall = useMemo(() => {
+    const now = new Date();
+    return insights.map(item => {
+      const lastCalledDate = item.customerId ? callHistoryMap.get(item.customerId) ?? null : null;
+      const daysSinceLastCall = lastCalledDate
+        ? Math.floor((now.getTime() - lastCalledDate.getTime()) / (1000 * 60 * 60 * 24))
+        : null;
+      return { ...item, lastCalledDate, daysSinceLastCall };
+    });
+  }, [insights, callHistoryMap]);
 
   const filteredInsights = useMemo(() => {
-    return insights.filter(i => {
-      // Name/Phone Search
-      const matchesSearch = 
+    return insightsWithCall.filter(i => {
+      const matchesSearch =
         (i.user.fullName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (i.user.username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (i.user.phone || '').includes(searchTerm);
-
       if (!matchesSearch) return false;
 
-      // Recency Filter
+      // Purchase recency filter
       const days = i.daysSinceLastPurchase ?? 9999;
       switch (activeFilter) {
-        case '10_DAYS': return days <= 10;
-        case '60_DAYS': return days <= 60;
-        case '5_MONTHS': return days <= 150; // 5 * 30
-        case '8_MONTHS': return days <= 240; // 8 * 30
-        case 'LONGER': return days > 240;
+        case '10_DAYS': if (days > 10) return false; break;
+        case '60_DAYS': if (days > 60) return false; break;
+        case '5_MONTHS': if (days > 150) return false; break;
+        case '8_MONTHS': if (days > 240) return false; break;
+        case 'LONGER': if (days <= 240) return false; break;
+      }
+
+      // Call filter
+      const callDays = i.daysSinceLastCall;
+      switch (callFilter) {
+        case 'CALLED_10':  return callDays !== null && callDays <= 10;
+        case 'CALLED_60':  return callDays !== null && callDays <= 60;
+        case 'NOT_CALLED': return callDays === null;
+        // chưa gọi trong X ngày = chưa từng gọi (null) HOỊ gọi đã quá X ngày
+        case 'NO_CALL_10': return callDays === null || callDays > 10;
+        case 'NO_CALL_60': return callDays === null || callDays > 60;
+        case 'NO_CALL_5M': return callDays === null || callDays > 150;
         default: return true;
       }
     });
-  }, [insights, searchTerm, activeFilter]);
+  }, [insightsWithCall, searchTerm, activeFilter, callFilter]);
 
   const getRecencyLabel = (days: number | null) => {
     if (days === null) return 'Chưa mua';
@@ -302,30 +347,23 @@ const SalesManagement: React.FC = () => {
         </div>
 
         <div className="filter-tabs">
-          <button 
-            className={`filter-tab ${activeFilter === 'ALL' ? 'active' : ''}`}
-            onClick={() => setActiveFilter('ALL')}
-          >Tất cả</button>
-          <button 
-            className={`filter-tab ${activeFilter === '10_DAYS' ? 'active' : ''}`}
-            onClick={() => setActiveFilter('10_DAYS')}
-          >10 ngày</button>
-          <button 
-            className={`filter-tab ${activeFilter === '60_DAYS' ? 'active' : ''}`}
-            onClick={() => setActiveFilter('60_DAYS')}
-          >60 ngày</button>
-          <button 
-            className={`filter-tab ${activeFilter === '5_MONTHS' ? 'active' : ''}`}
-            onClick={() => setActiveFilter('5_MONTHS')}
-          >5 tháng</button>
-          <button 
-            className={`filter-tab ${activeFilter === '8_MONTHS' ? 'active' : ''}`}
-            onClick={() => setActiveFilter('8_MONTHS')}
-          >8 tháng</button>
-          <button 
-            className={`filter-tab ${activeFilter === 'LONGER' ? 'active' : ''}`}
-            onClick={() => setActiveFilter('LONGER')}
-          >Lâu hơn</button>
+          <button className={`filter-tab ${activeFilter === 'ALL' ? 'active' : ''}`} onClick={() => setActiveFilter('ALL')}>Tất cả</button>
+          <button className={`filter-tab ${activeFilter === '10_DAYS' ? 'active' : ''}`} onClick={() => setActiveFilter('10_DAYS')}>10 ngày</button>
+          <button className={`filter-tab ${activeFilter === '60_DAYS' ? 'active' : ''}`} onClick={() => setActiveFilter('60_DAYS')}>60 ngày</button>
+          <button className={`filter-tab ${activeFilter === '5_MONTHS' ? 'active' : ''}`} onClick={() => setActiveFilter('5_MONTHS')}>5 tháng</button>
+          <button className={`filter-tab ${activeFilter === '8_MONTHS' ? 'active' : ''}`} onClick={() => setActiveFilter('8_MONTHS')}>8 tháng</button>
+          <button className={`filter-tab ${activeFilter === 'LONGER' ? 'active' : ''}`} onClick={() => setActiveFilter('LONGER')}>Lâu hơn</button>
+        </div>
+
+        <div className="filter-tabs call-filter-tabs">
+          <span className="filter-label">Gọi điện:</span>
+          <button className={`filter-tab ${callFilter === 'ALL' ? 'active' : ''}`} onClick={() => setCallFilter('ALL')}>Tất cả</button>
+          <button className={`filter-tab call-ok ${callFilter === 'CALLED_10' ? 'active' : ''}`} onClick={() => setCallFilter('CALLED_10')}>✓ Đã gọi ≤10d</button>
+          <button className={`filter-tab call-ok ${callFilter === 'CALLED_60' ? 'active' : ''}`} onClick={() => setCallFilter('CALLED_60')}>✓ Đã gọi ≤60d</button>
+          <button className={`filter-tab call-none ${callFilter === 'NOT_CALLED' ? 'active' : ''}`} onClick={() => setCallFilter('NOT_CALLED')}>✗ Chưa gọi</button>
+          <button className={`filter-tab call-none ${callFilter === 'NO_CALL_10' ? 'active' : ''}`} onClick={() => setCallFilter('NO_CALL_10')}>✗ Chưa gọi 10d</button>
+          <button className={`filter-tab call-none ${callFilter === 'NO_CALL_60' ? 'active' : ''}`} onClick={() => setCallFilter('NO_CALL_60')}>✗ Chưa gọi 60d</button>
+          <button className={`filter-tab call-none ${callFilter === 'NO_CALL_5M' ? 'active' : ''}`} onClick={() => setCallFilter('NO_CALL_5M')}>✗ Chưa gọi 5 tháng</button>
         </div>
       </div>
 

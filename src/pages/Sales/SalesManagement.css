@@ -115,6 +115,43 @@
   border-color: #0f172a;
 }
 
+/* Call filter row */
+.call-filter-tabs {
+  margin-top: 0.25rem;
+  align-items: center;
+}
+
+.filter-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.filter-tab.call-ok.active {
+  background: #059669;
+  border-color: #059669;
+  color: white;
+}
+
+.filter-tab.call-ok:not(.active) {
+  color: #059669;
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+}
+
+.filter-tab.call-none.active {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: white;
+}
+
+.filter-tab.call-none:not(.active) {
+  color: #dc2626;
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
 .table-wrapper {
   background: white;
   border-radius: 12px;
