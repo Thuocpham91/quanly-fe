@@ -996,3 +996,130 @@
     font-size: 1.1rem;
   }
 }
+
+/* ── Image Thumbnail in file list ── */
+.task-files-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.task-file-item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+}
+
+.file-img-thumb {
+  background: none;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.file-img-thumb:hover {
+  border-color: #2563eb;
+  transform: scale(1.04);
+}
+
+.thumb-preview {
+  display: block;
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.remove-file-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.task-file-item:hover .remove-file-btn {
+  opacity: 1;
+}
+
+/* ── Lightbox ── */
+.lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+  padding: 1rem;
+}
+
+.lightbox-inner {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.lightbox-img {
+  max-width: 90vw;
+  max-height: 80vh;
+  border-radius: 12px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  object-fit: contain;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: -48px;
+  right: 0;
+  background: rgba(255,255,255,0.15);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.lightbox-close:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+.lightbox-download {
+  color: rgba(255,255,255,0.8);
+  font-size: 0.875rem;
+  text-decoration: none;
+  border: 1px solid rgba(255,255,255,0.3);
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.lightbox-download:hover {
+  background: rgba(255,255,255,0.15);
+  color: white;
+}

@@ -66,6 +66,7 @@ const TaskSchedule: React.FC = () => {
   const [selectedHistoryTask, setSelectedHistoryTask] = useState<WorkTask | null>(null);
   const [taskHistories, setTaskHistories] = useState<TaskHistoryData[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   // Add Task Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -405,12 +406,22 @@ const TaskSchedule: React.FC = () => {
                     {task.fileUrls && task.fileUrls.length > 0 && (
                       <div className="task-files-list">
                         {task.fileUrls.map((url, idx) => {
-                          const isImage = url.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null;
+                          const isImage = /\.(jpeg|jpg|gif|png|webp)$/i.test(url);
                           return (
                             <div key={idx} className="task-file-item">
-                              <a href={url} target="_blank" rel="noreferrer" className="file-link">
-                                {isImage ? <ImageIcon size={14} /> : <FileIcon size={14} />}
-                              </a>
+                              {isImage ? (
+                                <button
+                                  className="file-link file-img-thumb"
+                                  onClick={() => setLightboxUrl(url)}
+                                  title="Xem ảnh"
+                                >
+                                  <img src={url} alt={`file-${idx}`} className="thumb-preview" />
+                                </button>
+                              ) : (
+                                <a href={url} target="_blank" rel="noreferrer" className="file-link">
+                                  <FileIcon size={14} />
+                                </a>
+                              )}
                               <button className="remove-file-btn" onClick={() => handleRemoveFile(task.id, url)} title="Xóa file">
                                 <X size={10} />
                               </button>
@@ -572,6 +583,20 @@ const TaskSchedule: React.FC = () => {
             </form>
           </div>
         </>
+      )}
+      {/* IMAGE LIGHTBOX */}
+      {lightboxUrl && (
+        <div className="lightbox-overlay" onClick={() => setLightboxUrl(null)}>
+          <div className="lightbox-inner" onClick={(e) => e.stopPropagation()}>
+            <button className="lightbox-close" onClick={() => setLightboxUrl(null)}>
+              <X size={24} />
+            </button>
+            <img src={lightboxUrl} alt="preview" className="lightbox-img" />
+            <a href={lightboxUrl} target="_blank" rel="noreferrer" className="lightbox-download">
+              Mở ảnh gốc ↗
+            </a>
+          </div>
+        </div>
       )}
     </div>
   );
