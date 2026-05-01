@@ -137,6 +137,21 @@ const CustomerManagement: React.FC = () => {
     }
   };
 
+  const handleCall = async (customer: CustomerData) => {
+    if (!customer.phone) return;
+    
+    try {
+      await api.post('/call-histories', {
+        customerId: customer.id,
+        note: `Cuộc gọi từ danh sách Quản lý Khách hàng: ${customer.name}`
+      });
+    } catch (error) {
+      console.error('Error logging call history:', error);
+    } finally {
+      window.location.href = `tel:${customer.phone}`;
+    }
+  };
+
   return (
     <div className="object-page-container">
       <div className="page-header">
@@ -185,9 +200,13 @@ const CustomerManagement: React.FC = () => {
                       <td>{customer.email}</td>
                       <td>
                         {customer.phone ? (
-                          <a href={`tel:${customer.phone}`} style={{ color: '#2563eb', textDecoration: 'none', fontWeight: 500 }}>
+                          <div 
+                            onClick={() => handleCall(customer)}
+                            style={{ color: '#2563eb', cursor: 'pointer', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px' }}
+                            title="Click để gọi và lưu lịch sử"
+                          >
                             {customer.phone}
-                          </a>
+                          </div>
                         ) : '-'}
                       </td>
                       <td>{customer.address || '-'}</td>

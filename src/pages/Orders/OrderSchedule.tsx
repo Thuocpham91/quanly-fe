@@ -22,7 +22,7 @@ import './OrderSchedule.css';
 interface Order {
   id: string;
   userId: string;
-  user?: { username: string; fullName: string; lat?: number; lng?: number };
+  user?: { username: string; fullName: string; phone?: string; lat?: number; lng?: number };
   quantity: number;
   type: string;
   status: string;
@@ -99,6 +99,26 @@ const OrderSchedule: React.FC = () => {
 
   const setToday = () => {
     setSelectedDate(new Date());
+  };
+
+  const handleCall = async (e: React.MouseEvent, phone: string, userId: string, name: string) => {
+    e.stopPropagation();
+    if (!phone) return;
+
+    try {
+      // Find customer by user ID to get customerId
+      const res = await api.get(`/customers/user/${userId}`);
+      if (res.data && res.data.data) {
+        await api.post('/call-histories', {
+          customerId: res.data.data.id,
+          note: `Cuộc gọi từ Lịch trình giao hàng: ${name}`
+        });
+      }
+    } catch (error) {
+      console.error('Error logging call history:', error);
+    } finally {
+      window.location.href = `tel:${phone}`;
+    }
   };
 
   const handleCustomerClick = async (userId: string) => {
@@ -180,17 +200,30 @@ const OrderSchedule: React.FC = () => {
       </div>
       
       <div className="card-body">
-        <div 
-          className="user-info" 
-          onClick={(e) => {
-            e.stopPropagation();
-            if (order.userId) handleCustomerClick(order.userId);
-          }}
-          style={{ cursor: 'pointer', color: '#2563eb' }}
-          title="Xem chi tiết khách hàng"
-        >
-          <UserIcon size={16} />
-          <span style={{ fontWeight: 500 }}>{order.user?.fullName || order.user?.username || 'Khách hàng'}</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div 
+            className="user-info" 
+            onClick={(e) => {
+              e.stopPropagation();
+              if (order.userId) handleCustomerClick(order.userId);
+            }}
+            style={{ cursor: 'pointer', color: '#2563eb' }}
+            title="Xem chi tiết khách hàng"
+          >
+            <UserIcon size={16} />
+            <span style={{ fontWeight: 500 }}>{order.user?.fullName || order.user?.username || 'Khách hàng'}</span>
+          </div>
+
+          {order.user?.phone && (
+            <div 
+              onClick={(e) => order.userId && handleCall(e, order.user?.phone || '', order.userId, order.user?.fullName || order.user?.username || '')}
+              style={{ color: '#059669', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem' }}
+              title="Gọi khách hàng và lưu lịch sử"
+            >
+              <Phone size={14} />
+              <span style={{ fontWeight: 600 }}>{order.user.phone}</span>
+            </div>
+          )}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
             <div className="quantity-info">

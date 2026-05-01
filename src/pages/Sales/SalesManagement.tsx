@@ -34,6 +34,7 @@ interface OrderData {
 interface CustomerInsight {
   userId: string;
   user: UserData;
+  customerId?: string; // Link to customer record for call history
   lastPurchaseDate: Date | null;
   totalOrders: number;
   totalQuantity: number;
@@ -44,6 +45,7 @@ interface CustomerInsight {
 const SalesManagement: React.FC = () => {
   const [users, setUsers] = useState<UserData[]>([]);
   const [orders, setOrders] = useState<OrderData[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState<'ALL' | '10_DAYS' | '60_DAYS' | '5_MONTHS' | '8_MONTHS' | 'LONGER'>('ALL');
@@ -52,9 +54,10 @@ const SalesManagement: React.FC = () => {
   const fetchData = async () => {
     try {
       setIsLoading(true);
-      const [usersRes, ordersRes] = await Promise.all([
+      const [usersRes, ordersRes, customersRes] = await Promise.all([
         api.get('/users'),
-        api.get('/orders')
+        api.get('/orders'),
+        api.get('/customers').catch(() => ({ data: { data: [] } }))
       ]);
 
       if (usersRes.data && Array.isArray(usersRes.data.data)) {
@@ -62,6 +65,9 @@ const SalesManagement: React.FC = () => {
       }
       if (ordersRes.data && Array.isArray(ordersRes.data.data)) {
         setOrders(ordersRes.data.data);
+      }
+      if (customersRes.data && Array.isArray(customersRes.data.data)) {
+        setCustomers(customersRes.data.data);
       }
     } catch (err) {
       console.error('Error fetching sales data:', err);
@@ -74,14 +80,35 @@ const SalesManagement: React.FC = () => {
     fetchData();
   }, []);
 
+  const handleCall = async (phone: string, customerId?: string, customerName?: string) => {
+    if (!phone) return;
+    
+    try {
+      if (customerId) {
+        await api.post('/call-histories', {
+          customerId,
+          note: `Cuộc gọi từ danh sách Theo dõi Khách mua: ${customerName || phone}`
+        });
+      }
+    } catch (error) {
+      console.error('Error logging call history:', error);
+    } finally {
+      window.location.href = `tel:${phone}`;
+    }
+  };
+
   const insights = useMemo(() => {
     const customerMap = new Map<string, CustomerInsight>();
 
-    // Process all users first (we only care about CUSTOMER/USER roles or anyone with an order)
+    // Process all users first
     users.forEach(user => {
+      // Find linked customer record
+      const linkedCustomer = customers.find(c => c.userId === user.id);
+      
       customerMap.set(user.id, {
         userId: user.id,
         user,
+        customerId: linkedCustomer?.id,
         lastPurchaseDate: null,
         totalOrders: 0,
         totalQuantity: 0,
@@ -267,9 +294,14 @@ const SalesManagement: React.FC = () => {
                       </div>
                     </td>
                     <td>
-                      <div className="phone-cell">
+                      <div 
+                        className="phone-cell" 
+                        onClick={() => handleCall(item.user.phone || '', item.customerId, item.user.fullName || item.user.username)}
+                        style={{ cursor: item.user.phone ? 'pointer' : 'default', color: item.user.phone ? '#2563eb' : 'inherit' }}
+                        title={item.user.phone ? 'Click để gọi và lưu lịch sử' : ''}
+                      >
                         <Phone size={14} />
-                        <span>{item.user.phone || '-'}</span>
+                        <span style={{ fontWeight: 500 }}>{item.user.phone || '-'}</span>
                       </div>
                     </td>
                     <td>
