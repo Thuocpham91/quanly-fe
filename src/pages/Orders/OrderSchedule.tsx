@@ -119,6 +119,9 @@ const OrderSchedule: React.FC = () => {
   const handleUpdateUserLocation = (e: React.MouseEvent, userId: string) => {
     e.stopPropagation();
     if (!userId) return;
+
+    const confirmed = window.confirm('Bạn có chắc chắn muốn cập nhật vị trí hiện tại cho khách hàng này không?');
+    if (!confirmed) return;
     
     if ("geolocation" in navigator) {
       setUpdatingUserId(userId);
