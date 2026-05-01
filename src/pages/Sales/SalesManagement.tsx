@@ -8,7 +8,8 @@ import {
   ChevronRight,
   Filter,
   Phone,
-  ArrowUpRight
+  ArrowUpRight,
+  X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
@@ -49,6 +50,9 @@ const SalesManagement: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState<'ALL' | '10_DAYS' | '60_DAYS' | '5_MONTHS' | '8_MONTHS' | 'LONGER'>('ALL');
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerInsight | null>(null);
+  const [callHistory, setCallHistory] = useState<any[]>([]);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const navigate = useNavigate();
 
   const fetchData = async () => {
@@ -89,11 +93,40 @@ const SalesManagement: React.FC = () => {
           customerId,
           note: `Cuộc gọi từ danh sách Theo dõi Khách mua: ${customerName || phone}`
         });
+        // If drawer is open for this customer, refresh history
+        if (selectedCustomer?.customerId === customerId) {
+          fetchCallHistory(customerId);
+        }
       }
     } catch (error) {
       console.error('Error logging call history:', error);
     } finally {
       window.location.href = `tel:${phone}`;
+    }
+  };
+
+  const fetchCallHistory = async (customerId: string) => {
+    try {
+      setIsHistoryLoading(true);
+      const res = await api.get(`/call-histories?customerId=${customerId}`);
+      if (res.data && Array.isArray(res.data.data)) {
+        setCallHistory(res.data.data);
+      } else if (Array.isArray(res.data)) {
+        setCallHistory(res.data);
+      }
+    } catch (error) {
+      console.error('Error fetching call history:', error);
+    } finally {
+      setIsHistoryLoading(false);
+    }
+  };
+
+  const openHistoryDrawer = (item: CustomerInsight) => {
+    setSelectedCustomer(item);
+    if (item.customerId) {
+      fetchCallHistory(item.customerId);
+    } else {
+      setCallHistory([]);
     }
   };
 
@@ -342,7 +375,11 @@ const SalesManagement: React.FC = () => {
             <div className="mobile-card-list">
               {filteredInsights.length > 0 ? (
                 filteredInsights.map((item) => (
-                  <div key={item.userId} className="mobile-sales-card">
+                  <div 
+                    key={item.userId} 
+                    className="mobile-sales-card"
+                    onClick={() => openHistoryDrawer(item)}
+                  >
                     <div className="card-header">
                       <div className="customer-info">
                         <div className="avatar">
@@ -356,7 +393,10 @@ const SalesManagement: React.FC = () => {
                       <div className="card-actions">
                         <button 
                           className="btn-view-sm"
-                          onClick={() => navigate(`/admin/users?search=${item.user.username}`)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/admin/users?search=${item.user.username}`);
+                          }}
                         >
                           <ArrowUpRight size={14} />
                         </button>
@@ -380,7 +420,10 @@ const SalesManagement: React.FC = () => {
                       <div className="card-footer">
                         <div 
                           className="phone-btn" 
-                          onClick={() => handleCall(item.user.phone || '', item.customerId, item.user.fullName || item.user.username)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCall(item.user.phone || '', item.customerId, item.user.fullName || item.user.username);
+                          }}
                         >
                           <Phone size={14} />
                           <span>{item.user.phone || 'N/A'}</span>
@@ -400,6 +443,71 @@ const SalesManagement: React.FC = () => {
             </div>
           </>
         )}
+      </div>
+
+      {/* Call History Drawer */}
+      <div className={`history-drawer ${selectedCustomer ? 'open' : ''}`}>
+        <div className="drawer-overlay" onClick={() => setSelectedCustomer(null)} />
+        <div className="drawer-content">
+          <div className="drawer-header">
+            <div className="customer-min-info">
+              <div className="avatar-sm">
+                {selectedCustomer?.user.fullName?.[0] || selectedCustomer?.user.username?.[0]}
+              </div>
+              <div>
+                <h4>{selectedCustomer?.user.fullName || selectedCustomer?.user.username}</h4>
+                <p>@{selectedCustomer?.user.username}</p>
+              </div>
+            </div>
+            <button className="close-drawer" onClick={() => setSelectedCustomer(null)}>
+              <X size={20} />
+            </button>
+          </div>
+          
+          <div className="drawer-body">
+            <h3><Clock size={16} /> Lịch sử liên hệ</h3>
+            
+            {isHistoryLoading ? (
+              <div className="drawer-loading">
+                <div className="loader-sm"></div>
+                <p>Đang tải lịch sử...</p>
+              </div>
+            ) : (
+              <div className="drawer-history-list">
+                {callHistory.length > 0 ? (
+                  callHistory.map((record) => (
+                    <div key={record.id} className="history-record">
+                      <div className="record-time">
+                        {new Date(record.createdAt).toLocaleString('vi-VN')}
+                      </div>
+                      <div className="record-note">{record.note}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="empty-history-drawer">
+                    Chưa có lịch sử liên hệ.
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          
+          {selectedCustomer?.user.phone && (
+            <div className="drawer-footer">
+              <button 
+                className="btn-call-full"
+                onClick={() => handleCall(
+                  selectedCustomer.user.phone || '', 
+                  selectedCustomer.customerId, 
+                  selectedCustomer.user.fullName || selectedCustomer.user.username
+                )}
+              >
+                <Phone size={18} />
+                Gọi ngay: {selectedCustomer.user.phone}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
