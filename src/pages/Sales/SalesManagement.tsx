@@ -53,7 +53,7 @@ const SalesManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState<'ALL' | '10_DAYS' | '60_DAYS' | '5_MONTHS' | '8_MONTHS' | 'LONGER'>('ALL');
   const [callFilter, setCallFilter] = useState<'ALL' | 'CALLED_10' | 'CALLED_60' | 'NOT_CALLED' | 'NO_CALL_10' | 'NO_CALL_60' | 'NO_CALL_5M'>('ALL');
-  const [allCallHistories, setAllCallHistories] = useState<any[]>([]);
+  const [customerCallStatuses, setCustomerCallStatuses] = useState<any[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerInsight | null>(null);
   const [callHistory, setCallHistory] = useState<any[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
@@ -62,11 +62,10 @@ const SalesManagement: React.FC = () => {
   const fetchData = async () => {
     try {
       setIsLoading(true);
-      const [usersRes, ordersRes, customersRes, callHistoriesRes] = await Promise.all([
+      const [usersRes, ordersRes, customersRes] = await Promise.all([
         api.get('/users'),
         api.get('/orders'),
-        api.get('/customers?limit=1000').catch(() => ({ data: { data: [] } })),
-        api.get('/call-histories').catch(() => ({ data: { data: [] } }))
+        api.get('/customers?limit=1000').catch(() => ({ data: { data: [] } }))
       ]);
 
       if (usersRes.data && Array.isArray(usersRes.data.data)) {
@@ -78,10 +77,6 @@ const SalesManagement: React.FC = () => {
       if (customersRes.data && Array.isArray(customersRes.data.data)) {
         setCustomers(customersRes.data.data);
       }
-      const callData = callHistoriesRes.data?.data ?? callHistoriesRes.data;
-      if (Array.isArray(callData)) {
-        setAllCallHistories(callData);
-      }
     } catch (err) {
       console.error('Error fetching sales data:', err);
     } finally {
@@ -92,6 +87,24 @@ const SalesManagement: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Fetch call statuses from API whenever callFilter changes
+  useEffect(() => {
+    const fetchCallStatus = async () => {
+      try {
+        setIsLoading(true);
+        const res = await api.get(`/call-histories/customer-status?callFilter=${callFilter}`);
+        if (res.data?.data) {
+          setCustomerCallStatuses(res.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching call status:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchCallStatus();
+  }, [callFilter]);
 
   const handleCall = async (phone: string, customerId?: string, customerName?: string, userId?: string) => {
     if (!phone) return;
@@ -236,64 +249,60 @@ const SalesManagement: React.FC = () => {
     });
   }, [users, orders, customers]);
 
-  // Build a map of customerId -> lastCalledDate from allCallHistories
-  const callHistoryMap = useMemo(() => {
-    const map = new Map<string, Date>();
-    allCallHistories.forEach(record => {
-      if (!record.customerId || !record.createdAt) return;
-      const d = new Date(record.createdAt);
-      const existing = map.get(record.customerId);
-      if (!existing || d > existing) {
-        map.set(record.customerId, d);
-      }
-    });
-    return map;
-  }, [allCallHistories]);
-
-  // Attach call info to insights
-  const insightsWithCall = useMemo(() => {
-    const now = new Date();
-    return insights.map(item => {
-      const lastCalledDate = item.customerId ? callHistoryMap.get(item.customerId) ?? null : null;
-      const daysSinceLastCall = lastCalledDate
-        ? Math.floor((now.getTime() - lastCalledDate.getTime()) / (1000 * 60 * 60 * 24))
-        : null;
-      return { ...item, lastCalledDate, daysSinceLastCall };
-    });
-  }, [insights, callHistoryMap]);
+  }, [users, orders, customers]);
 
   const filteredInsights = useMemo(() => {
-    return insightsWithCall.filter(i => {
+    // 1. Create lookup map from the backend response
+    const statusMap = new Map(customerCallStatuses.map(c => [c.customerId, c]));
+
+    // 2. Map & Filter
+    const results: CustomerInsight[] = [];
+
+    for (const i of insights) {
+      // Name/Phone Search
       const matchesSearch =
         (i.user.fullName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (i.user.username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (i.user.phone || '').includes(searchTerm);
-      if (!matchesSearch) return false;
+      if (!matchesSearch) continue;
 
       // Purchase recency filter
       const days = i.daysSinceLastPurchase ?? 9999;
+      let matchesPurchase = true;
       switch (activeFilter) {
-        case '10_DAYS': if (days > 10) return false; break;
-        case '60_DAYS': if (days > 60) return false; break;
-        case '5_MONTHS': if (days > 150) return false; break;
-        case '8_MONTHS': if (days > 240) return false; break;
-        case 'LONGER': if (days <= 240) return false; break;
+        case '10_DAYS': if (days > 10) matchesPurchase = false; break;
+        case '60_DAYS': if (days > 60) matchesPurchase = false; break;
+        case '5_MONTHS': if (days > 150) matchesPurchase = false; break;
+        case '8_MONTHS': if (days > 240) matchesPurchase = false; break;
+        case 'LONGER': if (days <= 240) matchesPurchase = false; break;
+      }
+      if (!matchesPurchase) continue;
+
+      // Call filter (Backend driven)
+      let matchesCall = false;
+      let callData = null;
+
+      if (i.customerId && statusMap.has(i.customerId)) {
+        matchesCall = true;
+        callData = statusMap.get(i.customerId);
+      } else if (!i.customerId) {
+        // Fallback for users without linked customer records (backend doesn't know about them)
+        if (callFilter === 'ALL' || callFilter === 'NOT_CALLED' || callFilter.startsWith('NO_CALL_')) {
+          matchesCall = true;
+        }
       }
 
-      // Call filter
-      const callDays = i.daysSinceLastCall;
-      switch (callFilter) {
-        case 'CALLED_10':  return callDays !== null && callDays <= 10;
-        case 'CALLED_60':  return callDays !== null && callDays <= 60;
-        case 'NOT_CALLED': return callDays === null;
-        // chưa gọi trong X ngày = chưa từng gọi (null) HOỊ gọi đã quá X ngày
-        case 'NO_CALL_10': return callDays === null || callDays > 10;
-        case 'NO_CALL_60': return callDays === null || callDays > 60;
-        case 'NO_CALL_5M': return callDays === null || callDays > 150;
-        default: return true;
-      }
-    });
-  }, [insightsWithCall, searchTerm, activeFilter, callFilter]);
+      if (!matchesCall) continue;
+
+      results.push({
+        ...i,
+        lastCalledDate: callData?.lastCalledAt ? new Date(callData.lastCalledAt) : null,
+        daysSinceLastCall: callData?.daysSinceLastCall ?? null,
+      });
+    }
+
+    return results;
+  }, [insights, searchTerm, activeFilter, callFilter, customerCallStatuses]);
 
   const getRecencyLabel = (days: number | null) => {
     if (days === null) return 'Chưa mua';
