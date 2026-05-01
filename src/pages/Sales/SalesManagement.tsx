@@ -51,6 +51,7 @@ const SalesManagement: React.FC = () => {
   const [customers, setCustomers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [purchaseFilter, setPurchaseFilter] = useState<'ALL' | 'DORMANT'>('ALL');
   const [callFilter, setCallFilter] = useState<'ALL' | 'CALLED_10' | 'CALLED_60' | 'NOT_CALLED' | 'NO_CALL_10' | 'NO_CALL_60' | 'NO_CALL_5M'>('ALL');
   const [customerCallStatuses, setCustomerCallStatuses] = useState<any[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerInsight | null>(null);
@@ -263,6 +264,12 @@ const SalesManagement: React.FC = () => {
         (i.user.phone || '').includes(searchTerm);
       if (!matchesSearch) continue;
 
+      // Purchase recency filter (Lâu chưa mua)
+      if (purchaseFilter === 'DORMANT') {
+        const purchaseDays = i.daysSinceLastPurchase ?? 9999;
+        if (purchaseDays <= 240) continue; // Only keep those > 240 or null
+      }
+
       // Call filter (Backend driven)
       let matchesCall = false;
       let callData = null;
@@ -289,7 +296,7 @@ const SalesManagement: React.FC = () => {
     }
 
     return results;
-  }, [insights, searchTerm, callFilter, customerCallStatuses]);
+  }, [insights, searchTerm, purchaseFilter, callFilter, customerCallStatuses]);
 
   const getRecencyLabel = (days: number | null) => {
     if (days === null) return 'Chưa mua';
@@ -342,6 +349,12 @@ const SalesManagement: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+        </div>
+
+        <div className="filter-tabs">
+          <span className="filter-label">Mua hàng:</span>
+          <button className={`filter-tab ${purchaseFilter === 'ALL' ? 'active' : ''}`} onClick={() => setPurchaseFilter('ALL')}>Tất cả</button>
+          <button className={`filter-tab ${purchaseFilter === 'DORMANT' ? 'active' : ''}`} onClick={() => setPurchaseFilter('DORMANT')}>Lâu chưa mua (&gt;8 tháng)</button>
         </div>
 
         <div className="filter-tabs call-filter-tabs">
