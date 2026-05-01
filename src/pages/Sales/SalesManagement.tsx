@@ -265,24 +265,85 @@ const SalesManagement: React.FC = () => {
             <p>Đang tải dữ liệu phân tích...</p>
           </div>
         ) : (
-          <table className="sales-table">
-            <thead>
-              <tr>
-                <th>Khách hàng</th>
-                <th>Số điện thoại</th>
-                <th>Lần mua cuối</th>
-                <th>Độ trễ (ngày)</th>
-                <th>Tổng đơn</th>
-                <th>Tổng tiền</th>
-                <th>Phân loại</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            {/* Desktop Table View */}
+            <table className="sales-table desktop-only">
+              <thead>
+                <tr>
+                  <th>Khách hàng</th>
+                  <th>Số điện thoại</th>
+                  <th>Lần mua cuối</th>
+                  <th>Độ trễ (ngày)</th>
+                  <th>Tổng đơn</th>
+                  <th>Tổng tiền</th>
+                  <th>Phân loại</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredInsights.length > 0 ? (
+                  filteredInsights.map((item) => (
+                    <tr key={item.userId}>
+                      <td>
+                        <div className="customer-info">
+                          <div className="avatar">
+                            {item.user.fullName?.[0] || item.user.username?.[0] || 'U'}
+                          </div>
+                          <div>
+                            <div className="name">{item.user.fullName || item.user.username}</div>
+                            <div className="username">@{item.user.username}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div 
+                          className="phone-cell" 
+                          onClick={() => handleCall(item.user.phone || '', item.customerId, item.user.fullName || item.user.username)}
+                          style={{ cursor: item.user.phone ? 'pointer' : 'default', color: item.user.phone ? '#2563eb' : 'inherit' }}
+                          title={item.user.phone ? 'Click để gọi và lưu lịch sử' : ''}
+                        >
+                          <Phone size={14} />
+                          <span style={{ fontWeight: 500 }}>{item.user.phone || '-'}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="date-cell">
+                          <Calendar size={14} />
+                          <span>{item.lastPurchaseDate?.toLocaleDateString('vi-VN') || '-'}</span>
+                        </div>
+                      </td>
+                      <td style={{ fontWeight: 600 }}>{item.daysSinceLastPurchase} ngày</td>
+                      <td style={{ textAlign: 'center' }}>{item.totalOrders}</td>
+                      <td style={{ fontWeight: 700, color: '#0f172a' }}>
+                        {item.totalAmount.toLocaleString('vi-VN')} đ
+                      </td>
+                      <td>{getRecencyLabel(item.daysSinceLastPurchase)}</td>
+                      <td>
+                        <button 
+                          className="btn-view"
+                          onClick={() => navigate(`/admin/users?search=${item.user.username}`)}
+                        >
+                          <ArrowUpRight size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={8} className="empty-row">
+                      Không tìm thấy khách hàng phù hợp với bộ lọc.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+
+            {/* Mobile Card View */}
+            <div className="mobile-card-list">
               {filteredInsights.length > 0 ? (
                 filteredInsights.map((item) => (
-                  <tr key={item.userId}>
-                    <td>
+                  <div key={item.userId} className="mobile-sales-card">
+                    <div className="card-header">
                       <div className="customer-info">
                         <div className="avatar">
                           {item.user.fullName?.[0] || item.user.username?.[0] || 'U'}
@@ -292,49 +353,52 @@ const SalesManagement: React.FC = () => {
                           <div className="username">@{item.user.username}</div>
                         </div>
                       </div>
-                    </td>
-                    <td>
-                      <div 
-                        className="phone-cell" 
-                        onClick={() => handleCall(item.user.phone || '', item.customerId, item.user.fullName || item.user.username)}
-                        style={{ cursor: item.user.phone ? 'pointer' : 'default', color: item.user.phone ? '#2563eb' : 'inherit' }}
-                        title={item.user.phone ? 'Click để gọi và lưu lịch sử' : ''}
-                      >
-                        <Phone size={14} />
-                        <span style={{ fontWeight: 500 }}>{item.user.phone || '-'}</span>
+                      <div className="card-actions">
+                        <button 
+                          className="btn-view-sm"
+                          onClick={() => navigate(`/admin/users?search=${item.user.username}`)}
+                        >
+                          <ArrowUpRight size={14} />
+                        </button>
                       </div>
-                    </td>
-                    <td>
-                      <div className="date-cell">
-                        <Calendar size={14} />
-                        <span>{item.lastPurchaseDate?.toLocaleDateString('vi-VN') || '-'}</span>
+                    </div>
+                    
+                    <div className="card-body">
+                      <div className="card-row">
+                        <div className="label">Lần mua cuối</div>
+                        <div className="value">
+                          {item.lastPurchaseDate?.toLocaleDateString('vi-VN') || '-'} 
+                          <span className="delay-text"> ({item.daysSinceLastPurchase} ngày)</span>
+                        </div>
                       </div>
-                    </td>
-                    <td style={{ fontWeight: 600 }}>{item.daysSinceLastPurchase} ngày</td>
-                    <td style={{ textAlign: 'center' }}>{item.totalOrders}</td>
-                    <td style={{ fontWeight: 700, color: '#0f172a' }}>
-                      {item.totalAmount.toLocaleString('vi-VN')} đ
-                    </td>
-                    <td>{getRecencyLabel(item.daysSinceLastPurchase)}</td>
-                    <td>
-                      <button 
-                        className="btn-view"
-                        onClick={() => navigate(`/admin/users?search=${item.user.username}`)}
-                      >
-                        <ArrowUpRight size={16} />
-                      </button>
-                    </td>
-                  </tr>
+                      <div className="card-row">
+                        <div className="label">Tổng đơn/Tiền</div>
+                        <div className="value">
+                          {item.totalOrders} đơn / <strong>{item.totalAmount.toLocaleString('vi-VN')} đ</strong>
+                        </div>
+                      </div>
+                      <div className="card-footer">
+                        <div 
+                          className="phone-btn" 
+                          onClick={() => handleCall(item.user.phone || '', item.customerId, item.user.fullName || item.user.username)}
+                        >
+                          <Phone size={14} />
+                          <span>{item.user.phone || 'N/A'}</span>
+                        </div>
+                        <div className="badge-container">
+                          {getRecencyLabel(item.daysSinceLastPurchase)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 ))
               ) : (
-                <tr>
-                  <td colSpan={8} className="empty-row">
-                    Không tìm thấy khách hàng phù hợp với bộ lọc.
-                  </td>
-                </tr>
+                <div className="empty-state-mobile">
+                  Không tìm thấy khách hàng phù hợp.
+                </div>
               )}
-            </tbody>
-          </table>
+            </div>
+          </>
         )}
       </div>
     </div>
