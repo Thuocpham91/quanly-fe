@@ -61,7 +61,7 @@ const SalesManagement: React.FC = () => {
       const [usersRes, ordersRes, customersRes] = await Promise.all([
         api.get('/users'),
         api.get('/orders'),
-        api.get('/customers').catch(() => ({ data: { data: [] } }))
+        api.get('/customers?limit=1000').catch(() => ({ data: { data: [] } }))
       ]);
 
       if (usersRes.data && Array.isArray(usersRes.data.data)) {
@@ -90,7 +90,7 @@ const SalesManagement: React.FC = () => {
     let targetCustomerId = customerId;
 
     try {
-      // If customerId is missing but we have userId, try to fetch it
+      // 1. Try to find customerId if missing
       if (!targetCustomerId && userId) {
         const res = await api.get(`/customers/user/${userId}`).catch(() => null);
         if (res?.data?.data) {
@@ -98,20 +98,27 @@ const SalesManagement: React.FC = () => {
         }
       }
 
+      // 2. Log history if we have a customerId
       if (targetCustomerId) {
         await api.post('/call-histories', {
           customerId: targetCustomerId,
           note: `Cuộc gọi từ danh sách Theo dõi Khách mua: ${customerName || phone}`
         });
-        // If drawer is open for this customer, refresh history
+        
+        // Refresh history if drawer is open
         if (selectedCustomer?.customerId === targetCustomerId || (userId && selectedCustomer?.userId === userId)) {
           fetchCallHistory(targetCustomerId);
         }
+      } else {
+        console.warn('Cannot log call history: No customer profile found for this user.');
       }
     } catch (error) {
       console.error('Error logging call history:', error);
     } finally {
-      window.location.href = `tel:${phone}`;
+      // 3. Open dialer after a tiny delay to ensure the request is dispatched
+      setTimeout(() => {
+        window.location.href = `tel:${phone}`;
+      }, 100);
     }
   };
 
