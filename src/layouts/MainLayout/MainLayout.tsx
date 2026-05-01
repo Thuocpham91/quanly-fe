@@ -16,7 +16,8 @@ import {
   DollarSign,
   Target,
   BarChart2,
-  CreditCard
+  CreditCard,
+  TrendingUp
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './MainLayout.css';
