@@ -360,12 +360,12 @@ const SalesManagement: React.FC = () => {
         <div className="filter-tabs call-filter-tabs">
           <span className="filter-label">Gọi điện:</span>
           <button className={`filter-tab ${callFilter === 'ALL' ? 'active' : ''}`} onClick={() => setCallFilter('ALL')}>Tất cả</button>
-          <button className={`filter-tab call-ok ${callFilter === 'CALLED_10' ? 'active' : ''}`} onClick={() => setCallFilter('CALLED_10')}>✓ Đã gọi ≤10d</button>
-          <button className={`filter-tab call-ok ${callFilter === 'CALLED_60' ? 'active' : ''}`} onClick={() => setCallFilter('CALLED_60')}>✓ Đã gọi ≤60d</button>
           <button className={`filter-tab call-none ${callFilter === 'NOT_CALLED' ? 'active' : ''}`} onClick={() => setCallFilter('NOT_CALLED')}>✗ Chưa gọi</button>
           <button className={`filter-tab call-none ${callFilter === 'NO_CALL_10' ? 'active' : ''}`} onClick={() => setCallFilter('NO_CALL_10')}>✗ Chưa gọi 10d</button>
           <button className={`filter-tab call-none ${callFilter === 'NO_CALL_60' ? 'active' : ''}`} onClick={() => setCallFilter('NO_CALL_60')}>✗ Chưa gọi 60d</button>
           <button className={`filter-tab call-none ${callFilter === 'NO_CALL_5M' ? 'active' : ''}`} onClick={() => setCallFilter('NO_CALL_5M')}>✗ Chưa gọi 5 tháng</button>
+          <button className={`filter-tab call-ok ${callFilter === 'CALLED_10' ? 'active' : ''}`} onClick={() => setCallFilter('CALLED_10')}>✓ Đã gọi ≤10d</button>
+          <button className={`filter-tab call-ok ${callFilter === 'CALLED_60' ? 'active' : ''}`} onClick={() => setCallFilter('CALLED_60')}>✓ Đã gọi ≤60d</button>
         </div>
       </div>
 
