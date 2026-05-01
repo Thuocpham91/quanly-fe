@@ -13,7 +13,9 @@ import {
   CheckCircle2,
   AlertCircle,
   MapPin,
-  Navigation
+  Navigation,
+  Search,
+  Phone
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
