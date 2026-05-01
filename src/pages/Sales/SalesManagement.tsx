@@ -51,7 +51,6 @@ const SalesManagement: React.FC = () => {
   const [customers, setCustomers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilter, setActiveFilter] = useState<'ALL' | '10_DAYS' | '60_DAYS' | '5_MONTHS' | '8_MONTHS' | 'LONGER'>('ALL');
   const [callFilter, setCallFilter] = useState<'ALL' | 'CALLED_10' | 'CALLED_60' | 'NOT_CALLED' | 'NO_CALL_10' | 'NO_CALL_60' | 'NO_CALL_5M'>('ALL');
   const [customerCallStatuses, setCustomerCallStatuses] = useState<any[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerInsight | null>(null);
@@ -264,18 +263,6 @@ const SalesManagement: React.FC = () => {
         (i.user.phone || '').includes(searchTerm);
       if (!matchesSearch) continue;
 
-      // Purchase recency filter
-      const days = i.daysSinceLastPurchase ?? 9999;
-      let matchesPurchase = true;
-      switch (activeFilter) {
-        case '10_DAYS': if (days > 10) matchesPurchase = false; break;
-        case '60_DAYS': if (days > 60) matchesPurchase = false; break;
-        case '5_MONTHS': if (days > 150) matchesPurchase = false; break;
-        case '8_MONTHS': if (days > 240) matchesPurchase = false; break;
-        case 'LONGER': if (days <= 240) matchesPurchase = false; break;
-      }
-      if (!matchesPurchase) continue;
-
       // Call filter (Backend driven)
       let matchesCall = false;
       let callData = null;
@@ -302,7 +289,7 @@ const SalesManagement: React.FC = () => {
     }
 
     return results;
-  }, [insights, searchTerm, activeFilter, callFilter, customerCallStatuses]);
+  }, [insights, searchTerm, callFilter, customerCallStatuses]);
 
   const getRecencyLabel = (days: number | null) => {
     if (days === null) return 'Chưa mua';
@@ -355,15 +342,6 @@ const SalesManagement: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-        </div>
-
-        <div className="filter-tabs">
-          <button className={`filter-tab ${activeFilter === 'ALL' ? 'active' : ''}`} onClick={() => setActiveFilter('ALL')}>Tất cả</button>
-          <button className={`filter-tab ${activeFilter === '10_DAYS' ? 'active' : ''}`} onClick={() => setActiveFilter('10_DAYS')}>10 ngày</button>
-          <button className={`filter-tab ${activeFilter === '60_DAYS' ? 'active' : ''}`} onClick={() => setActiveFilter('60_DAYS')}>60 ngày</button>
-          <button className={`filter-tab ${activeFilter === '5_MONTHS' ? 'active' : ''}`} onClick={() => setActiveFilter('5_MONTHS')}>5 tháng</button>
-          <button className={`filter-tab ${activeFilter === '8_MONTHS' ? 'active' : ''}`} onClick={() => setActiveFilter('8_MONTHS')}>8 tháng</button>
-          <button className={`filter-tab ${activeFilter === 'LONGER' ? 'active' : ''}`} onClick={() => setActiveFilter('LONGER')}>Lâu hơn</button>
         </div>
 
         <div className="filter-tabs call-filter-tabs">
