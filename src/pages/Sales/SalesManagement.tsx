@@ -84,18 +84,28 @@ const SalesManagement: React.FC = () => {
     fetchData();
   }, []);
 
-  const handleCall = async (phone: string, customerId?: string, customerName?: string) => {
+  const handleCall = async (phone: string, customerId?: string, customerName?: string, userId?: string) => {
     if (!phone) return;
     
+    let targetCustomerId = customerId;
+
     try {
-      if (customerId) {
+      // If customerId is missing but we have userId, try to fetch it
+      if (!targetCustomerId && userId) {
+        const res = await api.get(`/customers/user/${userId}`).catch(() => null);
+        if (res?.data?.data) {
+          targetCustomerId = res.data.data.id;
+        }
+      }
+
+      if (targetCustomerId) {
         await api.post('/call-histories', {
-          customerId,
+          customerId: targetCustomerId,
           note: `Cuộc gọi từ danh sách Theo dõi Khách mua: ${customerName || phone}`
         });
         // If drawer is open for this customer, refresh history
-        if (selectedCustomer?.customerId === customerId) {
-          fetchCallHistory(customerId);
+        if (selectedCustomer?.customerId === targetCustomerId || (userId && selectedCustomer?.userId === userId)) {
+          fetchCallHistory(targetCustomerId);
         }
       }
     } catch (error) {
@@ -121,12 +131,33 @@ const SalesManagement: React.FC = () => {
     }
   };
 
-  const openHistoryDrawer = (item: CustomerInsight) => {
+  const openHistoryDrawer = async (item: CustomerInsight) => {
     setSelectedCustomer(item);
-    if (item.customerId) {
-      fetchCallHistory(item.customerId);
-    } else {
-      setCallHistory([]);
+    setCallHistory([]);
+    
+    let targetCustomerId = item.customerId;
+
+    try {
+      setIsHistoryLoading(true);
+      
+      // If customerId is missing, try to fetch it
+      if (!targetCustomerId && item.userId) {
+        const res = await api.get(`/customers/user/${item.userId}`).catch(() => null);
+        if (res?.data?.data) {
+          targetCustomerId = res.data.data.id;
+          // Update selected customer with the found ID
+          setSelectedCustomer(prev => prev ? { ...prev, customerId: targetCustomerId } : null);
+        }
+      }
+
+      if (targetCustomerId) {
+        fetchCallHistory(targetCustomerId);
+      } else {
+        setIsHistoryLoading(false);
+      }
+    } catch (error) {
+      console.error('Error in openHistoryDrawer:', error);
+      setIsHistoryLoading(false);
     }
   };
 
@@ -331,7 +362,7 @@ const SalesManagement: React.FC = () => {
                       <td>
                         <div 
                           className="phone-cell" 
-                          onClick={() => handleCall(item.user.phone || '', item.customerId, item.user.fullName || item.user.username)}
+                          onClick={() => handleCall(item.user.phone || '', item.customerId, item.user.fullName || item.user.username, item.userId)}
                           style={{ cursor: item.user.phone ? 'pointer' : 'default', color: item.user.phone ? '#2563eb' : 'inherit' }}
                           title={item.user.phone ? 'Click để gọi và lưu lịch sử' : ''}
                         >
@@ -422,7 +453,7 @@ const SalesManagement: React.FC = () => {
                           className="phone-btn" 
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleCall(item.user.phone || '', item.customerId, item.user.fullName || item.user.username);
+                            handleCall(item.user.phone || '', item.customerId, item.user.fullName || item.user.username, item.userId);
                           }}
                         >
                           <Phone size={14} />
@@ -499,7 +530,8 @@ const SalesManagement: React.FC = () => {
                 onClick={() => handleCall(
                   selectedCustomer.user.phone || '', 
                   selectedCustomer.customerId, 
-                  selectedCustomer.user.fullName || selectedCustomer.user.username
+                  selectedCustomer.user.fullName || selectedCustomer.user.username,
+                  selectedCustomer.userId
                 )}
               >
                 <Phone size={18} />
