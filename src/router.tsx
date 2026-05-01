@@ -22,6 +22,7 @@ import RevenueManagement from './pages/Revenue/RevenueManagement';
 import MilestoneManagement from './pages/Revenue/MilestoneManagement';
 import ChickenPriceManagement from './pages/ChickenPrice/ChickenPriceManagement';
 import ExpenseManagement from './pages/Expense/ExpenseManagement';
+import SalesManagement from './pages/Sales/SalesManagement';
 
 export const router = createBrowserRouter([
   {
@@ -116,6 +117,10 @@ export const router = createBrowserRouter([
           {
             path: 'expenses',
             element: <ExpenseManagement />,
+          },
+          {
+            path: 'sales',
+            element: <SalesManagement />,
           },
         ],
       },
