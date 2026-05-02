@@ -162,6 +162,39 @@
   color: #b91c1c;
 }
 
+.type-badge.debt {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.debt-status-badge {
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: inline-block;
+  margin-top: 0.25rem;
+}
+
+.debt-status-badge.pending {
+  background-color: #ffedd5;
+  color: #9a3412;
+}
+
+.debt-status-badge.paid {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.debtor-info {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
 .work-link {
   display: block;
 }
@@ -221,6 +254,20 @@
 .btn-icon-delete:hover {
   color: #ef4444;
   background: #fee2e2;
+}
+
+.btn-icon-check {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.btn-icon-check:hover {
+  color: #16a34a;
+  background: #f0fdf4;
 }
 
 /* Modal */

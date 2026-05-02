@@ -7,7 +7,8 @@ interface ExpenseData {
   id: string;
   title: string;
   amount: number;
-  type: 'INCOME' | 'EXPENSE';
+  paidAmount: number;
+  type: 'INCOME' | 'EXPENSE' | 'DEBT';
   date: string;
   category: string;
   workId?: string;
@@ -15,6 +16,10 @@ interface ExpenseData {
     title: string;
     object?: { name: string };
   };
+  debtType?: 'RECEIVABLE' | 'PAYABLE';
+  debtStatus?: 'PENDING' | 'PAID';
+  debtorName?: string;
+  dueDate?: string;
   description?: string;
   createdAt: string;
 }
@@ -48,6 +53,7 @@ const ExpenseManagement: React.FC = () => {
     category: '',
     workId: '',
     type: '',
+    debtStatus: '',
     fromDate: '',
     toDate: ''
   });
@@ -61,10 +67,15 @@ const ExpenseManagement: React.FC = () => {
   const [formData, setFormData] = useState({
     title: '',
     amount: '',
-    type: 'EXPENSE' as 'INCOME' | 'EXPENSE',
+    paidAmount: '',
+    type: 'EXPENSE' as 'INCOME' | 'EXPENSE' | 'DEBT',
     date: new Date().toISOString().split('T')[0],
     category: CATEGORIES[0],
     workId: '',
+    debtType: 'PAYABLE' as 'RECEIVABLE' | 'PAYABLE',
+    debtStatus: 'PENDING' as 'PENDING' | 'PAID',
+    debtorName: '',
+    dueDate: '',
     description: ''
   });
 
@@ -119,10 +130,15 @@ const ExpenseManagement: React.FC = () => {
     setFormData({
       title: '',
       amount: '',
+      paidAmount: '',
       type: 'EXPENSE',
       date: new Date().toISOString().split('T')[0],
       category: CATEGORIES[0],
       workId: '',
+      debtType: 'PAYABLE',
+      debtStatus: 'PENDING',
+      debtorName: '',
+      dueDate: '',
       description: ''
     });
     setError('');
@@ -134,10 +150,15 @@ const ExpenseManagement: React.FC = () => {
     setFormData({
       title: expense.title,
       amount: expense.amount.toString(),
+      paidAmount: expense.paidAmount.toString(),
       type: expense.type,
       date: new Date(expense.date).toISOString().split('T')[0],
       category: expense.category,
       workId: expense.workId || '',
+      debtType: expense.debtType || 'PAYABLE',
+      debtStatus: expense.debtStatus || 'PENDING',
+      debtorName: expense.debtorName || '',
+      dueDate: expense.dueDate ? new Date(expense.dueDate).toISOString().split('T')[0] : '',
       description: expense.description || ''
     });
     setError('');
@@ -158,6 +179,7 @@ const ExpenseManagement: React.FC = () => {
       const payload = {
         ...formData,
         amount: Number(formData.amount),
+        paidAmount: Number(formData.paidAmount || 0),
         workId: formData.workId || null
       };
 
@@ -183,6 +205,15 @@ const ExpenseManagement: React.FC = () => {
       fetchData();
     } catch (err) {
       alert('Không thể xóa khoản chi này.');
+    }
+  };
+
+  const handleMarkAsPaid = async (expense: ExpenseData) => {
+    try {
+      await api.put(`/expenses/${expense.id}`, { paidAmount: expense.amount, debtStatus: 'PAID' });
+      fetchData();
+    } catch (err) {
+      alert('Không thể cập nhật trạng thái nợ.');
     }
   };
 
@@ -223,6 +254,17 @@ const ExpenseManagement: React.FC = () => {
             <div className="stat-label">Tổng chi tiêu</div>
             <div className="stat-value">
               {formatCurrency(expenses.filter(e => e.type === 'EXPENSE').reduce((sum, e) => sum + Number(e.amount), 0))}
+            </div>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon" style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>
+            <CreditCard size={24} />
+          </div>
+          <div className="stat-info">
+            <div className="stat-label">Tổng nợ chưa trả</div>
+            <div className="stat-value" style={{ color: '#92400e' }}>
+              {formatCurrency(expenses.filter(e => e.type === 'DEBT' && e.debtStatus === 'PENDING').reduce((sum, e) => sum + Number(e.amount), 0))}
             </div>
           </div>
         </div>
@@ -269,6 +311,15 @@ const ExpenseManagement: React.FC = () => {
               <option value="">Tất cả</option>
               <option value="INCOME">Chỉ thu nhập</option>
               <option value="EXPENSE">Chỉ chi phí</option>
+              <option value="DEBT">Chỉ tiền nợ</option>
+            </select>
+          </div>
+          <div className="filter-group">
+            <label>Trạng thái nợ</label>
+            <select name="debtStatus" value={filters.debtStatus} onChange={handleFilterChange}>
+              <option value="">Tất cả trạng thái</option>
+              <option value="PENDING">Chưa thanh toán</option>
+              <option value="PAID">Đã thanh toán</option>
             </select>
           </div>
         </div>
@@ -281,7 +332,7 @@ const ExpenseManagement: React.FC = () => {
             <label><Calendar size={14} /> Đến ngày</label>
             <input type="date" name="toDate" value={filters.toDate} onChange={handleFilterChange} />
           </div>
-          <button className="btn-secondary" onClick={() => setFilters({ keyword: '', category: '', workId: '', type: '', fromDate: '', toDate: '' })}>
+          <button className="btn-secondary" onClick={() => setFilters({ keyword: '', category: '', workId: '', type: '', debtStatus: '', fromDate: '', toDate: '' })}>
             Xóa lọc
           </button>
         </div>
@@ -304,7 +355,9 @@ const ExpenseManagement: React.FC = () => {
                   <th>Nội dung giao dịch</th>
                   <th>Danh mục</th>
                   <th>Đợt nuôi</th>
-                  <th style={{ textAlign: 'right' }}>Số tiền</th>
+                  <th style={{ textAlign: 'right' }}>Tổng tiền</th>
+                  <th style={{ textAlign: 'right' }}>Đã trả</th>
+                  <th style={{ textAlign: 'right' }}>Còn lại</th>
                 </tr>
               </thead>
               <tbody>
@@ -315,16 +368,29 @@ const ExpenseManagement: React.FC = () => {
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                           <button className="btn-icon-edit" onClick={() => openEditModal(exp)} title="Sửa"><Edit2 size={16} /></button>
                           <button className="btn-icon-delete" onClick={() => handleDelete(exp.id)} title="Xóa"><Trash2 size={16} /></button>
+                          {exp.type === 'DEBT' && exp.debtStatus === 'PENDING' && (
+                            <button className="btn-icon-check" onClick={() => handleMarkAsPaid(exp)} title="Đánh dấu đã trả"><CreditCard size={16} /></button>
+                          )}
                         </div>
                       </td>
                       <td>{new Date(exp.date).toLocaleDateString('vi-VN')}</td>
                       <td>
                         <span className={`type-badge ${(exp.type || '').toLowerCase()}`}>
-                          {(exp.type || '').toUpperCase() === 'INCOME' ? 'Lợi nhuận' : 'Chi phí'}
+                          {(exp.type || '').toUpperCase() === 'INCOME' ? 'Lợi nhuận' : (exp.type || '').toUpperCase() === 'DEBT' ? 'Tiền nợ' : 'Chi phí'}
                         </span>
+                        {exp.type === 'DEBT' && (
+                          <div className={`debt-status-badge ${(exp.debtStatus || '').toLowerCase()}`}>
+                            {exp.debtStatus === 'PAID' ? 'Đã trả' : 'Chưa trả'}
+                          </div>
+                        )}
                       </td>
                       <td>
                         <div style={{ fontWeight: 600 }}>{exp.title}</div>
+                        {exp.type === 'DEBT' && exp.debtorName && (
+                          <div className="debtor-info">
+                            <Info size={12} /> {exp.debtType === 'RECEIVABLE' ? 'Nợ từ:' : 'Nợ cho:'} {exp.debtorName}
+                          </div>
+                        )}
                         {exp.description && <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{exp.description}</div>}
                       </td>
                       <td>
@@ -338,14 +404,20 @@ const ExpenseManagement: React.FC = () => {
                           </div>
                         ) : <span style={{ color: '#cbd5e1' }}>Không gắn đợt</span>}
                       </td>
-                      <td style={{ textAlign: 'right', fontWeight: 700, color: (exp.type || '').toUpperCase() === 'INCOME' ? '#059669' : '#ef4444' }}>
-                        {(exp.type || '').toUpperCase() === 'INCOME' ? '+' : '-'}{formatCurrency(exp.amount)}
+                      <td style={{ textAlign: 'right', fontWeight: 600 }}>
+                        {formatCurrency(exp.amount)}
+                      </td>
+                      <td style={{ textAlign: 'right', color: '#059669' }}>
+                        {formatCurrency(exp.paidAmount || 0)}
+                      </td>
+                      <td style={{ textAlign: 'right', fontWeight: 700, color: (exp.amount - (exp.paidAmount || 0)) > 0 ? '#ef4444' : '#059669' }}>
+                        {formatCurrency(exp.amount - (exp.paidAmount || 0))}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="empty-state">Chưa có dữ liệu thu chi.</td>
+                    <td colSpan={9} className="empty-state">Chưa có dữ liệu thu chi.</td>
                   </tr>
                 )}
               </tbody>
@@ -387,6 +459,7 @@ const ExpenseManagement: React.FC = () => {
                     <select name="type" value={formData.type} onChange={handleInputChange}>
                       <option value="EXPENSE">Chi phí (-)</option>
                       <option value="INCOME">Thu nhập (+)</option>
+                      <option value="DEBT">Tiền nợ (Nợ)</option>
                     </select>
                   </div>
                   <div className="form-group-modal">
@@ -397,9 +470,52 @@ const ExpenseManagement: React.FC = () => {
                   </div>
                 </div>
 
+                {formData.type === 'DEBT' && (
+                  <>
+                    <div className="form-row">
+                      <div className="form-group-modal">
+                        <label>Loại nợ *</label>
+                        <select name="debtType" value={formData.debtType} onChange={handleInputChange}>
+                          <option value="PAYABLE">Khoản phải trả (Mình nợ)</option>
+                          <option value="RECEIVABLE">Khoản phải thu (Họ nợ)</option>
+                        </select>
+                      </div>
+                      <div className="form-group-modal">
+                        <label>Trạng thái *</label>
+                        <select name="debtStatus" value={formData.debtStatus} onChange={handleInputChange}>
+                          <option value="PENDING">Chưa thanh toán</option>
+                          <option value="PAID">Đã thanh toán</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="form-row">
+                      <div className="form-group-modal">
+                        <label>Đối tượng (Tên người nợ/chủ nợ) *</label>
+                        <input
+                          type="text"
+                          name="debtorName"
+                          value={formData.debtorName}
+                          onChange={handleInputChange}
+                          placeholder="VD: Anh Nam, Đại lý cám..."
+                          required={formData.type === 'DEBT'}
+                        />
+                      </div>
+                      <div className="form-group-modal">
+                        <label>Hạn thanh toán</label>
+                        <input
+                          type="date"
+                          name="dueDate"
+                          value={formData.dueDate}
+                          onChange={handleInputChange}
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 <div className="form-row">
                   <div className="form-group-modal">
-                    <label>Số tiền (VNĐ) *</label>
+                    <label>Tổng số tiền (VNĐ) *</label>
                     <input
                       type="number"
                       name="amount"
@@ -409,6 +525,18 @@ const ExpenseManagement: React.FC = () => {
                       required
                     />
                   </div>
+                  <div className="form-group-modal">
+                    <label>Đã thanh toán (VNĐ)</label>
+                    <input
+                      type="number"
+                      name="paidAmount"
+                      value={formData.paidAmount}
+                      onChange={handleInputChange}
+                      placeholder="VD: 200000"
+                    />
+                  </div>
+                </div>
+                <div className="form-row">
                   <div className="form-group-modal">
                     <label>Ngày chi *</label>
                     <input
