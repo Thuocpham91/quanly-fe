@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, X, Edit2, Trash2, Search, Filter, Calendar, CreditCard, Info } from 'lucide-react';
+import { Plus, X, Edit2, Trash2, Search, Filter, Calendar, CreditCard, Info, History } from 'lucide-react';
 import api from '../../api/axios';
 import './ExpenseManagement.css';
 
@@ -63,6 +63,11 @@ const ExpenseManagement: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingExpense, setEditingExpense] = useState<ExpenseData | null>(null);
   const [error, setError] = useState('');
+
+  // History state
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [expenseHistory, setExpenseHistory] = useState<any[]>([]);
+  const [selectedExpenseForHistory, setSelectedExpenseForHistory] = useState<ExpenseData | null>(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -205,6 +210,19 @@ const ExpenseManagement: React.FC = () => {
       fetchData();
     } catch (err) {
       alert('Không thể xóa khoản chi này.');
+    }
+  };
+
+  const fetchHistory = async (expense: ExpenseData) => {
+    try {
+      setSelectedExpenseForHistory(expense);
+      const res = await api.get(`/expenses/${expense.id}/history`);
+      if (res.data && Array.isArray(res.data.data)) {
+        setExpenseHistory(res.data.data);
+      }
+      setIsHistoryModalOpen(true);
+    } catch (err) {
+      alert('Không thể tải lịch sử.');
     }
   };
 
@@ -367,6 +385,7 @@ const ExpenseManagement: React.FC = () => {
                       <td>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                           <button className="btn-icon-edit" onClick={() => openEditModal(exp)} title="Sửa"><Edit2 size={16} /></button>
+                          <button className="btn-icon-history" onClick={() => fetchHistory(exp)} title="Lịch sử"><History size={16} /></button>
                           <button className="btn-icon-delete" onClick={() => handleDelete(exp.id)} title="Xóa"><Trash2 size={16} /></button>
                           {exp.type === 'DEBT' && exp.debtStatus === 'PENDING' && (
                             <button className="btn-icon-check" onClick={() => handleMarkAsPaid(exp)} title="Đánh dấu đã trả"><CreditCard size={16} /></button>
@@ -578,6 +597,59 @@ const ExpenseManagement: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* History Modal */}
+      {isHistoryModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsHistoryModalOpen(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '800px' }}>
+            <div className="modal-header">
+              <h3>Lịch Sử Thanh Toán: {selectedExpenseForHistory?.title}</h3>
+              <button className="close-btn" onClick={() => setIsHistoryModalOpen(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="table-responsive">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Thời gian</th>
+                      <th style={{ textAlign: 'right' }}>Số cũ</th>
+                      <th style={{ textAlign: 'right' }}>Số mới</th>
+                      <th style={{ textAlign: 'right' }}>Thay đổi</th>
+                      <th>Ghi chú</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {expenseHistory.length > 0 ? (
+                      expenseHistory.map((h: any) => (
+                        <tr key={h.id}>
+                          <td>{new Date(h.createdAt).toLocaleString('vi-VN')}</td>
+                          <td style={{ textAlign: 'right' }}>{formatCurrency(h.oldPaidAmount)}</td>
+                          <td style={{ textAlign: 'right' }}>{formatCurrency(h.newPaidAmount)}</td>
+                          <td style={{ textAlign: 'right', fontWeight: 600, color: h.changeAmount >= 0 ? '#059669' : '#ef4444' }}>
+                            {h.changeAmount >= 0 ? '+' : ''}{formatCurrency(h.changeAmount)}
+                          </td>
+                          <td>{h.note}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={5} className="empty-state">Chưa có lịch sử cập nhật.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn-secondary" onClick={() => setIsHistoryModalOpen(false)}>
+                Đóng
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -242,6 +242,20 @@
   background: #eff6ff;
 }
 
+.btn-icon-history {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.btn-icon-history:hover {
+  color: #0ea5e9;
+  background: #f0f9ff;
+}
+
 .btn-icon-delete {
   background: none;
   border: none;
