@@ -499,10 +499,10 @@ const SalesManagement: React.FC = () => {
                       </div>
                       <div className="card-actions">
                         <button 
-                          className="btn-view-sm"
+                          className={`btn-view-sm ${trackingUserId === item.userId ? 'active' : ''}`}
                           onClick={(e) => {
                             e.stopPropagation();
-                            navigate(`/admin/users?search=${item.user.username}`);
+                            toggleTracking(item.userId);
                           }}
                         >
                           <ArrowUpRight size={14} />
@@ -554,7 +554,9 @@ const SalesManagement: React.FC = () => {
 
         {/* Tracking Side Panel */}
         {trackingUserId && (
-          <div className="orders-side-panel">
+          <>
+            <div className="panel-overlay" onClick={() => setTrackingUserId(null)} />
+            <div className="orders-side-panel">
             <div className="panel-header">
               <div className="customer-compact">
                 <div className="avatar-panel">
@@ -628,7 +630,8 @@ const SalesManagement: React.FC = () => {
                 <Clock size={16} /> Xem lịch sử liên hệ
               </button>
             </div>
-          </div>
+            </div>
+          </>
         )}
       </div>
 
