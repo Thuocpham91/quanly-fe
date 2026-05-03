@@ -34,6 +34,7 @@ interface WorkData {
   purchaseQuantity?: number;
   removalCount?: number;
   startDate?: string | Date;
+  status?: string;
   workTasks?: any[];
 }
 
@@ -62,7 +63,8 @@ const WorkManagement: React.FC = () => {
     removalCount: '' as string | number,
     employeeChecked: false,
     managerChecked: false,
-    startDay: 0
+    startDay: 0,
+    status: 'ACTIVE'
   });
 
   const roleCode = typeof user?.role === 'object' && user?.role !== null 
@@ -127,7 +129,8 @@ const WorkManagement: React.FC = () => {
       removalCount: '',
       employeeChecked: false,
       managerChecked: false,
-      startDay: 0
+      startDay: 0,
+      status: 'ACTIVE'
     });
     setError('');
     setIsModalOpen(true);
@@ -146,7 +149,8 @@ const WorkManagement: React.FC = () => {
       removalCount: work.removalCount || '',
       employeeChecked: (work as any).employeeChecked || false,
       managerChecked: (work as any).managerChecked || false,
-      startDay: (work as any).startDay || 0
+      startDay: (work as any).startDay || 0,
+      status: work.status || 'ACTIVE'
     });
     setError('');
     setIsModalOpen(true);
@@ -182,7 +186,8 @@ const WorkManagement: React.FC = () => {
         removalCount: formData.removalCount !== '' ? Number(formData.removalCount) : null,
         employeeChecked: formData.employeeChecked,
         managerChecked: formData.managerChecked,
-        startDay: Number(formData.startDay || 0)
+        startDay: Number(formData.startDay || 0),
+        status: formData.status
       };
 
       if (editingWork) {
@@ -210,6 +215,17 @@ const WorkManagement: React.FC = () => {
     } catch (err) {
       console.error('Error deleting work:', err);
       alert('Có lỗi xảy ra khi xóa công việc.');
+    }
+  };
+
+  const handleFinish = async (id: string) => {
+    if (!window.confirm('Bạn có chắc muốn kết thúc đợt công việc này? Các nhiệm vụ của đợt này sẽ không hiện ở lịch trình nữa.')) return;
+    try {
+      await api.put(`/works/${id}`, { status: 'FINISHED' });
+      fetchData();
+    } catch (err) {
+      console.error('Error finishing work:', err);
+      alert('Có lỗi xảy ra.');
     }
   };
 
@@ -328,8 +344,13 @@ const WorkManagement: React.FC = () => {
                         </div>
                       </td>
                       <td>
-                        <div className="badge badge-primary">
-                           {Math.round(((work.workTasks?.filter(t => t.employeeChecked).length || 0) / (work.workTasks?.length || 1)) * 100)}% Hoàn thành
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                          <span className={`status-badge-custom ${work.status?.toLowerCase() || 'active'}`} style={{ alignSelf: 'flex-start' }}>
+                            {work.status === 'FINISHED' ? 'Đã xong' : 'Đang nuôi'}
+                          </span>
+                          <div className="badge badge-primary">
+                             {Math.round(((work.workTasks?.filter(t => t.employeeChecked).length || 0) / (work.workTasks?.length || 1)) * 100)}% Hoàn thành
+                          </div>
                         </div>
                       </td>
                       <td>
@@ -342,6 +363,16 @@ const WorkManagement: React.FC = () => {
                             <ChevronRight size={16} />
                             <span>Chi tiết</span>
                           </button>
+                          {work.status !== 'FINISHED' && (
+                             <button 
+                              className="btn-secondary" 
+                              style={{ padding: '0.4rem', border: '1px solid #10b981', color: '#10b981', borderRadius: '6px' }}
+                              title="Hoàn thành"
+                              onClick={(e) => { e.stopPropagation(); handleFinish(work.id); }}
+                            >
+                              <CheckCircle2 size={16} />
+                            </button>
+                          )}
                           <button 
                             className="btn-secondary" 
                             style={{ padding: '0.4rem', borderRadius: '6px' }}
@@ -519,6 +550,14 @@ const WorkManagement: React.FC = () => {
                       <span>Quản lý đã xác nhận</span>
                     </label>
                   )}
+                </div>
+
+                <div className="form-group-modal">
+                  <label>Trạng thái</label>
+                  <select name="status" value={formData.status} onChange={handleInputChange} required>
+                    <option value="ACTIVE">Đang nuôi (Active)</option>
+                    <option value="FINISHED">Đã xong (Finished)</option>
+                  </select>
                 </div>
               </div>
               
