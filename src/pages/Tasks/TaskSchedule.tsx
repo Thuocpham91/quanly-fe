@@ -37,6 +37,7 @@ interface WorkTask {
   removalCount?: number;
   fileUrls?: string[];
   workId: string;
+  feedPerAnimal?: number;
   work?: {
     title: string;
     quantity?: number;
@@ -369,6 +370,21 @@ const TaskSchedule: React.FC = () => {
                           const totalRemoval = task.work.workTasks?.reduce((sum, t) => sum + (t.removalCount || 0), 0) || 0;
                           const currentQty = task.work.quantity! - totalRemoval;
                           return Math.max(0, currentQty).toLocaleString('vi-VN');
+                        })()}
+                      </span>
+                    </div>
+                  )}
+                  {task.feedPerAnimal !== undefined && task.feedPerAnimal !== null && task.feedPerAnimal > 0 && task.work?.quantity !== undefined && (
+                    <div className="object-tag" style={{ backgroundColor: '#fef3c7', color: '#d97706', border: '1px solid #fde68a' }}>
+                      <span style={{ fontWeight: 600 }}>
+                        Tổng cám: {(() => {
+                          const totalRemoval = task.work.workTasks?.reduce((sum, t) => sum + (t.removalCount || 0), 0) || 0;
+                          const currentQty = Math.max(0, task.work.quantity! - totalRemoval);
+                          const totalFeedGrams = currentQty * task.feedPerAnimal!;
+                          if (totalFeedGrams >= 1000) {
+                            return (totalFeedGrams / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 2 }) + ' kg';
+                          }
+                          return totalFeedGrams.toLocaleString('vi-VN') + ' g';
                         })()}
                       </span>
                     </div>
