@@ -231,6 +231,19 @@ const TaskSchedule: React.FC = () => {
     }
   };
 
+  const handleCameraClick = async (e: React.MouseEvent) => {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        stream.getTracks().forEach(track => track.stop());
+      } catch (err) {
+        console.warn("Camera permission request failed or denied:", err);
+        // Don't block the default behavior (opening the input), 
+        // but the user has now been prompted or seen the denial.
+      }
+    }
+  };
+
   const handleRemoveFile = async (taskId: string, urlToRemove: string) => {
     if (!window.confirm('Bạn có chắc muốn xoá file này?')) return;
     const task = tasks.find(t => t.id === taskId);
@@ -436,10 +449,18 @@ const TaskSchedule: React.FC = () => {
 
                 <div className="task-footer">
                   <div className="footer-left">
-                    <label className="upload-file-btn">
+                    <label className="upload-file-btn" onClick={handleCameraClick}>
                       {uploadingTaskId === task.id ? <Loader2 size={14} className="spin" /> : <Camera size={14} />}
                       <span>Chụp ảnh</span>
-                      <input type="file" multiple onChange={(e) => handleFileUpload(task.id, e)} style={{ display: 'none' }} disabled={uploadingTaskId === task.id} />
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        capture="environment"
+                        multiple 
+                        onChange={(e) => handleFileUpload(task.id, e)} 
+                        style={{ display: 'none' }} 
+                        disabled={uploadingTaskId === task.id} 
+                      />
                     </label>
                   </div>
                   <div className="footer-right">
