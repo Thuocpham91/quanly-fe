@@ -303,7 +303,7 @@ const WorkDetail: React.FC = () => {
                         <Info size={12} style={{ flexShrink: 0, marginTop: '2px' }} />
                         <div 
                           className="task-desc-html ql-editor"
-                          style={{ padding: 0, whiteSpace: 'pre-wrap' }}
+                          style={{ padding: 0, whiteSpace: /<(p|br|ul|ol|li|strong|em|u|span|div|h[1-6])[>\s/]/i.test(task.description) ? 'normal' : 'pre-wrap' }}
                           dangerouslySetInnerHTML={{ __html: task.description }}
                         ></div>
                       </div>
