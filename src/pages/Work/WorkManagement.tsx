@@ -145,7 +145,8 @@ const WorkManagement: React.FC = () => {
       purchaseQuantity: work.purchaseQuantity || '',
       removalCount: work.removalCount || '',
       employeeChecked: (work as any).employeeChecked || false,
-      managerChecked: (work as any).managerChecked || false
+      managerChecked: (work as any).managerChecked || false,
+      startDay: (work as any).startDay || 0
     });
     setError('');
     setIsModalOpen(true);
