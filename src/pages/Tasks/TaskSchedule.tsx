@@ -397,7 +397,7 @@ const TaskSchedule: React.FC = () => {
                 <div className="task-main">
                   <div className="task-info">
                     <h3 className="task-name">{task.taskName}</h3>
-                    {task.description && <div className="task-desc ql-editor" style={{ padding: 0 }} dangerouslySetInnerHTML={{ __html: task.description }}></div>}
+                    {task.description && <div className="task-desc ql-editor" style={{ padding: 0, whiteSpace: 'pre-wrap' }} dangerouslySetInnerHTML={{ __html: task.description }}></div>}
                   </div>
                   
                   <div className="task-data-inputs">

@@ -314,7 +314,7 @@ const ObjectDetail: React.FC = () => {
                       <td>
                         <div 
                           className="rich-text-content ql-editor"
-                          style={{ maxWidth: '300px', fontSize: '0.875rem', color: '#64748b', padding: 0 }}
+                          style={{ maxWidth: '300px', fontSize: '0.875rem', color: '#64748b', padding: 0, whiteSpace: 'pre-wrap' }}
                           dangerouslySetInnerHTML={{ __html: task.description || '-' }}
                         />
                       </td>
