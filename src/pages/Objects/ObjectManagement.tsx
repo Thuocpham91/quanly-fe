@@ -193,6 +193,7 @@ const ObjectManagement: React.FC = () => {
                           </span>
                         </div>
                       </td>
+                      <td>
                         {obj.startDate ? new Date(obj.startDate).toLocaleDateString('vi-VN') : '-'}
                       </td>
                       <td>
