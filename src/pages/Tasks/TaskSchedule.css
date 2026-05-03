@@ -1123,3 +1123,16 @@
   background: rgba(255,255,255,0.15);
   color: white;
 }
+
+ . t a s k - d e s c   { 
+     d i s p l a y :   f l e x   ! i m p o r t a n t ; 
+     f l e x - d i r e c t i o n :   c o l u m n   ! i m p o r t a n t ; 
+ } 
+ . t a s k - d e s c   p   { 
+     d i s p l a y :   b l o c k   ! i m p o r t a n t ; 
+     w i d t h :   1 0 0 %   ! i m p o r t a n t ; 
+     m a r g i n - b o t t o m :   0 . 5 r e m   ! i m p o r t a n t ; 
+     w o r d - b r e a k :   b r e a k - w o r d   ! i m p o r t a n t ; 
+ } 
+  
+ 
