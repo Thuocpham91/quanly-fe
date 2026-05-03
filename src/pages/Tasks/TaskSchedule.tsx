@@ -26,6 +26,9 @@ import {
 import api from '../../api/axios';
 import './TaskSchedule.css';
 
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
+
 interface WorkTask {
   id: string;
   taskName: string;
@@ -394,7 +397,7 @@ const TaskSchedule: React.FC = () => {
                 <div className="task-main">
                   <div className="task-info">
                     <h3 className="task-name">{task.taskName}</h3>
-                    {task.description && <div className="task-desc" dangerouslySetInnerHTML={{ __html: task.description }}></div>}
+                    {task.description && <div className="task-desc ql-editor" style={{ padding: 0 }} dangerouslySetInnerHTML={{ __html: task.description }}></div>}
                   </div>
                   
                   <div className="task-data-inputs">
@@ -605,11 +608,18 @@ const TaskSchedule: React.FC = () => {
               </div>
               <div className="form-group">
                 <label>Mô tả (tuỳ chọn)</label>
-                <textarea 
-                  rows={3}
+                <ReactQuill 
+                  theme="snow"
+                  value={newTaskForm.description} 
+                  onChange={(val) => setNewTaskForm({ ...newTaskForm, description: val })}
                   placeholder="Nhập ghi chú thêm nếu có..."
-                  value={newTaskForm.description}
-                  onChange={(e) => setNewTaskForm({ ...newTaskForm, description: e.target.value })}
+                  modules={{
+                    toolbar: [
+                      ['bold', 'italic', 'underline'],
+                      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                      ['clean']
+                    ],
+                  }}
                 />
               </div>
               <div className="modal-actions">

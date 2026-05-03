@@ -313,8 +313,8 @@ const ObjectDetail: React.FC = () => {
                       <td>{task.removalCount ?? '-'}</td>
                       <td>
                         <div 
-                          className="rich-text-content"
-                          style={{ maxWidth: '300px', fontSize: '0.875rem', color: '#64748b' }}
+                          className="rich-text-content ql-editor"
+                          style={{ maxWidth: '300px', fontSize: '0.875rem', color: '#64748b', padding: 0 }}
                           dangerouslySetInnerHTML={{ __html: task.description || '-' }}
                         />
                       </td>

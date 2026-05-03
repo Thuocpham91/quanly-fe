@@ -302,7 +302,8 @@ const WorkDetail: React.FC = () => {
                       <div className="task-desc">
                         <Info size={12} style={{ flexShrink: 0, marginTop: '2px' }} />
                         <div 
-                          className="task-desc-html"
+                          className="task-desc-html ql-editor"
+                          style={{ padding: 0 }}
                           dangerouslySetInnerHTML={{ __html: task.description }}
                         ></div>
                       </div>
