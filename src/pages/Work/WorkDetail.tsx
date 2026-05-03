@@ -14,6 +14,7 @@ import {
   User as UserIcon,
   Paperclip,
   Image as ImageIcon,
+  Camera,
   File as FileIcon,
   Loader2,
   X,
@@ -357,10 +358,10 @@ const WorkDetail: React.FC = () => {
 
                 <div className="task-files-section-detail">
                   <div className="task-files-header-detail">
-                    <span className="files-title-detail">Đính kèm:</span>
+                    <span className="files-title-detail">Chụp ảnh:</span>
                     <label className="upload-file-btn-detail">
-                      {uploadingTaskId === task.id ? <Loader2 size={14} className="spin" /> : <Paperclip size={14} />}
-                      <span>Tải lên</span>
+                      {uploadingTaskId === task.id ? <Loader2 size={14} className="spin" /> : <Camera size={14} />}
+                      <span>Chụp ảnh</span>
                       <input type="file" multiple onChange={(e) => handleFileUpload(task.id, e)} style={{ display: 'none' }} disabled={uploadingTaskId === task.id} />
                     </label>
                   </div>

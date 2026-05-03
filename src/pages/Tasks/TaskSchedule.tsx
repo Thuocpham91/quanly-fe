@@ -17,6 +17,7 @@ import {
   ArrowRight,
   Paperclip,
   Image as ImageIcon,
+  Camera,
   File as FileIcon,
   Trash2,
   Plus,
@@ -436,8 +437,8 @@ const TaskSchedule: React.FC = () => {
                 <div className="task-footer">
                   <div className="footer-left">
                     <label className="upload-file-btn">
-                      {uploadingTaskId === task.id ? <Loader2 size={14} className="spin" /> : <Paperclip size={14} />}
-                      <span>Đính kèm</span>
+                      {uploadingTaskId === task.id ? <Loader2 size={14} className="spin" /> : <Camera size={14} />}
+                      <span>Chụp ảnh</span>
                       <input type="file" multiple onChange={(e) => handleFileUpload(task.id, e)} style={{ display: 'none' }} disabled={uploadingTaskId === task.id} />
                     </label>
                   </div>
