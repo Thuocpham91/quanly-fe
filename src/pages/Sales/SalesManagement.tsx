@@ -512,56 +512,6 @@ const SalesManagement: React.FC = () => {
                   </tr>
                 )}
               </tbody>
-                              <h4>Danh sách đơn hàng</h4>
-                              <table className="mini-orders-table">
-                                <thead>
-                                  <tr>
-                                    <th>ID</th>
-                                    <th>Ngày đặt</th>
-                                    <th>Số lượng</th>
-                                    <th>Tổng tiền</th>
-                                    <th>Trạng thái</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {orders
-                                    .filter(o => o.userId === item.userId)
-                                    .sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime())
-                                    .map(order => (
-                                      <tr key={order.id}>
-                                        <td>#{order.id.slice(-6)}</td>
-                                        <td>{new Date(order.orderDate).toLocaleDateString('vi-VN')}</td>
-                                        <td>{order.quantity}</td>
-                                        <td>{order.amount?.toLocaleString('vi-VN')} đ</td>
-                                        <td>
-                                          <span className={`mini-status-badge ${order.status.toLowerCase()}`}>
-                                            {order.status}
-                                          </span>
-                                        </td>
-                                      </tr>
-                                    ))
-                                  }
-                                </tbody>
-                              </table>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-      >
-                          <ArrowUpRight size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={8} className="empty-row">
-                      Không tìm thấy khách hàng phù hợp với bộ lọc.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
             </table>
 
             {/* Mobile Card View */}
