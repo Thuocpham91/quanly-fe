@@ -53,6 +53,7 @@ const OrderSchedule: React.FC = () => {
   const [schedule, setSchedule] = useState<ScheduleData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const formatDate = (date: Date) => {
@@ -173,6 +174,22 @@ const OrderSchedule: React.FC = () => {
       alert("Trình duyệt của bạn không hỗ trợ định vị.");
     }
   };
+  
+  const handleStatusUpdate = async (e: React.ChangeEvent<HTMLSelectElement> | React.MouseEvent, orderId: string, newStatus: string) => {
+    if (e) e.stopPropagation();
+    if (!orderId || !newStatus) return;
+
+    try {
+      setUpdatingOrderId(orderId);
+      await api.put(`/orders/${orderId}`, { status: newStatus });
+      fetchSchedule(); // Refresh data
+    } catch (error) {
+      console.error('Lỗi khi cập nhật trạng thái đơn hàng:', error);
+      alert('Có lỗi xảy ra khi cập nhật trạng thái.');
+    } finally {
+      setUpdatingOrderId(null);
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -194,7 +211,21 @@ const OrderSchedule: React.FC = () => {
       <div className="card-top">
         <div className="order-id-badge">#{order.id}</div>
         <div className="card-badges">
-          {getStatusBadge(order.status)}
+          <div className="status-selector-container" onClick={(e) => e.stopPropagation()}>
+            <select 
+              className={`status-select-minimal ${order.status.toLowerCase()}`}
+              value={order.status}
+              onChange={(e) => handleStatusUpdate(e, order.id, e.target.value)}
+              disabled={updatingOrderId === order.id}
+            >
+              <option value="CHO_DUYET">Chờ duyệt</option>
+              <option value="DA_DUYET">Đã duyệt</option>
+              <option value="DA_HOAN_THANH">Đã hoàn thành</option>
+              <option value="TU_CHOI">Từ chối</option>
+              <option value="HUY_DON">Hủy đơn</option>
+            </select>
+            {updatingOrderId === order.id && <div className="loader-micro" />}
+          </div>
           <div className={`type-tag ${(order.type || '').toLowerCase()}`}>
             {order.type === 'MUA_GA' ? 'Mua gà' : 'Đặt gà'}
           </div>

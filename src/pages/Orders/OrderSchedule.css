@@ -179,6 +179,52 @@
 .status-dot.warning { background: #fef3c7; color: #92400e; }
 .status-dot.secondary { background: #f1f5f9; color: #64748b; }
 
+.status-selector-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.status-select-minimal {
+  appearance: none;
+  border: none;
+  padding: 2px 24px 2px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  transition: all 0.2s;
+}
+
+.status-select-minimal.cho_duyet { background-color: #fef3c7; color: #92400e; }
+.status-select-minimal.da_duyet { background-color: #dcfce7; color: #166534; }
+.status-select-minimal.da_hoan_thanh { background-color: #10b981; color: white; }
+.status-select-minimal.tu_choi { background-color: #fee2e2; color: #991b1b; }
+.status-select-minimal.huy_don { background-color: #f1f5f9; color: #64748b; }
+
+.status-select-minimal:hover {
+  filter: brightness(0.95);
+}
+
+.status-select-minimal:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.loader-micro {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #e2e8f0;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  position: absolute;
+  right: -16px;
+}
+
 .type-tag {
   font-size: 0.75rem;
   font-weight: 700;
