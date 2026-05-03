@@ -11,6 +11,7 @@ import {
   Filter,
   Phone,
   ArrowUpRight,
+  ExternalLink,
   X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -59,7 +60,7 @@ const SalesManagement: React.FC = () => {
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerInsight | null>(null);
   const [callHistory, setCallHistory] = useState<any[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [trackingUserId, setTrackingUserId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const fetchData = async () => {
@@ -193,16 +194,8 @@ const SalesManagement: React.FC = () => {
     }
   };
 
-  const toggleExpand = (userId: string) => {
-    setExpandedIds(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(userId)) {
-        newSet.delete(userId);
-      } else {
-        newSet.add(userId);
-      }
-      return newSet;
-    });
+  const toggleTracking = (userId: string) => {
+    setTrackingUserId(prev => prev === userId ? null : userId);
   };
 
   const insights = useMemo(() => {
@@ -384,7 +377,8 @@ const SalesManagement: React.FC = () => {
         </div>
       </div>
 
-      <div className="table-wrapper">
+      <div className={`sales-content-layout ${trackingUserId ? 'has-panel' : ''}`}>
+        <div className="table-wrapper">
         {isLoading ? (
           <div className="loading-state">
             <div className="loader"></div>
@@ -410,18 +404,24 @@ const SalesManagement: React.FC = () => {
               <tbody>
                 {filteredInsights.length > 0 ? (
                   filteredInsights.map((item) => (
-                    <React.Fragment key={item.userId}>
-                      <tr className={expandedIds.has(item.userId) ? 'expanded-row' : ''}>
+                    <tr key={item.userId} className={trackingUserId === item.userId ? 'expanded-row tracking-active' : ''}>
                         <td>
                           <button 
-                            className="btn-expand"
-                            onClick={() => toggleExpand(item.userId)}
+                            className={`btn-expand ${trackingUserId === item.userId ? 'active' : ''}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleTracking(item.userId);
+                            }}
                           >
-                            {expandedIds.has(item.userId) ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                            <ChevronRight size={18} className={trackingUserId === item.userId ? 'rotate-180' : ''} />
                           </button>
                         </td>
                         <td>
-                          <div className="customer-info">
+                          <div 
+                            className="customer-info" 
+                            onClick={() => toggleTracking(item.userId)}
+                            style={{ cursor: 'pointer' }}
+                          >
                             <div className="avatar">
                               {item.user.fullName?.[0] || item.user.username?.[0] || 'U'}
                             </div>
@@ -457,52 +457,16 @@ const SalesManagement: React.FC = () => {
                         <td>
                           <button 
                             className="btn-view"
-                            onClick={() => navigate(`/admin/users?search=${item.user.username}`)}
+                            title="Xem chi tiết User"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/admin/users?search=${item.user.username}`);
+                            }}
                           >
-                            <ArrowUpRight size={16} />
+                            <ExternalLink size={16} />
                           </button>
                         </td>
-                      </tr>
-                      {expandedIds.has(item.userId) && (
-                        <tr className="orders-sub-row">
-                          <td colSpan={10}>
-                            <div className="orders-list-container">
-                              <h4>Danh sách đơn hàng</h4>
-                              <table className="mini-orders-table">
-                                <thead>
-                                  <tr>
-                                    <th>ID</th>
-                                    <th>Ngày đặt</th>
-                                    <th>Số lượng</th>
-                                    <th>Tổng tiền</th>
-                                    <th>Trạng thái</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {orders
-                                    .filter(o => o.userId === item.userId)
-                                    .sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime())
-                                    .map(order => (
-                                      <tr key={order.id}>
-                                        <td>#{order.id.slice(-6)}</td>
-                                        <td>{new Date(order.orderDate).toLocaleDateString('vi-VN')}</td>
-                                        <td>{order.quantity}</td>
-                                        <td>{order.amount?.toLocaleString('vi-VN')} đ</td>
-                                        <td>
-                                          <span className={`mini-status-badge ${order.status.toLowerCase()}`}>
-                                            {order.status}
-                                          </span>
-                                        </td>
-                                      </tr>
-                                    ))
-                                  }
-                                </tbody>
-                              </table>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
+                    </tr>
                   ))
                 ) : (
                   <tr>
@@ -585,6 +549,86 @@ const SalesManagement: React.FC = () => {
               )}
             </div>
           </>
+        )}
+        </div>
+
+        {/* Tracking Side Panel */}
+        {trackingUserId && (
+          <div className="orders-side-panel">
+            <div className="panel-header">
+              <div className="customer-compact">
+                <div className="avatar-panel">
+                  {filteredInsights.find(i => i.userId === trackingUserId)?.user.fullName?.[0] || 
+                   filteredInsights.find(i => i.userId === trackingUserId)?.user.username?.[0]}
+                </div>
+                <div>
+                  <h4>{filteredInsights.find(i => i.userId === trackingUserId)?.user.fullName || 
+                       filteredInsights.find(i => i.userId === trackingUserId)?.user.username}</h4>
+                  <p>@{filteredInsights.find(i => i.userId === trackingUserId)?.user.username}</p>
+                </div>
+              </div>
+              <button className="close-panel" onClick={() => setTrackingUserId(null)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="panel-body">
+              <div className="panel-stats">
+                <div className="panel-stat-item">
+                  <span className="label">Tổng đơn</span>
+                  <span className="value">{filteredInsights.find(i => i.userId === trackingUserId)?.totalOrders}</span>
+                </div>
+                <div className="panel-stat-item">
+                  <span className="label">Tổng tiền</span>
+                  <span className="value text-primary">
+                    {filteredInsights.find(i => i.userId === trackingUserId)?.totalAmount.toLocaleString('vi-VN')} đ
+                  </span>
+                </div>
+              </div>
+
+              <div className="orders-list-section">
+                <h5><ShoppingBag size={14} /> Danh sách đơn hàng</h5>
+                <div className="mini-orders-list">
+                  {orders
+                    .filter(o => o.userId === trackingUserId)
+                    .sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime())
+                    .map(order => (
+                      <div key={order.id} className="mini-order-card">
+                        <div className="order-main">
+                          <span className="order-id">#{order.id.slice(-6)}</span>
+                          <span className="order-date">{new Date(order.orderDate).toLocaleDateString('vi-VN')}</span>
+                        </div>
+                        <div className="order-details">
+                          <span className="order-qty">{order.quantity} con</span>
+                          <span className="order-amount">{order.amount?.toLocaleString('vi-VN')} đ</span>
+                        </div>
+                        <div className="order-status-row">
+                          <span className={`mini-status-badge ${order.status.toLowerCase()}`}>
+                            {order.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  }
+                  {orders.filter(o => o.userId === trackingUserId).length === 0 && (
+                    <div className="empty-panel-state">Chưa có đơn hàng nào.</div>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <div className="panel-footer">
+              <button 
+                className="btn-full-action"
+                onClick={() => {
+                  const customer = filteredInsights.find(i => i.userId === trackingUserId);
+                  if (customer) openHistoryDrawer(customer);
+                }}
+              >
+                <Clock size={16} /> Xem lịch sử liên hệ
+              </button>
+            </div>
+          </div>
         )}
       </div>
 
