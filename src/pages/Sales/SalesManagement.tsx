@@ -6,6 +6,8 @@ import {
   ShoppingBag, 
   Clock, 
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Filter,
   Phone,
   ArrowUpRight,
@@ -57,6 +59,7 @@ const SalesManagement: React.FC = () => {
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerInsight | null>(null);
   const [callHistory, setCallHistory] = useState<any[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
 
   const fetchData = async () => {
@@ -188,6 +191,18 @@ const SalesManagement: React.FC = () => {
       console.error('Error in openHistoryDrawer:', error);
       setIsHistoryLoading(false);
     }
+  };
+
+  const toggleExpand = (userId: string) => {
+    setExpandedIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(userId)) {
+        newSet.delete(userId);
+      } else {
+        newSet.add(userId);
+      }
+      return newSet;
+    });
   };
 
   const insights = useMemo(() => {
@@ -381,6 +396,7 @@ const SalesManagement: React.FC = () => {
             <table className="sales-table desktop-only">
               <thead>
                 <tr>
+                  <th style={{ width: '40px' }}></th>
                   <th>Khách hàng</th>
                   <th>Số điện thoại</th>
                   <th>Lần mua cuối</th>
@@ -394,46 +410,145 @@ const SalesManagement: React.FC = () => {
               <tbody>
                 {filteredInsights.length > 0 ? (
                   filteredInsights.map((item) => (
-                    <tr key={item.userId}>
-                      <td>
-                        <div className="customer-info">
-                          <div className="avatar">
-                            {item.user.fullName?.[0] || item.user.username?.[0] || 'U'}
+                    <React.Fragment key={item.userId}>
+                      <tr className={expandedIds.has(item.userId) ? 'expanded-row' : ''}>
+                        <td>
+                          <button 
+                            className="btn-expand"
+                            onClick={() => toggleExpand(item.userId)}
+                          >
+                            {expandedIds.has(item.userId) ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                          </button>
+                        </td>
+                        <td>
+                          <div className="customer-info">
+                            <div className="avatar">
+                              {item.user.fullName?.[0] || item.user.username?.[0] || 'U'}
+                            </div>
+                            <div>
+                              <div className="name">{item.user.fullName || item.user.username}</div>
+                              <div className="username">@{item.user.username}</div>
+                            </div>
                           </div>
-                          <div>
-                            <div className="name">{item.user.fullName || item.user.username}</div>
-                            <div className="username">@{item.user.username}</div>
+                        </td>
+                        <td>
+                          <div 
+                            className="phone-cell" 
+                            onClick={() => handleCall(item.user.phone || '', item.customerId, item.user.fullName || item.user.username, item.userId)}
+                            style={{ cursor: item.user.phone ? 'pointer' : 'default', color: item.user.phone ? '#2563eb' : 'inherit' }}
+                            title={item.user.phone ? 'Click để gọi và lưu lịch sử' : ''}
+                          >
+                            <Phone size={14} />
+                            <span style={{ fontWeight: 500 }}>{item.user.phone || '-'}</span>
                           </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div 
-                          className="phone-cell" 
-                          onClick={() => handleCall(item.user.phone || '', item.customerId, item.user.fullName || item.user.username, item.userId)}
-                          style={{ cursor: item.user.phone ? 'pointer' : 'default', color: item.user.phone ? '#2563eb' : 'inherit' }}
-                          title={item.user.phone ? 'Click để gọi và lưu lịch sử' : ''}
-                        >
-                          <Phone size={14} />
-                          <span style={{ fontWeight: 500 }}>{item.user.phone || '-'}</span>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="date-cell">
-                          <Calendar size={14} />
-                          <span>{item.lastPurchaseDate?.toLocaleDateString('vi-VN') || '-'}</span>
-                        </div>
-                      </td>
-                      <td style={{ fontWeight: 600 }}>{item.daysSinceLastPurchase} ngày</td>
-                      <td style={{ textAlign: 'center' }}>{item.totalOrders}</td>
-                      <td style={{ fontWeight: 700, color: '#0f172a' }}>
-                        {item.totalAmount.toLocaleString('vi-VN')} đ
-                      </td>
-                      <td>{getRecencyLabel(item.daysSinceLastPurchase)}</td>
-                      <td>
-                        <button 
-                          className="btn-view"
-                          onClick={() => navigate(`/admin/users?search=${item.user.username}`)}
-                        >
+                        </td>
+                        <td>
+                          <div className="date-cell">
+                            <Calendar size={14} />
+                            <span>{item.lastPurchaseDate?.toLocaleDateString('vi-VN') || '-'}</span>
+                          </div>
+                        </td>
+                        <td style={{ fontWeight: 600 }}>{item.daysSinceLastPurchase} ngày</td>
+                        <td style={{ textAlign: 'center' }}>{item.totalOrders}</td>
+                        <td style={{ fontWeight: 700, color: '#0f172a' }}>
+                          {item.totalAmount.toLocaleString('vi-VN')} đ
+                        </td>
+                        <td>{getRecencyLabel(item.daysSinceLastPurchase)}</td>
+                        <td>
+                          <button 
+                            className="btn-view"
+                            onClick={() => navigate(`/admin/users?search=${item.user.username}`)}
+                          >
+                            <ArrowUpRight size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                      {expandedIds.has(item.userId) && (
+                        <tr className="orders-sub-row">
+                          <td colSpan={10}>
+                            <div className="orders-list-container">
+                              <h4>Danh sách đơn hàng</h4>
+                              <table className="mini-orders-table">
+                                <thead>
+                                  <tr>
+                                    <th>ID</th>
+                                    <th>Ngày đặt</th>
+                                    <th>Số lượng</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Trạng thái</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {orders
+                                    .filter(o => o.userId === item.userId)
+                                    .sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime())
+                                    .map(order => (
+                                      <tr key={order.id}>
+                                        <td>#{order.id.slice(-6)}</td>
+                                        <td>{new Date(order.orderDate).toLocaleDateString('vi-VN')}</td>
+                                        <td>{order.quantity}</td>
+                                        <td>{order.amount?.toLocaleString('vi-VN')} đ</td>
+                                        <td>
+                                          <span className={`mini-status-badge ${order.status.toLowerCase()}`}>
+                                            {order.status}
+                                          </span>
+                                        </td>
+                                      </tr>
+                                    ))
+                                  }
+                                </tbody>
+                              </table>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={10} className="empty-row">
+                      Không tìm thấy khách hàng phù hợp với bộ lọc.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+                              <h4>Danh sách đơn hàng</h4>
+                              <table className="mini-orders-table">
+                                <thead>
+                                  <tr>
+                                    <th>ID</th>
+                                    <th>Ngày đặt</th>
+                                    <th>Số lượng</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Trạng thái</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {orders
+                                    .filter(o => o.userId === item.userId)
+                                    .sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime())
+                                    .map(order => (
+                                      <tr key={order.id}>
+                                        <td>#{order.id.slice(-6)}</td>
+                                        <td>{new Date(order.orderDate).toLocaleDateString('vi-VN')}</td>
+                                        <td>{order.quantity}</td>
+                                        <td>{order.amount?.toLocaleString('vi-VN')} đ</td>
+                                        <td>
+                                          <span className={`mini-status-badge ${order.status.toLowerCase()}`}>
+                                            {order.status}
+                                          </span>
+                                        </td>
+                                      </tr>
+                                    ))
+                                  }
+                                </tbody>
+                              </table>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+      >
                           <ArrowUpRight size={16} />
                         </button>
                       </td>
