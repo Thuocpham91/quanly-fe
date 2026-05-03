@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, X, Eye, Edit2, Trash2, Tag } from 'lucide-react';
+import { Plus, X, Eye, Edit2, Trash2, Tag, CheckCircle } from 'lucide-react';
 import api from '../../api/axios';
 import './ObjectManagement.css';
 
@@ -10,6 +10,7 @@ interface ObjectData {
   startDate: string | Date | null;
   description: string | null;
   type: string | null;
+  status?: string;
 }
 
 const ObjectTypes = [
@@ -33,7 +34,8 @@ const ObjectManagement: React.FC = () => {
     name: '', 
     startDate: '', 
     description: '',
-    type: '' 
+    type: '',
+    status: 'ACTIVE'
   });
   const [error, setError] = useState('');
 
@@ -66,7 +68,7 @@ const ObjectManagement: React.FC = () => {
 
   const openAddModal = () => {
     setEditingObject(null);
-    setFormData({ name: '', startDate: '', description: '', type: 'vào ấp trứng' });
+    setFormData({ name: '', startDate: '', description: '', type: 'vào ấp trứng', status: 'ACTIVE' });
     setError('');
     setIsModalOpen(true);
   };
@@ -77,7 +79,8 @@ const ObjectManagement: React.FC = () => {
       name: obj.name, 
       startDate: obj.startDate ? obj.startDate.toString() : '',
       description: obj.description || '',
-      type: obj.type || 'vào ấp trứng'
+      type: obj.type || 'vào ấp trứng',
+      status: obj.status || 'ACTIVE'
     });
     setError('');
     setIsModalOpen(true);
@@ -92,6 +95,17 @@ const ObjectManagement: React.FC = () => {
     } catch (err) {
       console.error('Lỗi khi xóa object:', err);
       alert('Có lỗi xảy ra khi xóa dữ liệu.');
+    }
+  };
+
+  const handleFinish = async (id: string) => {
+    if (!window.confirm('Bạn có chắc muốn kết thúc đợt này? Sau khi kết thúc, lịch trình công việc của đợt này sẽ không hiển thị nữa.')) return;
+    try {
+      await api.put(`/objects/${id}`, { status: 'FINISHED' });
+      fetchObjects(currentPage);
+    } catch (err) {
+      console.error('Lỗi khi kết thúc object:', err);
+      alert('Có lỗi xảy ra.');
     }
   };
 
@@ -111,7 +125,8 @@ const ObjectManagement: React.FC = () => {
         name: formData.name,
         startDate: formData.startDate ? new Date(formData.startDate) : null,
         description: formData.description ? formData.description : null,
-        type: formData.type
+        type: formData.type,
+        status: formData.status
       };
 
       if (editingObject) {
@@ -158,8 +173,8 @@ const ObjectManagement: React.FC = () => {
                   <th>Tên Object</th>
                   <th>Loại</th>
                   <th>Start Date</th>
-                  <th>Mô tả</th>
-                  <th style={{ width: '150px' }}>Hành động</th>
+                  <th>Trạng thái</th>
+                  <th style={{ width: '180px' }}>Hành động</th>
                 </tr>
               </thead>
               <tbody>
@@ -178,10 +193,13 @@ const ObjectManagement: React.FC = () => {
                           </span>
                         </div>
                       </td>
-                      <td>
                         {obj.startDate ? new Date(obj.startDate).toLocaleDateString('vi-VN') : '-'}
                       </td>
-                      <td>{obj.description || '-'}</td>
+                      <td>
+                        <span className={`status-badge-custom ${obj.status?.toLowerCase() || 'active'}`}>
+                          {obj.status === 'FINISHED' ? 'Đã xong' : 'Đang nuôi'}
+                        </span>
+                      </td>
                       <td>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                           <button 
@@ -192,6 +210,16 @@ const ObjectManagement: React.FC = () => {
                           >
                             <Eye size={16} />
                           </button>
+                          {obj.status !== 'FINISHED' && (
+                             <button 
+                              className="btn-secondary" 
+                              style={{ padding: '0.4rem', border: '1px solid #10b981', color: '#10b981', borderRadius: '4px' }}
+                              title="Hoàn thành"
+                              onClick={() => handleFinish(obj.id)}
+                            >
+                              <CheckCircle size={16} />
+                            </button>
+                          )}
                           <button 
                             className="btn-secondary" 
                             style={{ padding: '0.4rem', border: '1px solid #e2e8f0', borderRadius: '4px' }}
@@ -298,6 +326,21 @@ const ObjectManagement: React.FC = () => {
                     {ObjectTypes.map(type => (
                       <option key={type.value} value={type.value}>{type.label}</option>
                     ))}
+                  </select>
+                </div>
+
+                <div className="form-group-modal">
+                  <label htmlFor="status">Trạng thái</label>
+                  <select
+                    id="status"
+                    name="status"
+                    value={formData.status}
+                    onChange={handleInputChange}
+                    required
+                    style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                  >
+                    <option value="ACTIVE">Đang nuôi (Active)</option>
+                    <option value="FINISHED">Đã xong (Finished)</option>
                   </select>
                 </div>
                 

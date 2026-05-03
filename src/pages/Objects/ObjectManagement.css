@@ -123,6 +123,24 @@
   color: var(--text-muted);
 }
 
+.status-badge-custom {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.status-badge-custom.active {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.status-badge-custom.finished {
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+
 /* Modal Styles */
 .modal-overlay {
   position: fixed;

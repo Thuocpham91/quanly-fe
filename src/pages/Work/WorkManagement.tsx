@@ -61,7 +61,8 @@ const WorkManagement: React.FC = () => {
     purchaseQuantity: '' as string | number,
     removalCount: '' as string | number,
     employeeChecked: false,
-    managerChecked: false
+    managerChecked: false,
+    startDay: 0
   });
 
   const roleCode = typeof user?.role === 'object' && user?.role !== null 
@@ -125,7 +126,8 @@ const WorkManagement: React.FC = () => {
       purchaseQuantity: '',
       removalCount: '',
       employeeChecked: false,
-      managerChecked: false
+      managerChecked: false,
+      startDay: 0
     });
     setError('');
     setIsModalOpen(true);
@@ -179,6 +181,7 @@ const WorkManagement: React.FC = () => {
         removalCount: formData.removalCount !== '' ? Number(formData.removalCount) : null,
         employeeChecked: formData.employeeChecked,
         managerChecked: formData.managerChecked,
+        startDay: Number(formData.startDay || 0)
       };
 
       if (editingWork) {
@@ -431,6 +434,23 @@ const WorkManagement: React.FC = () => {
                     required
                   />
                 </div>
+
+                {!editingWork && (
+                  <div className="form-group-modal">
+                    <label>Bắt đầu từ ngày thứ (trong đối tượng) *</label>
+                    <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>
+                      Các nhiệm vụ trước ngày này sẽ không được tạo. Ngày {formData.startDate || 'đã chọn'} sẽ được coi là "Ngày thứ {formData.startDay || 0}".
+                    </div>
+                    <input
+                      type="number"
+                      name="startDay"
+                      value={formData.startDay}
+                      onChange={handleInputChange}
+                      min="0"
+                      required
+                    />
+                  </div>
+                )}
 
                 <div className="form-group-modal">
                   <label>Mô tả chi tiết</label>
