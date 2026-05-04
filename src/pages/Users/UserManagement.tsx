@@ -1,7 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, X, Edit2, Trash2, Search, User as UserIcon, MapPin } from 'lucide-react';
+import { Plus, X, Edit2, Trash2, Search, User as UserIcon, MapPin, List, Map as MapIcon, Filter } from 'lucide-react';
 import api from '../../api/axios';
 import './UserManagement.css';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix for default marker icons in Leaflet with React
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerIconRetina from 'leaflet/dist/images/marker-icon-2x.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+const DefaultIcon = L.icon({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIconRetina,
+  shadowUrl: markerShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+  shadowSize: [41, 41]
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
 
 interface RoleData {
   id: string;
@@ -27,6 +48,12 @@ const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<UserData[]>([]);
   const [roles, setRoles] = useState<RoleData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'table' | 'map'>('table');
+  
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRole, setSelectedRole] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
   
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -205,6 +232,23 @@ const UserManagement: React.FC = () => {
       );
     }
   };
+  
+  // Filtering logic
+  const filteredUsers = users.filter(user => {
+    const searchLower = searchTerm.toLowerCase();
+    const fullNameLower = (user.fullName || '').toLowerCase();
+    const usernameLower = (user.username || '').toLowerCase();
+    const phone = user.phone || '';
+
+    const matchesSearch = fullNameLower.includes(searchLower) || 
+                          usernameLower.includes(searchLower) ||
+                          phone.includes(searchTerm);
+    
+    const matchesRole = !selectedRole || user.roleId === selectedRole;
+    const matchesStatus = !selectedStatus || user.status === selectedStatus;
+    
+    return matchesSearch && matchesRole && matchesStatus;
+  });
 
   const handleOpenMap = (lat: number | null, lng: number | null) => {
     if (!lat || !lng) {
@@ -230,10 +274,65 @@ const UserManagement: React.FC = () => {
           <h2>Quản Lý User</h2>
           <p>Hệ thống quản lý Nhân viên & Khách hàng hợp nhất</p>
         </div>
-        <button className="btn-primary" onClick={openAddModal}>
-          <Plus size={18} />
-          <span>Thêm User Mới</span>
-        </button>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <div className="view-mode-toggle">
+            <button 
+              className={viewMode === 'table' ? 'active' : ''} 
+              onClick={() => setViewMode('table')}
+              title="Xem dạng bảng"
+            >
+              <List size={18} />
+            </button>
+            <button 
+              className={viewMode === 'map' ? 'active' : ''} 
+              onClick={() => setViewMode('map')}
+              title="Xem trên bản đồ"
+            >
+              <MapIcon size={18} />
+            </button>
+          </div>
+          <button className="btn-primary" onClick={openAddModal}>
+            <Plus size={18} />
+            <span>Thêm User Mới</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="filters-section">
+        <div className="search-box">
+          <Search size={18} />
+          <input 
+            type="text" 
+            placeholder="Tìm kiếm theo tên, username, SĐT..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          {searchTerm && <X size={16} className="clear-search" onClick={() => setSearchTerm('')} />}
+        </div>
+        
+        <div className="filter-group">
+          <div className="filter-item">
+            <Filter size={16} />
+            <select value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)}>
+              <option value="">Tất cả Vai trò</option>
+              {roles.map(role => (
+                <option key={role.id} value={role.id}>{role.name}</option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="filter-item">
+            <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)}>
+              <option value="">Tất cả Trạng thái</option>
+              <option value="ACTIVE">Hoạt động</option>
+              <option value="INACTIVE">Tạm khóa</option>
+            </select>
+          </div>
+        </div>
+        
+        <div className="filter-stats">
+            Tìm thấy: <strong>{filteredUsers.length}</strong> / {users.length} user
+        </div>
       </div>
 
       <div className="table-card">
@@ -242,7 +341,7 @@ const UserManagement: React.FC = () => {
             <div className="loader-large"></div>
             <p>Đang tải dữ liệu...</p>
           </div>
-        ) : (
+        ) : viewMode === 'table' ? (
           <div className="table-responsive">
             <table className="data-table">
               <thead>
@@ -256,8 +355,8 @@ const UserManagement: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {users.length > 0 ? (
-                  users.map((user) => (
+                {filteredUsers.length > 0 ? (
+                  filteredUsers.map((user) => (
                     <tr key={user.id}>
                       <td>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -336,13 +435,55 @@ const UserManagement: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="empty-state">
-                      Chưa có người dùng nào.
+                    <td colSpan={6} className="empty-state">
+                      Không tìm thấy người dùng nào phù hợp với bộ lọc.
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
+          </div>
+        ) : (
+          <div className="map-view-wrapper">
+             <MapContainer 
+               center={[21.0285, 105.8542]} 
+               zoom={6} 
+               style={{ height: '600px', width: '100%', borderRadius: '12px' }}
+             >
+               <TileLayer
+                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+               />
+               {filteredUsers.filter(u => u.lat && u.lng).map(user => (
+                 <Marker key={user.id} position={[user.lat!, user.lng!]}>
+                   <Popup>
+                     <div style={{ minWidth: '150px' }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '4px' }}>{user.fullName || user.username}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '8px' }}>@{user.username} - {user.role?.name}</div>
+                        <div style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
+                           <MapPin size={12} />
+                           <span>{user.lat?.toFixed(4)}, {user.lng?.toFixed(4)}</span>
+                        </div>
+                        {user.phone && (
+                          <div style={{ fontSize: '0.8rem', color: '#2563eb', fontWeight: 600 }}>
+                            📞 {user.phone}
+                          </div>
+                        )}
+                        <button 
+                          className="btn-primary" 
+                          style={{ width: '100%', padding: '0.4rem', marginTop: '10px', fontSize: '0.75rem' }}
+                          onClick={() => handleOpenMap(user.lat, user.lng)}
+                        >
+                          Chỉ đường (Maps)
+                        </button>
+                     </div>
+                   </Popup>
+                 </Marker>
+               ))}
+             </MapContainer>
+             <div className="map-legend">
+                Hiển thị <strong>{filteredUsers.filter(u => u.lat && u.lng).length}</strong> vị trí người dùng trên bản đồ
+             </div>
           </div>
         )}
       </div>
