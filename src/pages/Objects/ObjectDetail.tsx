@@ -310,6 +310,7 @@ const ObjectDetail: React.FC = () => {
                         </span>
                       </td>
                       <td>
+                        <span style={{ color: '#2563eb', fontWeight: 500 }}>
                           {task.scheduledDate ? new Date(task.scheduledDate).toLocaleDateString('vi-VN') : '-'}
                         </span>
                         {task.isRecurring && (
