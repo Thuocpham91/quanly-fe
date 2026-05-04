@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+// @ts-ignore
+import { Lunar } from 'lunar-javascript';
 import {
   Plus, X, Edit2, Trash2, Search, TrendingUp, TrendingDown, Minus,
   Calendar, DollarSign, Tag, AlertCircle, CheckCircle2
@@ -169,7 +171,7 @@ const ChickenPriceManagement: React.FC = () => {
       <div className="today-price-banner">
         <div className="banner-icon">🐔</div>
         <div className="banner-content">
-          <div className="banner-label">Giá gà hôm nay • {new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+          <div className="banner-label">Giá gà hôm nay • {new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} ({Lunar.fromDate(new Date()).getDay()}/{Lunar.fromDate(new Date()).getMonth()} ÂL)</div>
           {todayPrice ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
               {/* If we have breakdown prices, show them prominently */}

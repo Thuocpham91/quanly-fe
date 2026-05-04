@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+// @ts-ignore
+import { Lunar } from 'lunar-javascript';
 import { 
   PhoneCall, Target, TrendingUp, DollarSign,
   CheckCircle2, Clock, Users, UserSquare2,
@@ -109,7 +111,7 @@ const Dashboard: React.FC = () => {
       </div>
       <div style={{ flex: 1, position: 'relative' }}>
         <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ecfdf5', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem' }}>
-          Giá gà hôm nay • {new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit' })}
+          Giá gà hôm nay • {new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit' })} ({Lunar.fromDate(new Date()).getDay()}/{Lunar.fromDate(new Date()).getMonth()} ÂL)
         </div>
         {todayPrice ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>

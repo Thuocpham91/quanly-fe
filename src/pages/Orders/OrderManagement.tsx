@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+// @ts-ignore
+import { Lunar } from 'lunar-javascript';
 import { 
   Plus, 
   X, 
@@ -458,7 +460,7 @@ const OrderManagement: React.FC = () => {
         <span style={{ fontSize: '1.6rem' }}>🐔</span>
         <div>
           <div style={{ fontSize: '0.65rem', fontWeight: 600, color: '#bbf7d0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Giá gà hôm nay • {new Date().toLocaleDateString('vi-VN')}
+            Giá gà hôm nay • {new Date().toLocaleDateString('vi-VN')} ({Lunar.fromDate(new Date()).getDay()}/{Lunar.fromDate(new Date()).getMonth()} ÂL)
           </div>
           {todayPrice ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
