@@ -163,13 +163,13 @@
 
 .task-card-schedule {
   background: white;
-  border-radius: 16px;
-  padding: 1.25rem;
+  border-radius: 12px;
+  padding: 1rem;
   border: 1px solid #e2e8f0;
   transition: all 0.2s;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .task-card-schedule:hover {
@@ -248,12 +248,12 @@
 .task-data-inputs {
   display: flex;
   justify-content: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   margin: 0.25rem 0;
-  padding: 0.75rem;
+  padding: 0.5rem;
   background: #f8fafc;
   border: 1px solid #f1f5f9;
-  border-radius: 12px;
+  border-radius: 8px;
 }
 
 .control-group {
@@ -276,10 +276,10 @@
 .control-group input {
   width: 100%;
   max-width: 100px;
-  padding: 0.5rem;
+  padding: 0.35rem 0.5rem;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
   font-weight: 700;
   text-align: center;
   color: #1e293b;
@@ -304,9 +304,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
-  padding: 0.75rem 0.6rem;
-  border-radius: 12px;
+  gap: 0.4rem;
+  padding: 0.5rem 0.4rem;
+  border-radius: 8px;
   border: 1px solid #e2e8f0;
   background: white;
   font-size: 0.875rem;
@@ -341,7 +341,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 0.75rem;
+  padding-top: 0.5rem;
   border-top: 1px dashed #e2e8f0;
   margin-top: auto;
 }
