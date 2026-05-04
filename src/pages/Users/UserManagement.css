@@ -88,9 +88,10 @@
 }
 
 .filter-group {
-  display: flex;
-  flex-direction: row;
-  gap: 0.4rem;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  gap: 0.3rem !important;
   align-items: center;
   flex-shrink: 0;
 }
