@@ -23,7 +23,8 @@ import {
   File as FileIcon,
   Trash2,
   Plus,
-  Loader2
+  Loader2,
+  Repeat
 } from 'lucide-react';
 import api from '../../api/axios';
 import './TaskSchedule.css';
@@ -50,7 +51,8 @@ interface WorkTask {
       name: string;
     };
     workTasks?: { removalCount?: number }[];
-  }
+  };
+  isRecurring?: boolean;
 }
 
 interface TaskHistoryData {
@@ -112,6 +114,20 @@ const TaskSchedule: React.FC = () => {
       setIsLoading(false);
     }
   }, [selectedDate]);
+
+  const handleScanFixedTasks = async () => {
+    try {
+      setIsLoading(true);
+      const dateStr = formatDate(selectedDate);
+      // Backend automatically generates recurring tasks when searchTasks is called with startDate.
+      // So we just need to re-fetch tasks.
+      await fetchTasks();
+    } catch (err) {
+      console.error('Error scanning fixed tasks:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchTasks();
@@ -347,6 +363,15 @@ const TaskSchedule: React.FC = () => {
             <Plus size={16} />
             <span>Thêm nhiệm vụ</span>
           </button>
+          <button 
+            className="btn-secondary" 
+            style={{ marginLeft: '0.5rem', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#f8fafc', border: '1px solid #e2e8f0', color: '#64748b' }}
+            onClick={handleScanFixedTasks}
+            disabled={isLoading}
+          >
+            {isLoading ? <Loader2 size={16} className="spin" /> : <Repeat size={16} />}
+            <span>Quét task cố định</span>
+          </button>
         </div>
       </div>
 
@@ -403,7 +428,14 @@ const TaskSchedule: React.FC = () => {
 
                 <div className="task-main">
                   <div className="task-info">
-                    <h3 className="task-name">{task.taskName}</h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <h3 className="task-name">{task.taskName}</h3>
+                      {task.isRecurring && (
+                        <div title="Nhiệm vụ lặp lại hàng ngày" style={{ color: '#c2410c', display: 'flex', alignItems: 'center' }}>
+                          <Repeat size={14} />
+                        </div>
+                      )}
+                    </div>
                     {task.description && <div className="task-desc ql-editor" style={{ padding: 0, whiteSpace: /<(p|br|ul|ol|li|strong|em|u|span|div|h[1-6])[>\s/]/i.test(task.description) ? 'normal' : 'pre-wrap' }} dangerouslySetInnerHTML={{ __html: task.description }}></div>}
                   </div>
                   

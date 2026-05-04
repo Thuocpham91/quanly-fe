@@ -31,6 +31,7 @@ interface TaskData {
   scheduledDate?: number;
   feedPerAnimal?: number;
   description?: string;
+  isRecurring?: boolean;
 }
 
 interface WorkData {
@@ -77,7 +78,8 @@ const ObjectDetail: React.FC = () => {
     workDate: '', 
     removalCount: '',
     feedPerAnimal: '',
-    description: ''
+    description: '',
+    isRecurring: false
   });
   const [error, setError] = useState('');
 
@@ -130,7 +132,7 @@ const ObjectDetail: React.FC = () => {
 
   const openAddModal = () => {
     setEditingTask(null);
-    setFormData({ taskName: '', quantity: '', workDate: '', removalCount: '', feedPerAnimal: '', description: '' });
+    setFormData({ taskName: '', quantity: '', workDate: '', removalCount: '', feedPerAnimal: '', description: '', isRecurring: false });
     setError('');
     setIsModalOpen(true);
   };
@@ -143,7 +145,8 @@ const ObjectDetail: React.FC = () => {
         workDate: task.workDate.toString(), 
         removalCount: task.removalCount?.toString() || '',
         feedPerAnimal: task.feedPerAnimal?.toString() || '',
-        description: task.description || ''
+        description: task.description || '',
+        isRecurring: !!task.isRecurring
     });
     setError('');
     setIsModalOpen(true);
@@ -167,7 +170,8 @@ const ObjectDetail: React.FC = () => {
         workDate: Number(formData.workDate),
         removalCount: formData.removalCount ? Number(formData.removalCount) : null,
         feedPerAnimal: formData.feedPerAnimal ? Number(formData.feedPerAnimal) : null,
-        description: formData.description || null
+        description: formData.description || null,
+        isRecurring: formData.isRecurring
       };
 
       if (editingTask) {
@@ -306,9 +310,15 @@ const ObjectDetail: React.FC = () => {
                         </span>
                       </td>
                       <td>
-                        <span style={{ color: '#2563eb', fontWeight: 500 }}>
                           {task.scheduledDate ? new Date(task.scheduledDate).toLocaleDateString('vi-VN') : '-'}
                         </span>
+                        {task.isRecurring && (
+                          <div style={{ marginTop: '4px' }}>
+                            <span className="id-badge" style={{ backgroundColor: '#fff7ed', color: '#c2410c', fontSize: '0.7rem' }}>
+                              Lặp lại hàng ngày
+                            </span>
+                          </div>
+                        )}
                       </td>
                       <td>{task.removalCount ?? '-'}</td>
                       <td>
@@ -498,6 +508,20 @@ const ObjectDetail: React.FC = () => {
                     placeholder="VD: Kiểm tra nhiệt độ, Tiêm vaccine..."
                     required
                   />
+                </div>
+
+                <div className="form-group-modal" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', background: '#f8fafc', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <input
+                    type="checkbox"
+                    id="isRecurring"
+                    name="isRecurring"
+                    checked={formData.isRecurring}
+                    onChange={(e) => setFormData({ ...formData, isRecurring: e.target.checked })}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  />
+                  <label htmlFor="isRecurring" style={{ marginBottom: 0, fontWeight: 600, color: '#0f172a', cursor: 'pointer' }}>
+                    Nhiệm vụ lặp lại hàng ngày (Tự động hiện mỗi ngày)
+                  </label>
                 </div>
                 
                 <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
