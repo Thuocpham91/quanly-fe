@@ -1250,6 +1250,11 @@ lucide-react@^1.7.0:
   resolved "https://registry.npmjs.org/lucide-react/-/lucide-react-1.7.0.tgz"
   integrity sha512-yI7BeItCLZJTXikmK4KNUGCKoGzSvbKlfCvw44bU4fXAL6v3gYS4uHD1jzsLkfwODYwI6Drw5Tu9Z5ulDe0TSg==
 
+lunar-javascript@^1.7.7:
+  version "1.7.7"
+  resolved "https://registry.yarnpkg.com/lunar-javascript/-/lunar-javascript-1.7.7.tgz#2c7a359f2ffc414ce2b0214f59148ff7a823851f"
+  integrity sha512-u/KYiwPIBo/0bT+WWfU7qO1d+aqeB90Tuy4ErXenr2Gam0QcWeezUvtiOIyXR7HbVnW2I1DKfU0NBvzMZhbVQw==
+
 math-intrinsics@^1.1.0:
   version "1.1.0"
   resolved "https://registry.npmjs.org/math-intrinsics/-/math-intrinsics-1.1.0.tgz"

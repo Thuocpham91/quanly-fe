@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+// @ts-ignore
+import { Lunar } from 'lunar-javascript';
 import { 
   Calendar, 
   ChevronLeft, 
@@ -323,9 +325,14 @@ const TaskSchedule: React.FC = () => {
             <button className="arrow-btn" onClick={() => handleDateChange(-1)}>
               <ChevronLeft size={20} />
             </button>
-            <div className="current-date">
-              <Calendar size={20} />
-              <span>{selectedDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+            <div className="current-date" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: '1.2', gap: '0.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Calendar size={20} />
+                <span>{selectedDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+              </div>
+              <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
+                ({Lunar.fromDate(selectedDate).getDay()}/{Lunar.fromDate(selectedDate).getMonth()} ÂL)
+              </span>
             </div>
             <button className="arrow-btn" onClick={() => handleDateChange(1)}>
               <ChevronRight size={20} />
