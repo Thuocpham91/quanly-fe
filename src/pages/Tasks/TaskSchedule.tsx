@@ -53,6 +53,8 @@ interface WorkTask {
     workTasks?: { removalCount?: number }[];
   };
   isRecurring?: boolean;
+  hasEggCount?: boolean;
+  eggCount?: number;
 }
 
 interface TaskHistoryData {
@@ -209,7 +211,7 @@ const TaskSchedule: React.FC = () => {
     }
   };
 
-  const handleUpdateData = async (taskId: string, field: 'quantity' | 'removalCount', val: string) => {
+  const handleUpdateData = async (taskId: string, field: 'quantity' | 'removalCount' | 'eggCount', val: string) => {
     const numVal = val === '' ? null : Number(val);
     try {
       await api.put(`/works/tasks/${taskId}`, { [field]: numVal });
@@ -440,6 +442,19 @@ const TaskSchedule: React.FC = () => {
                   </div>
                   
                   <div className="task-data-inputs">
+                    {task.hasEggCount && (
+                      <div className="control-group" style={{ backgroundColor: '#fff7ed', borderColor: '#fed7aa' }}>
+                        <label style={{ color: '#9a3412' }}>Số trứng</label>
+                        <input 
+                          type="number" 
+                          defaultValue={task.eggCount || ''}
+                          onBlur={(e) => handleUpdateData(task.id, 'eggCount', e.target.value)}
+                          placeholder="SL trứng"
+                          className="quantity-input"
+                          style={{ borderColor: '#fdba74' }}
+                        />
+                      </div>
+                    )}
 
                     <div className="control-group">
                       <label>Loại bỏ</label>

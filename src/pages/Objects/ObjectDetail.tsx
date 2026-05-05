@@ -32,6 +32,7 @@ interface TaskData {
   feedPerAnimal?: number;
   description?: string;
   isRecurring?: boolean;
+  hasEggCount?: boolean;
 }
 
 interface WorkData {
@@ -79,7 +80,8 @@ const ObjectDetail: React.FC = () => {
     removalCount: '',
     feedPerAnimal: '',
     description: '',
-    isRecurring: false
+    isRecurring: false,
+    hasEggCount: false
   });
   const [error, setError] = useState('');
 
@@ -122,8 +124,9 @@ const ObjectDetail: React.FC = () => {
   }, [id]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+    setFormData((prev) => ({ ...prev, [name]: val }));
   };
 
   const handleDescriptionChange = (content: string) => {
@@ -132,7 +135,16 @@ const ObjectDetail: React.FC = () => {
 
   const openAddModal = () => {
     setEditingTask(null);
-    setFormData({ taskName: '', quantity: '', workDate: '', removalCount: '', feedPerAnimal: '', description: '', isRecurring: false });
+    setFormData({ 
+      taskName: '', 
+      quantity: '', 
+      workDate: '', 
+      removalCount: '', 
+      feedPerAnimal: '', 
+      description: '', 
+      isRecurring: false,
+      hasEggCount: false
+    });
     setError('');
     setIsModalOpen(true);
   };
@@ -146,7 +158,8 @@ const ObjectDetail: React.FC = () => {
         removalCount: task.removalCount?.toString() || '',
         feedPerAnimal: task.feedPerAnimal?.toString() || '',
         description: task.description || '',
-        isRecurring: !!task.isRecurring
+        isRecurring: !!task.isRecurring,
+        hasEggCount: !!task.hasEggCount
     });
     setError('');
     setIsModalOpen(true);
@@ -522,6 +535,20 @@ const ObjectDetail: React.FC = () => {
                   />
                   <label htmlFor="isRecurring" style={{ marginBottom: 0, fontWeight: 600, color: '#0f172a', cursor: 'pointer' }}>
                     Nhiệm vụ lặp lại hàng ngày (Tự động hiện mỗi ngày)
+                  </label>
+                </div>
+
+                <div className="form-group-modal" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', background: '#fff7ed', padding: '0.75rem', borderRadius: '8px', border: '1px solid #fed7aa' }}>
+                  <input
+                    type="checkbox"
+                    id="hasEggCount"
+                    name="hasEggCount"
+                    checked={formData.hasEggCount}
+                    onChange={(e) => setFormData({ ...formData, hasEggCount: e.target.checked })}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  />
+                  <label htmlFor="hasEggCount" style={{ marginBottom: 0, fontWeight: 600, color: '#9a3412', cursor: 'pointer' }}>
+                    Thu hoạch trứng (Kích hoạt nhập số lượng trứng đẻ)
                   </label>
                 </div>
                 
