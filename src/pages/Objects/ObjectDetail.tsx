@@ -184,7 +184,8 @@ const ObjectDetail: React.FC = () => {
         removalCount: formData.removalCount ? Number(formData.removalCount) : null,
         feedPerAnimal: formData.feedPerAnimal ? Number(formData.feedPerAnimal) : null,
         description: formData.description || null,
-        isRecurring: formData.isRecurring
+        isRecurring: formData.isRecurring,
+        hasEggCount: formData.hasEggCount
       };
 
       if (editingTask) {
@@ -330,6 +331,13 @@ const ObjectDetail: React.FC = () => {
                           <div style={{ marginTop: '4px' }}>
                             <span className="id-badge" style={{ backgroundColor: '#fff7ed', color: '#c2410c', fontSize: '0.7rem' }}>
                               Lặp lại hàng ngày
+                            </span>
+                          </div>
+                        )}
+                        {task.hasEggCount && (
+                          <div style={{ marginTop: '4px' }}>
+                            <span className="id-badge" style={{ backgroundColor: '#fff7ed', color: '#9a3412', fontSize: '0.7rem' }}>
+                               🥚 Thu hoạch trứng
                             </span>
                           </div>
                         )}
