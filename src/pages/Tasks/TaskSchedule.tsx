@@ -27,6 +27,7 @@ import {
   Repeat
 } from 'lucide-react';
 import api from '../../api/axios';
+import { compressImage } from '../../utils/imageUtils';
 import './TaskSchedule.css';
 
 import ReactQuill from 'react-quill-new';
@@ -227,11 +228,16 @@ const TaskSchedule: React.FC = () => {
 
     setUploadingTaskId(taskId);
     const formData = new FormData();
-    Array.from(files).forEach((file) => {
-      formData.append('files', file);
-    });
-
+    
     try {
+      const processedFiles = await Promise.all(
+        Array.from(files).map(file => compressImage(file))
+      );
+
+      processedFiles.forEach((file) => {
+        formData.append('files', file);
+      });
+
       const res = await api.post('/files/upload-multiple', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
@@ -255,18 +261,6 @@ const TaskSchedule: React.FC = () => {
     }
   };
 
-  const handleCameraClick = async (e: React.MouseEvent) => {
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        stream.getTracks().forEach(track => track.stop());
-      } catch (err) {
-        console.warn("Camera permission request failed or denied:", err);
-        // Don't block the default behavior (opening the input), 
-        // but the user has now been prompted or seen the denial.
-      }
-    }
-  };
 
   const handleRemoveFile = async (taskId: string, urlToRemove: string) => {
     if (!window.confirm('Bạn có chắc muốn xoá file này?')) return;
@@ -522,7 +516,7 @@ const TaskSchedule: React.FC = () => {
 
                 <div className="task-footer">
                   <div className="footer-left">
-                    <label className="upload-file-btn" onClick={handleCameraClick}>
+                    <label className="upload-file-btn">
                       {uploadingTaskId === task.id ? <Loader2 size={14} className="spin" /> : <Camera size={14} />}
                       <span>Chụp ảnh</span>
                       <input 

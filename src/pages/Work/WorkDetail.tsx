@@ -21,6 +21,7 @@ import {
   Info
 } from 'lucide-react';
 import api from '../../api/axios';
+import { compressImage } from '../../utils/imageUtils';
 import './WorkDetail.css';
 
 import ReactQuill from 'react-quill-new';
@@ -141,11 +142,16 @@ const WorkDetail: React.FC = () => {
 
     setUploadingTaskId(taskId);
     const formData = new FormData();
-    Array.from(files).forEach((file) => {
-      formData.append('files', file);
-    });
-
+    
     try {
+      const processedFiles = await Promise.all(
+        Array.from(files).map(file => compressImage(file))
+      );
+
+      processedFiles.forEach((file) => {
+        formData.append('files', file);
+      });
+
       const res = await api.post('/files/upload-multiple', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
@@ -169,16 +175,6 @@ const WorkDetail: React.FC = () => {
     }
   };
 
-  const handleCameraClick = async (e: React.MouseEvent) => {
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        stream.getTracks().forEach(track => track.stop());
-      } catch (err) {
-        console.warn("Camera permission request failed or denied:", err);
-      }
-    }
-  };
 
   const handleRemoveFile = async (taskId: string, urlToRemove: string) => {
     if (!window.confirm('Bạn có chắc muốn xoá file này?')) return;
@@ -371,7 +367,7 @@ const WorkDetail: React.FC = () => {
                 <div className="task-files-section-detail">
                   <div className="task-files-header-detail">
                     <span className="files-title-detail">Chụp ảnh:</span>
-                    <label className="upload-file-btn-detail" onClick={handleCameraClick}>
+                    <label className="upload-file-btn-detail">
                       {uploadingTaskId === task.id ? <Loader2 size={14} className="spin" /> : <Camera size={14} />}
                       <span>Chụp ảnh</span>
                       <input 
