@@ -1,70 +1,79 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, ExternalLink, Trash2, Edit2, Facebook, Search } from 'lucide-react';
+import api from '../../api/axios';
 import './Social.css';
 
 interface FBGroup {
   id: string;
   name: string;
   url: string;
-  category?: string;
+  type?: string;
 }
+
+const groupTypes = [
+  { value: 'MUA_BAN', label: 'Mua bán / Giao dịch' },
+  { value: 'KY_THUAT', label: 'Kỹ thuật / Chăn nuôi' },
+  { value: 'CONG_DONG', label: 'Hội nhóm / Cộng đồng' },
+  { value: 'VUNG_MIEN', label: 'Theo vùng miền' },
+  { value: 'KHAC', label: 'Khác' }
+];
 
 const FBGroupManagement: React.FC = () => {
   const [groups, setGroups] = useState<FBGroup[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingGroup, setEditingGroup] = useState<FBGroup | null>(null);
-  const [form, setForm] = useState({ name: '', url: '', category: '' });
+  const [form, setForm] = useState({ name: '', url: '', type: 'KHAC' });
 
   useEffect(() => {
-    const savedGroups = localStorage.getItem('fb_groups');
-    if (savedGroups) {
-      setGroups(JSON.parse(savedGroups));
-    } else {
-      // Default groups for demo
-      const defaults = [
-        { id: '1', name: 'Hội Gà Giống Miền Bắc', url: 'https://www.facebook.com/groups/hoigagiongmienbac', category: 'Kinh doanh' },
-        { id: '2', name: 'Kỹ Thuật Chăn Nuôi Gà', url: 'https://www.facebook.com/groups/kythuatchannuoiga', category: 'Kỹ thuật' }
-      ];
-      setGroups(defaults);
-      localStorage.setItem('fb_groups', JSON.stringify(defaults));
-    }
+    fetchGroups();
   }, []);
 
-  const saveToStorage = (newGroups: FBGroup[]) => {
-    setGroups(newGroups);
-    localStorage.setItem('fb_groups', JSON.stringify(newGroups));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingGroup) {
-      const updated = groups.map(g => g.id === editingGroup.id ? { ...g, ...form } : g);
-      saveToStorage(updated);
-    } else {
-      const newGroup = {
-        id: Date.now().toString(),
-        ...form
-      };
-      saveToStorage([...groups, newGroup]);
+  const fetchGroups = async () => {
+    try {
+      const res = await api.get('/social/groups');
+      if (res.data) {
+        setGroups(res.data);
+      }
+    } catch (err) {
+      console.error('Error fetching groups:', err);
     }
-    closeModal();
   };
 
-  const handleDelete = (id: string) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingGroup) {
+        await api.put(`/social/groups/${editingGroup.id}`, form);
+      } else {
+        await api.post('/social/groups', form);
+      }
+      fetchGroups();
+      closeModal();
+    } catch (err) {
+      console.error('Error saving group:', err);
+      alert('Không thể lưu nhóm.');
+    }
+  };
+
+  const handleDelete = async (id: string) => {
     if (window.confirm('Bạn có chắc muốn xóa nhóm này?')) {
-      const filtered = groups.filter(g => g.id !== id);
-      saveToStorage(filtered);
+      try {
+        await api.delete(`/social/groups/${id}`);
+        fetchGroups();
+      } catch (err) {
+        console.error('Error deleting group:', err);
+      }
     }
   };
 
   const openModal = (group?: FBGroup) => {
     if (group) {
       setEditingGroup(group);
-      setForm({ name: group.name, url: group.url, category: group.category || '' });
+      setForm({ name: group.name, url: group.url, type: group.type || 'KHAC' });
     } else {
       setEditingGroup(null);
-      setForm({ name: '', url: '', category: '' });
+      setForm({ name: '', url: '', type: 'KHAC' });
     }
     setIsModalOpen(true);
   };
@@ -72,12 +81,12 @@ const FBGroupManagement: React.FC = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingGroup(null);
-    setForm({ name: '', url: '', category: '' });
+    setForm({ name: '', url: '', type: 'KHAC' });
   };
 
   const filteredGroups = groups.filter(g => 
     g.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (g.category && g.category.toLowerCase().includes(searchTerm.toLowerCase()))
+    (g.type && g.type.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -85,7 +94,7 @@ const FBGroupManagement: React.FC = () => {
       <div className="social-header">
         <div>
           <h2>Quản lý Hội nhóm Facebook</h2>
-          <p>Lưu danh sách các nhóm bạn thường xuyên đăng bài để truy cập nhanh</p>
+          <p>Phân loại và quản lý các nhóm Facebook của bạn</p>
         </div>
         <button className="btn-primary" onClick={() => openModal()} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Plus size={18} />
@@ -98,7 +107,7 @@ const FBGroupManagement: React.FC = () => {
           <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
           <input 
             type="text" 
-            placeholder="Tìm kiếm nhóm..." 
+            placeholder="Tìm kiếm nhóm theo tên hoặc loại..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{ width: '100%', padding: '0.625rem 0.625rem 0.625rem 2.5rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}
@@ -113,7 +122,11 @@ const FBGroupManagement: React.FC = () => {
               <div className="group-info">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                   <Facebook size={20} color="#1877f2" />
-                  {group.category && <span style={{ fontSize: '0.7rem', background: '#f1f5f9', padding: '2px 8px', borderRadius: '12px', color: '#64748b' }}>{group.category}</span>}
+                  {group.type && (
+                    <span style={{ fontSize: '0.7rem', background: '#e0f2fe', padding: '2px 8px', borderRadius: '12px', color: '#0369a1', fontWeight: 600 }}>
+                      {groupTypes.find(t => t.value === group.type)?.label || group.type}
+                    </span>
+                  )}
                 </div>
                 <h3>{group.name}</h3>
                 <div className="group-url">{group.url}</div>
@@ -167,14 +180,17 @@ const FBGroupManagement: React.FC = () => {
                 />
               </div>
               <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Danh mục (tùy chọn)</label>
-                <input 
-                  type="text" 
-                  value={form.category}
-                  onChange={e => setForm({ ...form, category: e.target.value })}
-                  placeholder="Ví dụ: Kinh doanh, Kỹ thuật..."
-                  style={{ width: '100%', padding: '0.625rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}
-                />
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>Loại hội nhóm *</label>
+                <select 
+                  required
+                  value={form.type}
+                  onChange={e => setForm({ ...form, type: e.target.value })}
+                  style={{ width: '100%', padding: '0.625rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white' }}
+                >
+                  {groupTypes.map(type => (
+                    <option key={type.value} value={type.value}>{type.label}</option>
+                  ))}
+                </select>
               </div>
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
                 <button type="button" className="btn-secondary" onClick={closeModal}>Hủy</button>
