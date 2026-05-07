@@ -17,7 +17,8 @@ import {
   Target,
   BarChart2,
   CreditCard,
-  TrendingUp
+  TrendingUp,
+  Share2
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './MainLayout.css';
@@ -47,6 +48,7 @@ const MainLayout: React.FC = () => {
     { path: '/admin/chicken-prices', label: 'Giá Gà Hôm Nay', icon: BarChart2 },
     { path: '/admin/expenses', label: 'Quản lý Thu & Chi', icon: CreditCard },
     { path: '/admin/sales', label: 'Theo dõi Khách mua', icon: TrendingUp },
+    { path: '/admin/social/assistant', label: 'Trợ lý Facebook', icon: Share2 },
   ];
 
 
@@ -66,7 +68,7 @@ const MainLayout: React.FC = () => {
       item.path === '/admin/orders' ? { ...item, label: 'Lịch sử Đơn hàng' } : item
     );
   } else if (isCollaborator) {
-    visibleNavItems = allNavItems.filter(item => ['/admin', '/admin/customers', '/admin/orders', '/admin/revenue', '/admin/sales'].includes(item.path));
+    visibleNavItems = allNavItems.filter(item => ['/admin', '/admin/customers', '/admin/orders', '/admin/revenue', '/admin/sales', '/admin/social/assistant'].includes(item.path));
   }
 
 

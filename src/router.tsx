@@ -23,6 +23,8 @@ import MilestoneManagement from './pages/Revenue/MilestoneManagement';
 import ChickenPriceManagement from './pages/ChickenPrice/ChickenPriceManagement';
 import ExpenseManagement from './pages/Expense/ExpenseManagement';
 import SalesManagement from './pages/Sales/SalesManagement';
+import FacebookAssistant from './pages/Social/FacebookAssistant';
+import FBGroupManagement from './pages/Social/FBGroupManagement';
 
 export const router = createBrowserRouter([
   {
@@ -121,6 +123,14 @@ export const router = createBrowserRouter([
           {
             path: 'sales',
             element: <SalesManagement />,
+          },
+          {
+            path: 'social/assistant',
+            element: <FacebookAssistant />,
+          },
+          {
+            path: 'social/groups',
+            element: <FBGroupManagement />,
           },
         ],
       },
