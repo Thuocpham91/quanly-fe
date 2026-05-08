@@ -233,7 +233,7 @@ const OrderSchedule: React.FC = () => {
       </div>
       
       <div className="card-body">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="card-body-left">
           <div 
             className="user-info" 
             onClick={(e) => {
@@ -243,35 +243,36 @@ const OrderSchedule: React.FC = () => {
             style={{ cursor: 'pointer', color: '#2563eb' }}
             title="Xem chi tiết khách hàng"
           >
-            <UserIcon size={16} />
-            <span style={{ fontWeight: 500 }}>{order.user?.fullName || order.user?.username || 'Khách hàng'}</span>
+            <UserIcon size={16} style={{ flexShrink: 0 }} />
+            <span style={{ fontWeight: 600, wordBreak: 'break-word' }}>{order.user?.fullName || order.user?.username || 'Khách hàng'}</span>
           </div>
 
           {order.user?.phone && (
             <div 
               onClick={(e) => order.userId && handleCall(e, order.user?.phone || '', order.userId, order.user?.fullName || order.user?.username || '')}
-              style={{ color: '#059669', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem' }}
+              style={{ color: '#059669', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8125rem' }}
               title="Gọi khách hàng và lưu lịch sử"
             >
-              <Phone size={14} />
+              <Phone size={14} style={{ flexShrink: 0 }} />
               <span style={{ fontWeight: 600 }}>{order.user.phone}</span>
             </div>
           )}
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+
+        <div className="card-body-right">
             <div className="quantity-info">
               <span className="qty-value">{order.quantity.toLocaleString('vi-VN')}</span>
               <span className="qty-unit">con</span>
             </div>
             
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px', marginTop: '4px' }}>
                 {order.unitPrice !== undefined && order.unitPrice !== null && (
                     <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
                       {order.unitPrice.toLocaleString('vi-VN')} đ/c
                     </div>
                 )}
                 {order.amount !== undefined && order.amount !== null && (
-                    <div style={{ fontWeight: 700, color: '#dc2626', fontSize: '0.875rem' }}>
+                    <div style={{ fontWeight: 700, color: '#dc2626', fontSize: '0.9rem' }}>
                       {order.amount.toLocaleString('vi-VN')} đ
                     </div>
                 )}
