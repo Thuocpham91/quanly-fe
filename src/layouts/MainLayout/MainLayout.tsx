@@ -36,27 +36,32 @@ const MainLayout: React.FC = () => {
   };
 
   // ── Logic phân quyền Menu ──
-  let visibleNavItems = allNavItems;
+  const roleCode = typeof user?.role === 'object' && user?.role !== null 
+    ? user.role.code?.toUpperCase() 
+    : typeof user?.role === 'string' 
+      ? user.role.toUpperCase() 
+      : '';
 
-  // Nếu user có permissions cụ thể, ưu tiên sử dụng permissions đó
-  if (user?.permissions && Array.isArray(user.permissions) && user.permissions.length > 0) {
-    visibleNavItems = allNavItems.filter(item => user.permissions.includes(item.path));
+  const isAdmin = roleCode === 'ADMIN' || roleCode === 'SUPERADMIN';
+  const isCollaborator = roleCode === 'COLLABORATOR';
+
+  let visibleNavItems = [];
+
+  if (isAdmin) {
+    // Admin mặc định thấy tất cả
+    visibleNavItems = [...allNavItems];
   } else {
-    // Fallback: Logic phân quyền dựa trên Role (như cũ)
-    const roleCode = typeof user?.role === 'object' && user?.role !== null 
-      ? user.role.code?.toUpperCase() 
-      : typeof user?.role === 'string' 
-        ? user.role.toUpperCase() 
-        : '';
-
-    const isCustomer = ['USER', 'CUSTOMER'].includes(roleCode || '');
-    const isCollaborator = roleCode === 'COLLABORATOR';
-
-    if (isCustomer) {
-      visibleNavItems = allNavItems.filter(item => ['/admin', '/admin/orders'].includes(item.path));
-    } else if (isCollaborator) {
-      visibleNavItems = allNavItems.filter(item => ['/admin', '/admin/customers', '/admin/orders', '/admin/revenue', '/admin/sales', '/admin/social/assistant'].includes(item.path));
+    // Lấy các path mặc định dựa trên Role
+    let defaultPaths = ['/admin', '/admin/orders']; // User thường
+    if (isCollaborator) {
+      defaultPaths = ['/admin', '/admin/customers', '/admin/orders', '/admin/revenue', '/admin/sales', '/admin/social/assistant'];
     }
+
+    // Kết hợp với các quyền được cấp riêng (nếu có)
+    const extraPermissions = (user?.permissions && Array.isArray(user.permissions)) ? user.permissions : [];
+    const allAllowedPaths = [...new Set([...defaultPaths, ...extraPermissions])];
+
+    visibleNavItems = allNavItems.filter(item => allAllowedPaths.includes(item.path));
   }
 
   // Override label cho khách hàng
