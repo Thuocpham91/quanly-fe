@@ -13,7 +13,7 @@ import {
   CreditCard, 
   TrendingUp, 
   Share2,
-  LucideIcon
+  type LucideIcon
 } from 'lucide-react';
 
 export interface NavItem {
