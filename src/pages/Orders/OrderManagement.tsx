@@ -52,7 +52,7 @@ interface OrderData {
 }
 
 const OrderManagement: React.FC = () => {
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [users, setUsers] = useState<UserData[]>([]);
   const [customersList, setCustomersList] = useState<any[]>([]);
@@ -511,10 +511,12 @@ const OrderManagement: React.FC = () => {
           <h2>Quản Lý Đơn Hàng</h2>
           <p>Theo dõi và quản lý các giao dịch mua hàng</p>
         </div>
-        <button className="btn-primary" onClick={openAddModal}>
-          <Plus size={18} />
-          <span>Tạo Đơn Hàng</span>
-        </button>
+        {hasPermission('/admin/orders', 'add') && (
+          <button className="btn-primary" onClick={openAddModal}>
+            <Plus size={18} />
+            <span>Tạo Đơn Hàng</span>
+          </button>
+        )}
       </div>
 
       <div className="search-bar">
@@ -560,12 +562,16 @@ const OrderManagement: React.FC = () => {
                     <tr key={order.id}>
                       <td>
                         <div className="action-buttons">
-                          <button className="btn-icon btn-edit" onClick={() => openEditModal(order)}>
-                            <Edit2 size={16} />
-                          </button>
-                          <button className="btn-icon btn-delete" onClick={() => handleDelete(order)}>
-                            <Trash2 size={16} />
-                          </button>
+                          {hasPermission('/admin/orders', 'edit') && (
+                            <button className="btn-icon btn-edit" onClick={() => openEditModal(order)}>
+                              <Edit2 size={16} />
+                            </button>
+                          )}
+                          {hasPermission('/admin/orders', 'delete') && (
+                            <button className="btn-icon btn-delete" onClick={() => handleDelete(order)}>
+                              <Trash2 size={16} />
+                            </button>
+                          )}
                         </div>
                       </td>
                       <td>

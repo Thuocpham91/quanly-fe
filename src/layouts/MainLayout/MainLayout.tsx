@@ -57,8 +57,10 @@ const MainLayout: React.FC = () => {
       defaultPaths = ['/admin', '/admin/customers', '/admin/orders', '/admin/revenue', '/admin/sales', '/admin/social/assistant'];
     }
 
-    // Kết hợp với các quyền được cấp riêng (nếu có)
-    const extraPermissions = (user?.permissions && Array.isArray(user.permissions)) ? user.permissions : [];
+    // Kết hợp với các quyền được cấp riêng (nếu có). Chỉ lấy phần path (trước dấu :)
+    const extraPermissions = (user?.permissions && Array.isArray(user.permissions)) 
+      ? user.permissions.map(p => p.split(':')[0]) 
+      : [];
     const allAllowedPaths = [...new Set([...defaultPaths, ...extraPermissions])];
 
     visibleNavItems = allNavItems.filter(item => allAllowedPaths.includes(item.path));

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, X, Edit2, Trash2, Search, User as UserIcon, MapPin, List, Map as MapIcon, Filter } from 'lucide-react';
 import api from '../../api/axios';
 import { allNavItems } from '../../utils/navigation';
+import { useAuth } from '../../context/AuthContext';
 import './UserManagement.css';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -47,6 +48,7 @@ interface UserData {
 }
 
 const UserManagement: React.FC = () => {
+  const { hasPermission } = useAuth();
   const [users, setUsers] = useState<UserData[]>([]);
   const [roles, setRoles] = useState<RoleData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -298,10 +300,12 @@ const UserManagement: React.FC = () => {
               <MapIcon size={18} />
             </button>
           </div>
-          <button className="btn-primary" onClick={openAddModal}>
-            <Plus size={18} />
-            <span>Thêm User Mới</span>
-          </button>
+          {hasPermission('/admin/users', 'add') && (
+            <button className="btn-primary" onClick={openAddModal}>
+              <Plus size={18} />
+              <span>Thêm User Mới</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -380,22 +384,26 @@ const UserManagement: React.FC = () => {
                           >
                             <MapPin size={16} />
                           </button>
-                          <button 
-                            className="btn-secondary" 
-                            style={{ padding: '0.4rem', borderRadius: '6px' }}
-                            title="Chỉnh sửa"
-                            onClick={() => openEditModal(user)}
-                          >
-                            <Edit2 size={16} />
-                          </button>
-                          <button 
-                            className="btn-danger" 
-                            style={{ padding: '0.4rem', borderRadius: '6px' }}
-                            title="Xóa"
-                            onClick={() => handleDelete(user.id)}
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                          {hasPermission('/admin/users', 'edit') && (
+                            <button 
+                              className="btn-secondary" 
+                              style={{ padding: '0.4rem', borderRadius: '6px' }}
+                              title="Chỉnh sửa"
+                              onClick={() => openEditModal(user)}
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                          )}
+                          {hasPermission('/admin/users', 'delete') && (
+                            <button 
+                              className="btn-danger" 
+                              style={{ padding: '0.4rem', borderRadius: '6px' }}
+                              title="Xóa"
+                              onClick={() => handleDelete(user.id)}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
                         </div>
                       </td>
                       <td>
@@ -628,32 +636,107 @@ const UserManagement: React.FC = () => {
                   <small style={{ color: '#64748b', marginTop: '4px', display: 'block' }}>Hệ số để nhân với doanh thu đơn hàng</small>
                 </div>
 
-                <div className="form-group-modal">
-                  <label style={{ fontWeight: 700, marginBottom: '0.75rem', display: 'block' }}>Quyền truy cập Menu</label>
-                  <div className="permissions-grid">
-                    {allNavItems.map(item => (
-                      <label key={item.path} className="permission-checkbox-item">
-                        <input 
-                          type="checkbox" 
-                          checked={formData.permissions.includes(item.path)}
-                          onChange={(e) => {
-                            const checked = e.target.checked;
-                            setFormData(prev => ({
-                              ...prev,
-                              permissions: checked 
-                                ? [...prev.permissions, item.path]
-                                : prev.permissions.filter(p => p !== item.path)
-                            }));
-                          }}
-                        />
-                        <div className="permission-label">
-                          <item.icon size={16} />
-                          <span>{item.label}</span>
-                        </div>
-                      </label>
-                    ))}
+                <div className="form-group-modal" style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ fontWeight: 700, marginBottom: '0.75rem', display: 'block' }}>Quyền truy cập và thao tác Menu</label>
+                  <div className="permissions-table-container">
+                    <table className="permissions-table">
+                      <thead>
+                        <tr>
+                          <th>Menu</th>
+                          <th>Xem (View)</th>
+                          <th>Thêm (Add)</th>
+                          <th>Sửa (Edit)</th>
+                          <th>Xóa (Delete)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {allNavItems.map(item => {
+                          const availableActions = item.availableActions || ['view'];
+                          const hasAction = (action: string) => formData.permissions.includes(`${item.path}:${action}`) || (action === 'view' && formData.permissions.includes(item.path));
+                          
+                          const handleActionToggle = (action: string, checked: boolean) => {
+                            setFormData(prev => {
+                              let newPerms = [...prev.permissions];
+                              const exactPerm = `${item.path}:${action}`;
+                              
+                              if (checked) {
+                                if (!newPerms.includes(exactPerm)) newPerms.push(exactPerm);
+                                // Tự động check View nếu check Add/Edit/Delete
+                                if (action !== 'view') {
+                                  const viewPerm = `${item.path}:view`;
+                                  if (!newPerms.includes(viewPerm) && !newPerms.includes(item.path)) {
+                                    newPerms.push(viewPerm);
+                                  }
+                                }
+                                // Dọn dẹp legacy path nếu add explicit view
+                                if (action === 'view') {
+                                    newPerms = newPerms.filter(p => p !== item.path);
+                                }
+                              } else {
+                                newPerms = newPerms.filter(p => p !== exactPerm);
+                                if (action === 'view') {
+                                  // Nếu uncheck View, uncheck luôn các quyền con
+                                  newPerms = newPerms.filter(p => p !== item.path && !p.startsWith(`${item.path}:`));
+                                }
+                              }
+                              return { ...prev, permissions: newPerms };
+                            });
+                          };
+
+                          return (
+                            <tr key={item.path}>
+                              <td>
+                                <div className="permission-menu-label">
+                                  <item.icon size={16} />
+                                  <span>{item.label}</span>
+                                </div>
+                              </td>
+                              <td>
+                                {availableActions.includes('view') && (
+                                  <input 
+                                    type="checkbox" 
+                                    checked={hasAction('view')}
+                                    onChange={(e) => handleActionToggle('view', e.target.checked)}
+                                  />
+                                )}
+                              </td>
+                              <td>
+                                {availableActions.includes('add') && (
+                                  <input 
+                                    type="checkbox" 
+                                    checked={hasAction('add')}
+                                    onChange={(e) => handleActionToggle('add', e.target.checked)}
+                                    disabled={!hasAction('view')}
+                                  />
+                                )}
+                              </td>
+                              <td>
+                                {availableActions.includes('edit') && (
+                                  <input 
+                                    type="checkbox" 
+                                    checked={hasAction('edit')}
+                                    onChange={(e) => handleActionToggle('edit', e.target.checked)}
+                                    disabled={!hasAction('view')}
+                                  />
+                                )}
+                              </td>
+                              <td>
+                                {availableActions.includes('delete') && (
+                                  <input 
+                                    type="checkbox" 
+                                    checked={hasAction('delete')}
+                                    onChange={(e) => handleActionToggle('delete', e.target.checked)}
+                                    disabled={!hasAction('view')}
+                                  />
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
-                  <small style={{ color: '#64748b', marginTop: '8px', display: 'block' }}>Nếu không chọn mục nào, hệ thống sẽ sử dụng quyền mặc định theo Vai trò.</small>
+                  <small style={{ color: '#64748b', marginTop: '8px', display: 'block' }}>Nếu không chọn quyền nào, hệ thống sẽ sử dụng quyền mặc định theo Vai trò (Thường là Full quyền trên các menu được phép).</small>
                 </div>
               </div>
               
