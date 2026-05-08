@@ -332,7 +332,7 @@ const OrderSchedule: React.FC = () => {
         <div className="header-top">
           <div className="title-section">
             <h2>Lịch Trình Giao Hàng</h2>
-            <p className="subtitle">Theo dõi các đơn hàng cần xuất theo ngày</p>
+            <p className="subtitle">Theo dõi các đơn hàng theo ngày bán (Giao hàng)</p>
           </div>
           <button className="today-btn" onClick={setToday}>Hôm nay</button>
         </div>
