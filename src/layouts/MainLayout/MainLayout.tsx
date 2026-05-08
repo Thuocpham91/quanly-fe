@@ -21,6 +21,7 @@ import {
   Share2
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { allNavItems } from '../../utils/navigation';
 import './MainLayout.css';
 
 const MainLayout: React.FC = () => {
@@ -34,42 +35,37 @@ const MainLayout: React.FC = () => {
     navigate('/login');
   };
 
-  const allNavItems = [
-    { path: '/admin', label: 'Trang chủ', icon: Home },
-    { path: '/admin/users', label: 'Quản lý User', icon: Users },
-    { path: '/admin/customers', label: 'Quản lý Khách hàng', icon: UserSquare2 },
-    { path: '/admin/objects', label: 'Quản Object', icon: Box },
-    { path: '/admin/works', label: 'Quản lý Công việc', icon: CheckSquare },
-    { path: '/admin/tasks/schedule', label: 'Lịch trình công việc', icon: ListTodo },
-    { path: '/admin/orders', label: 'Quản lý Đơn hàng', icon: ShoppingBag },
-    { path: '/admin/orders/schedule', label: 'Lịch trình giao hàng', icon: Truck },
-    { path: '/admin/revenue', label: 'Quản lý Doanh thu', icon: DollarSign },
-    { path: '/admin/milestones', label: 'Cài đặt Mốc Thưởng', icon: Target },
-    { path: '/admin/chicken-prices', label: 'Giá Gà Hôm Nay', icon: BarChart2 },
-    { path: '/admin/expenses', label: 'Quản lý Thu & Chi', icon: CreditCard },
-    { path: '/admin/sales', label: 'Theo dõi Khách mua', icon: TrendingUp },
-    { path: '/admin/social/assistant', label: 'Trợ lý Facebook', icon: Share2 },
-  ];
-
-
-  // Backend trả về role là một Object chứa { code: 'USER', name: 'User' }
-  const roleCode = typeof user?.role === 'object' && user?.role !== null 
-    ? user.role.code?.toUpperCase() 
-    : typeof user?.role === 'string' 
-      ? user.role.toUpperCase() 
-      : '';
-
-  const isCustomer = ['USER', 'CUSTOMER'].includes(roleCode || '');
-  const isCollaborator = roleCode === 'COLLABORATOR';
-
+  // ── Logic phân quyền Menu ──
   let visibleNavItems = allNavItems;
-  if (isCustomer) {
-    visibleNavItems = allNavItems.filter(item => ['/admin', '/admin/orders'].includes(item.path)).map(item => 
-      item.path === '/admin/orders' ? { ...item, label: 'Lịch sử Đơn hàng' } : item
-    );
-  } else if (isCollaborator) {
-    visibleNavItems = allNavItems.filter(item => ['/admin', '/admin/customers', '/admin/orders', '/admin/revenue', '/admin/sales', '/admin/social/assistant'].includes(item.path));
+
+  // Nếu user có permissions cụ thể, ưu tiên sử dụng permissions đó
+  if (user?.permissions && Array.isArray(user.permissions) && user.permissions.length > 0) {
+    visibleNavItems = allNavItems.filter(item => user.permissions.includes(item.path));
+  } else {
+    // Fallback: Logic phân quyền dựa trên Role (như cũ)
+    const roleCode = typeof user?.role === 'object' && user?.role !== null 
+      ? user.role.code?.toUpperCase() 
+      : typeof user?.role === 'string' 
+        ? user.role.toUpperCase() 
+        : '';
+
+    const isCustomer = ['USER', 'CUSTOMER'].includes(roleCode || '');
+    const isCollaborator = roleCode === 'COLLABORATOR';
+
+    if (isCustomer) {
+      visibleNavItems = allNavItems.filter(item => ['/admin', '/admin/orders'].includes(item.path));
+    } else if (isCollaborator) {
+      visibleNavItems = allNavItems.filter(item => ['/admin', '/admin/customers', '/admin/orders', '/admin/revenue', '/admin/sales', '/admin/social/assistant'].includes(item.path));
+    }
   }
+
+  // Override label cho khách hàng
+  visibleNavItems = visibleNavItems.map(item => {
+    if (item.path === '/admin/orders' && ['USER', 'CUSTOMER'].includes((user?.role as any)?.code?.toUpperCase() || '')) {
+      return { ...item, label: 'Lịch sử Đơn hàng' };
+    }
+    return item;
+  });
 
 
   return (

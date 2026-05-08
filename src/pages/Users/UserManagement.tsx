@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, X, Edit2, Trash2, Search, User as UserIcon, MapPin, List, Map as MapIcon, Filter } from 'lucide-react';
 import api from '../../api/axios';
+import { allNavItems } from '../../utils/navigation';
 import './UserManagement.css';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -42,6 +43,7 @@ interface UserData {
   lat: number | null;
   lng: number | null;
   percentage?: number;
+  permissions?: string[];
 }
 
 const UserManagement: React.FC = () => {
@@ -70,7 +72,8 @@ const UserManagement: React.FC = () => {
     roleId: '',
     lat: '' as string | number,
     lng: '' as string | number,
-    percentage: '' as string | number
+    percentage: '' as string | number,
+    permissions: [] as string[]
   });
 
   // Fetch users and roles
@@ -130,7 +133,8 @@ const UserManagement: React.FC = () => {
       roleId: roles.length > 0 ? roles[0].id : '',
       lat: '',
       lng: '',
-      percentage: ''
+      percentage: '',
+      permissions: []
     });
     setError('');
     setIsModalOpen(true);
@@ -147,7 +151,8 @@ const UserManagement: React.FC = () => {
       roleId: user.roleId || '',
       lat: user.lat ?? '',
       lng: user.lng ?? '',
-      percentage: user.percentage ?? ''
+      percentage: user.percentage ?? '',
+      permissions: user.permissions || []
     });
     setError('');
     setIsModalOpen(true);
@@ -175,7 +180,8 @@ const UserManagement: React.FC = () => {
           roleId: formData.roleId,
           lat: formData.lat !== '' ? Number(formData.lat) : null,
           lng: formData.lng !== '' ? Number(formData.lng) : null,
-          percentage: formData.percentage !== '' ? Number(formData.percentage) : null
+          percentage: formData.percentage !== '' ? Number(formData.percentage) : null,
+          permissions: formData.permissions
         };
         if (formData.password) payload.password = formData.password;
 
@@ -188,7 +194,8 @@ const UserManagement: React.FC = () => {
             lat: formData.lat !== '' ? Number(formData.lat) : null,
             lng: formData.lng !== '' ? Number(formData.lng) : null,
             percentage: formData.percentage !== '' ? Number(formData.percentage) : null,
-            status: 'ACTIVE'
+            status: 'ACTIVE',
+            permissions: formData.permissions
         };
         await api.post('/users', payload);
       }
@@ -606,7 +613,6 @@ const UserManagement: React.FC = () => {
                         </div>
                     </div>
                 </div>
-
                 <div className="form-group-modal">
                   <label>Tỷ lệ Doanh thu / Hoa hồng (%)</label>
                   <input
@@ -620,6 +626,34 @@ const UserManagement: React.FC = () => {
                     step="0.01"
                   />
                   <small style={{ color: '#64748b', marginTop: '4px', display: 'block' }}>Hệ số để nhân với doanh thu đơn hàng</small>
+                </div>
+
+                <div className="form-group-modal">
+                  <label style={{ fontWeight: 700, marginBottom: '0.75rem', display: 'block' }}>Quyền truy cập Menu</label>
+                  <div className="permissions-grid">
+                    {allNavItems.map(item => (
+                      <label key={item.path} className="permission-checkbox-item">
+                        <input 
+                          type="checkbox" 
+                          checked={formData.permissions.includes(item.path)}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setFormData(prev => ({
+                              ...prev,
+                              permissions: checked 
+                                ? [...prev.permissions, item.path]
+                                : prev.permissions.filter(p => p !== item.path)
+                            }));
+                          }}
+                        />
+                        <div className="permission-label">
+                          <item.icon size={16} />
+                          <span>{item.label}</span>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                  <small style={{ color: '#64748b', marginTop: '8px', display: 'block' }}>Nếu không chọn mục nào, hệ thống sẽ sử dụng quyền mặc định theo Vai trò.</small>
                 </div>
               </div>
               
