@@ -33,6 +33,8 @@ interface Order {
   work?: { title: string };
   unitPrice?: number;
   amount?: number;
+  deliveryStaffId?: string;
+  deliveryStaff?: { username: string; fullName: string };
 }
 
 
@@ -255,6 +257,13 @@ const OrderSchedule: React.FC = () => {
             >
               <Phone size={14} style={{ flexShrink: 0 }} />
               <span style={{ fontWeight: 600 }}>{order.user.phone}</span>
+            </div>
+          )}
+
+          {order.deliveryStaff && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8125rem', color: '#475569', marginTop: '4px' }}>
+              <UserIcon size={14} style={{ flexShrink: 0, color: '#64748b' }} />
+              <span>Giao hàng: <strong style={{ color: '#0f172a' }}>{order.deliveryStaff.fullName || order.deliveryStaff.username}</strong></span>
             </div>
           )}
         </div>

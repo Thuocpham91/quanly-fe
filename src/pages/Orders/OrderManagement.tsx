@@ -25,6 +25,7 @@ interface UserData {
   username: string;
   fullName?: string;
   phone?: string;
+  role?: { name: string; code: string };
 }
 
 interface OrderData {
@@ -49,6 +50,8 @@ interface OrderData {
   priceGaSo?: number;
   priceGaTrong?: number;
   priceGaMai?: number;
+  deliveryStaffId?: string;
+  deliveryStaff?: UserData;
 }
 
 const OrderManagement: React.FC = () => {
@@ -97,7 +100,8 @@ const OrderManagement: React.FC = () => {
     exportDate: '',
     saleDate: '',
     workId: '',
-    description: ''
+    description: '',
+    deliveryStaffId: ''
   });
 
   const fetchData = async () => {
@@ -277,7 +281,8 @@ const OrderManagement: React.FC = () => {
       exportDate: '',
       saleDate: '',
       workId: '',
-      description: ''
+      description: '',
+      deliveryStaffId: ''
     });
     setCustomerSearchInput('');
     setError('');
@@ -312,7 +317,8 @@ const OrderManagement: React.FC = () => {
       exportDate: order.exportDate ? new Date(order.exportDate).toISOString().split('T')[0] : '',
       saleDate: order.saleDate ? new Date(order.saleDate).toISOString().split('T')[0] : '',
       workId: order.workId || '',
-      description: order.description || ''
+      description: order.description || '',
+      deliveryStaffId: order.deliveryStaffId || ''
     });
     setError('');
     setCapacityWarning('');
@@ -367,7 +373,8 @@ const OrderManagement: React.FC = () => {
         exportDate: formData.exportDate ? new Date(formData.exportDate).toISOString() : null,
         saleDate: formData.saleDate ? new Date(formData.saleDate).toISOString() : null,
         workId: formData.workId || null,
-        description: formData.description || undefined
+        description: formData.description || undefined,
+        deliveryStaffId: formData.deliveryStaffId || null
       };
 
       if (editingOrder) {
@@ -546,6 +553,7 @@ const OrderManagement: React.FC = () => {
                   <th>Mã Đơn</th>
                   {!isNormalUser && <th>Khách Hàng</th>}
                   {!isNormalUser && <th>Người Tạo</th>}
+                  <th>Người Giao</th>
                   <th>Loại Đơn</th>
                   <th>Số Lượng</th>
                   <th>Đơn Giá</th>
@@ -596,6 +604,12 @@ const OrderManagement: React.FC = () => {
                         </td>
                       )}
                       <td>
+                        <div className="user-info-cell" style={{ color: order.deliveryStaff ? '#0f172a' : '#94a3b8', fontSize: '0.875rem' }}>
+                           <UserIcon size={14} />
+                           <span>{order.deliveryStaff?.fullName || order.deliveryStaff?.username || 'Chưa phân công'}</span>
+                        </div>
+                      </td>
+                      <td>
                         <div className="type-cell">
                           <Tag size={14} />
                           <span>{getTypeLabel(order.type)}</span>
@@ -627,7 +641,7 @@ const OrderManagement: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={12} className="empty-state">Không tìm thấy đơn hàng nào</td>
+                    <td colSpan={13} className="empty-state">Không tìm thấy đơn hàng nào</td>
                   </tr>
                 )}
               </tbody>
@@ -999,6 +1013,44 @@ const OrderManagement: React.FC = () => {
                       <option value="TU_CHOI">Từ chối</option>
                       <option value="HUY_DON">Đã hủy</option>
                     </select>
+                  </div>
+                )}
+
+                {['ADMIN', 'MANAGER'].includes(roleCode) && (
+                  <div className="form-group">
+                    <label>Phân công Nhân Viên Giao Hàng</label>
+                    <select 
+                      name="deliveryStaffId" 
+                      value={formData.deliveryStaffId} 
+                      onChange={handleInputChange}
+                      style={{
+                        width: '100%',
+                        padding: '0.625rem',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '6px',
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      <option value="">-- Chưa phân công --</option>
+                      {users.filter(u => 
+                        ['STAFF', 'COLLABORATOR', 'MANAGER', 'ADMIN'].includes(u.role?.code?.toUpperCase() || '')
+                      ).map(u => (
+                        <option key={u.id} value={u.id}>
+                          {u.fullName || u.username} ({u.role?.name || u.role?.code || 'User'})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {!['ADMIN', 'MANAGER'].includes(roleCode) && formData.deliveryStaffId && (
+                  <div className="form-group" style={{ fontSize: '0.875rem', color: '#475569' }}>
+                    <label style={{ fontWeight: 500 }}>Nhân Viên Giao Hàng: </label>
+                    <span style={{ fontWeight: 600, marginLeft: '0.5rem', color: '#0f172a' }}>
+                      {users.find(u => u.id === formData.deliveryStaffId)?.fullName || 
+                       users.find(u => u.id === formData.deliveryStaffId)?.username || 
+                       'Đã phân công'}
+                    </span>
                   </div>
                 )}
               </div>
