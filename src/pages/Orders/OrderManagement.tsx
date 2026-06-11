@@ -65,6 +65,9 @@ const OrderManagement: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [customerSearchInput, setCustomerSearchInput] = useState('');
+  const [statusFilter, setStatusFilter] = useState('CHO_DUYET');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   
   // Backend role logic
   const roleCode = typeof user?.role === 'object' && user?.role !== null 
@@ -140,6 +143,10 @@ const OrderManagement: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
 
   const formatNumber = (val: string | number) => {
     if (!val && val !== 0) return '';
@@ -446,10 +453,16 @@ const OrderManagement: React.FC = () => {
     }
   };
 
-  const filteredOrders = orders.filter(o => 
-    (o.user?.username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    o.id.toString().includes(searchTerm)
-  );
+  const filteredOrders = orders.filter(o => {
+    const matchesSearch = (o.user?.username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (o.id || '').toString().includes(searchTerm);
+    const matchesStatus = statusFilter === 'ALL' ? true : o.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedOrders = filteredOrders.slice(startIndex, startIndex + itemsPerPage);
 
     const unifiedDataSource = isCollaborator 
       ? customersList.map(c => ({
@@ -541,6 +554,21 @@ const OrderManagement: React.FC = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        
+        <div className="status-filter-wrapper">
+          <label>Trạng thái:</label>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="ALL">Tất cả</option>
+            <option value="CHO_DUYET">Chờ duyệt</option>
+            <option value="DA_DUYET">Đã duyệt</option>
+            <option value="DA_HOAN_THANH">Đã hoàn thành</option>
+            <option value="TU_CHOI">Từ chối</option>
+            <option value="HUY_DON">Đã hủy</option>
+          </select>
+        </div>
       </div>
 
       <div className="table-card">
@@ -570,8 +598,8 @@ const OrderManagement: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredOrders.length > 0 ? (
-                  filteredOrders.map((order) => (
+                {paginatedOrders.length > 0 ? (
+                  paginatedOrders.map((order) => (
                     <tr key={order.id}>
                       <td>
                         <div className="action-buttons">
@@ -651,6 +679,27 @@ const OrderManagement: React.FC = () => {
                 )}
               </tbody>
             </table>
+          </div>
+        )}
+        {!isLoading && totalPages > 1 && (
+          <div className="pagination-container">
+            <button 
+              type="button"
+              className="btn-pagination" 
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            >
+              Trước
+            </button>
+            <span className="pagination-info">Trang {currentPage} / {totalPages}</span>
+            <button 
+              type="button"
+              className="btn-pagination" 
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            >
+              Sau
+            </button>
           </div>
         )}
       </div>
