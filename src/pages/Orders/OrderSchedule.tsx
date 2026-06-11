@@ -15,7 +15,10 @@ import {
   MapPin,
   Navigation,
   Search,
-  Phone
+  Phone,
+  QrCode,
+  Copy,
+  X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
@@ -56,7 +59,26 @@ const OrderSchedule: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+  const [qrConfigs, setQrConfigs] = useState<any[]>([]);
+  const [currentQrIndex, setCurrentQrIndex] = useState<number>(0);
+  const [qrModalOrder, setQrModalOrder] = useState<Order | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchQrConfigs = async () => {
+      try {
+        const res = await api.get('/qr-configs');
+        if (res.data && Array.isArray(res.data.data)) {
+          setQrConfigs(res.data.data);
+          const activeIndex = res.data.data.findIndex((c: any) => c.isActive);
+          setCurrentQrIndex(activeIndex !== -1 ? activeIndex : 0);
+        }
+      } catch (err) {
+        console.error('Error fetching QR configs:', err);
+      }
+    };
+    fetchQrConfigs();
+  }, []);
 
   const formatDate = (date: Date) => {
     const year = date.getFullYear();
@@ -344,7 +366,19 @@ const OrderSchedule: React.FC = () => {
             <h2>Lịch Trình Giao Hàng</h2>
             <p className="subtitle">Theo dõi các đơn hàng theo ngày bán (Giao hàng)</p>
           </div>
-          <button className="today-btn" onClick={setToday}>Hôm nay</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            {qrConfigs.length > 0 && (
+              <button 
+                className="header-qr-btn" 
+                onClick={() => setQrModalOrder({ id: 'he-thong', amount: 0 } as any)}
+                title="Xem QR nhận tiền mặc định"
+              >
+                <QrCode size={16} />
+                <span>QR Nhận Tiền</span>
+              </button>
+            )}
+            <button className="today-btn" onClick={setToday}>Hôm nay</button>
+          </div>
         </div>
 
         <div className="date-controls">
@@ -412,6 +446,98 @@ const OrderSchedule: React.FC = () => {
           )}
         </div>
       ) : null}
+      {/* QR Payment Modal */}
+      {(() => {
+        const activeQr = qrConfigs[currentQrIndex];
+        return qrModalOrder && (
+          <div className="qr-modal-overlay" onClick={() => setQrModalOrder(null)}>
+            <div className="qr-modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="qr-modal-header">
+                <h3>{qrModalOrder.id === 'he-thong' ? 'Mã QR Nhận Tiền Mặc Định' : `QR Thanh Toán - Đơn hàng #${qrModalOrder.id}`}</h3>
+                <button className="btn-close-qr-modal" onClick={() => setQrModalOrder(null)}>
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="qr-modal-body">
+                {activeQr ? (
+                  <>
+                    <div className="qr-image-box">
+                      <img 
+                        src={qrModalOrder.id === 'he-thong'
+                          ? `https://img.vietqr.io/image/${activeQr.bankCode}-${activeQr.bankAccount}-${activeQr.template || 'compact'}.png?accountName=${encodeURIComponent(activeQr.accountName)}`
+                          : `https://img.vietqr.io/image/${activeQr.bankCode}-${activeQr.bankAccount}-${activeQr.template || 'compact'}.png?amount=${qrModalOrder.amount || 0}&addInfo=${encodeURIComponent('THANH TOAN DON HANG ' + qrModalOrder.id)}&accountName=${encodeURIComponent(activeQr.accountName)}`
+                        } 
+                        alt="VietQR Payment Code"
+                      />
+                    </div>
+                    {qrConfigs.length > 1 && (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0 0.5rem', marginTop: '0.25rem' }}>
+                        <button 
+                          onClick={() => setCurrentQrIndex(prev => (prev - 1 + qrConfigs.length) % qrConfigs.length)}
+                          className="btn-qr-nav"
+                          title="Tài khoản trước"
+                        >
+                          <ChevronLeft size={16} />
+                        </button>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b' }}>
+                          Tài khoản {currentQrIndex + 1} / {qrConfigs.length}
+                        </span>
+                        <button 
+                          onClick={() => setCurrentQrIndex(prev => (prev + 1) % qrConfigs.length)}
+                          className="btn-qr-nav"
+                          title="Tài khoản tiếp theo"
+                        >
+                          <ChevronRight size={16} />
+                        </button>
+                      </div>
+                    )}
+                    <div className="qr-info-details">
+                      <div className="qr-info-row">
+                        <span className="label">Ngân hàng:</span>
+                        <span className="value">{activeQr.bankName}</span>
+                      </div>
+                      <div className="qr-info-row">
+                        <span className="label">Chủ TK:</span>
+                        <span className="value">{activeQr.accountName}</span>
+                      </div>
+                      <div className="qr-info-row">
+                        <span className="label">Số TK:</span>
+                        <span className="value">{activeQr.bankAccount}</span>
+                        <button className="btn-qr-copy" onClick={() => { navigator.clipboard.writeText(activeQr.bankAccount); alert('Đã sao chép Số tài khoản!'); }}>
+                          <Copy size={13} />
+                        </button>
+                      </div>
+                      {qrModalOrder.id !== 'he-thong' && (
+                        <>
+                          <div className="qr-info-row">
+                            <span className="label">Số tiền:</span>
+                            <span className="value amount">{(qrModalOrder.amount || 0).toLocaleString('vi-VN')} đ</span>
+                          </div>
+                          <div className="qr-info-row">
+                            <span className="label">Nội dung:</span>
+                            <span className="value content">THANH TOAN DON HANG {qrModalOrder.id}</span>
+                            <button className="btn-qr-copy" onClick={() => { navigator.clipboard.writeText('THANH TOAN DON HANG ' + qrModalOrder.id); alert('Đã sao chép Nội dung!'); }}>
+                              <Copy size={13} />
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className="qr-warning-message">
+                    <AlertCircle size={48} />
+                    <p>Chưa có tài khoản QR mặc định nào được cấu hình trong hệ thống.</p>
+                    <button className="btn-link-settings" onClick={() => { setQrModalOrder(null); navigate('/admin/qr-management'); }}>
+                      Cấu hình ngay
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };

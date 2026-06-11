@@ -13,6 +13,7 @@ import {
   CreditCard, 
   TrendingUp, 
   Share2,
+  QrCode,
   type LucideIcon
 } from 'lucide-react';
 
@@ -44,4 +45,5 @@ export const allNavItems: NavItem[] = [
   { path: '/admin/expenses', label: 'Quản lý Thu & Chi', icon: CreditCard, availableActions: fullActions },
   { path: '/admin/sales', label: 'Theo dõi Khách mua', icon: TrendingUp, availableActions: viewOnly },
   { path: '/admin/social/assistant', label: 'Trợ lý Facebook', icon: Share2, availableActions: fullActions },
+  { path: '/admin/qr-management', label: 'Cấu hình QR Chuyển Khoản', icon: QrCode, availableActions: fullActions },
 ];

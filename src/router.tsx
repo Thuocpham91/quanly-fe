@@ -25,6 +25,7 @@ import ExpenseManagement from './pages/Expense/ExpenseManagement';
 import SalesManagement from './pages/Sales/SalesManagement';
 import FacebookAssistant from './pages/Social/FacebookAssistant';
 import FBGroupManagement from './pages/Social/FBGroupManagement';
+import QrManagement from './pages/QrManagement/QrManagement';
 
 export const router = createBrowserRouter([
   {
@@ -131,6 +132,10 @@ export const router = createBrowserRouter([
           {
             path: 'social/groups',
             element: <FBGroupManagement />,
+          },
+          {
+            path: 'qr-management',
+            element: <QrManagement />,
           },
         ],
       },
