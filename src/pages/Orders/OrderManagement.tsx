@@ -41,6 +41,7 @@ interface OrderData {
   exportDate?: string;
   saleDate?: string;
   workId?: string;
+  createdById?: string;
   creator?: { fullName: string; username: string };
   createdAt: string;
   description?: string;
@@ -85,6 +86,7 @@ const OrderManagement: React.FC = () => {
 
   const [formData, setFormData] = useState({
     userId: '',
+    createdById: '',
     quantity: '' as string | number,
     gaSo: '' as string | number,
     gaTrong: '' as string | number,
@@ -266,6 +268,7 @@ const OrderManagement: React.FC = () => {
     setEditingOrder(null);
     setFormData({
       userId: isNormalUser && user ? user.id : '',
+      createdById: user ? user.id : '',
       quantity: '',
       gaSo: '',
       gaTrong: '',
@@ -302,6 +305,7 @@ const OrderManagement: React.FC = () => {
 
     setFormData({
       userId: order.userId,
+      createdById: order.createdById || '',
       quantity: order.quantity,
       gaSo: order.gaSo || '',
       gaTrong: order.gaTrong || '',
@@ -358,6 +362,7 @@ const OrderManagement: React.FC = () => {
       
       const payload = {
         userId: formData.userId,
+        createdById: formData.createdById || undefined,
         quantity: quantityNum,
         gaSo: formData.gaSo ? Number(formData.gaSo) : 0,
         gaTrong: formData.gaTrong ? Number(formData.gaTrong) : 0,
@@ -747,6 +752,32 @@ const OrderManagement: React.FC = () => {
                         )}
                       </div>
                     )}
+                  </div>
+                )}
+
+                {['ADMIN', 'MANAGER'].includes(roleCode) && (
+                  <div className="form-group">
+                    <label>Người Tạo Đơn *</label>
+                    <select 
+                      name="createdById" 
+                      value={formData.createdById} 
+                      onChange={handleInputChange}
+                      required
+                      style={{
+                        width: '100%',
+                        padding: '0.625rem',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '6px',
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      <option value="">-- Chọn người tạo đơn --</option>
+                      {users.map(u => (
+                        <option key={u.id} value={u.id}>
+                          {u.fullName || u.username} ({u.role?.name || u.role?.code || 'User'})
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 )}
 
