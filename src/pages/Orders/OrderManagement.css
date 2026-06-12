@@ -168,6 +168,12 @@
   border-color: #fecaca;
 }
 
+.btn-view:hover {
+  background: #faf5ff;
+  color: #7c3aed;
+  border-color: #e9d5ff;
+}
+
 /* Modal Styling */
 .modal-overlay {
   position: fixed;
