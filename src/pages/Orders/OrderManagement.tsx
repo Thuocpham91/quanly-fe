@@ -631,6 +631,7 @@ const OrderManagement: React.FC = () => {
                 <tr>
                   <th style={{ textAlign: 'right' }}>Thao Tác</th>
                   {!isNormalUser && <th>Khách Hàng</th>}
+                  <th>Miêu tả</th>
                   {!isNormalUser && <th>Người Tạo</th>}
                   <th>Người Giao</th>
                   <th>Loại Đơn</th>
@@ -640,7 +641,6 @@ const OrderManagement: React.FC = () => {
                   <th>Ngày Đặt</th>
                   <th>Ngày Xuất</th>
                   <th>Ngày Bán</th>
-                  <th>Miêu tả</th>
                   <th>Trạng Thái</th>
                 </tr>
               </thead>
@@ -650,7 +650,7 @@ const OrderManagement: React.FC = () => {
                     <tr key={order.id}>
                       <td>
                         <div className="action-buttons">
-                          <Link to={`/orders/${order.id}`} className="btn-icon btn-view" title="Chi tiết">
+                          <Link to={`/admin/orders/${order.id}`} className="btn-icon btn-view" title="Chi tiết">
                             <Eye size={16} />
                           </Link>
                           {hasPermission('/admin/orders', 'edit') && (
@@ -691,6 +691,9 @@ const OrderManagement: React.FC = () => {
                           </div>
                         </td>
                       )}
+                      <td style={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={order.description}>
+                        {order.description || '-'}
+                      </td>
                       {!isNormalUser && (
                         <td>
                           <div className="user-info-cell">
@@ -743,9 +746,6 @@ const OrderManagement: React.FC = () => {
                           <Calendar size={14} />
                           <span>{order.saleDate ? new Date(order.saleDate).toLocaleDateString('vi-VN') : '-'}</span>
                         </div>
-                      </td>
-                      <td style={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={order.description}>
-                        {order.description || '-'}
                       </td>
                       <td>{getStatusBadge(order.status)}</td>
                     </tr>
