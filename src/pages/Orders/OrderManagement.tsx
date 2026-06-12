@@ -13,7 +13,8 @@ import {
   Tag,
   AlertCircle,
   CheckCircle2,
-  Clock
+  Clock,
+  Phone
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '../../api/axios';
@@ -57,6 +58,51 @@ interface OrderData {
 
 const OrderManagement: React.FC = () => {
   const { user, hasPermission } = useAuth();
+  const getOrderPhoneAndName = (order: OrderData) => {
+    if (order.user?.phone) {
+      return {
+        phone: order.user.phone,
+        name: order.user.fullName || order.user.username
+      };
+    }
+    
+    const isPhonePattern = (val?: string) => val ? /^[0-9+\s().-]{9,15}$/.test(val.trim()) : false;
+    if (isPhonePattern(order.user?.username)) {
+      return {
+        phone: order.user!.username,
+        name: order.user!.fullName || order.user!.username
+      };
+    }
+
+    const customer = customersList.find(c => c.userCustomId === order.userId);
+    if (customer && customer.phone) {
+      return {
+        phone: customer.phone,
+        name: customer.name
+      };
+    }
+
+    return null;
+  };
+
+  const handleCall = async (phone: string, userId: string, name: string) => {
+    if (!phone) return;
+
+    try {
+      const res = await api.get(`/customers/user/${userId}`);
+      if (res.data && res.data.data) {
+        await api.post('/call-histories', {
+          customerId: res.data.data.id,
+          note: `Cuộc gọi từ danh sách Quản lý Đơn hàng: ${name}`
+        });
+      }
+    } catch (error) {
+      console.error('Error logging call history:', error);
+    } finally {
+      window.location.href = `tel:${phone}`;
+    }
+  };
+
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [users, setUsers] = useState<UserData[]>([]);
   const [customersList, setCustomersList] = useState<any[]>([]);
@@ -624,7 +670,25 @@ const OrderManagement: React.FC = () => {
                         <td>
                           <div className="user-info-cell">
                             <UserIcon size={16} />
-                            <span>{order.user?.username || 'N/A'}</span>
+                            <div>
+                              <div style={{ fontWeight: 500 }}>{order.user?.fullName || order.user?.username || 'N/A'}</div>
+                              {(() => {
+                                const contact = getOrderPhoneAndName(order);
+                                if (contact?.phone) {
+                                  return (
+                                    <div 
+                                      onClick={() => handleCall(contact.phone, order.userId, contact.name)}
+                                      style={{ color: '#2563eb', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}
+                                      title="Click để gọi và lưu lịch sử"
+                                    >
+                                      <Phone size={10} />
+                                      <span>{contact.phone}</span>
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })()}
+                            </div>
                           </div>
                         </td>
                       )}
@@ -639,7 +703,19 @@ const OrderManagement: React.FC = () => {
                       <td>
                         <div className="user-info-cell" style={{ color: order.deliveryStaff ? '#0f172a' : '#94a3b8', fontSize: '0.875rem' }}>
                            <UserIcon size={14} />
-                           <span>{order.deliveryStaff?.fullName || order.deliveryStaff?.username || 'Chưa phân công'}</span>
+                           <div>
+                              <div>{order.deliveryStaff?.fullName || order.deliveryStaff?.username || 'Chưa phân công'}</div>
+                              {order.deliveryStaff?.phone && (
+                                <div 
+                                  onClick={() => handleCall(order.deliveryStaff!.phone!, order.deliveryStaff!.id || order.deliveryStaffId!, order.deliveryStaff?.fullName || order.deliveryStaff?.username || '')}
+                                  style={{ color: '#2563eb', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}
+                                  title="Click để gọi và lưu lịch sử"
+                                >
+                                  <Phone size={10} />
+                                  <span>{order.deliveryStaff.phone}</span>
+                                </div>
+                              )}
+                           </div>
                         </div>
                       </td>
                       <td>

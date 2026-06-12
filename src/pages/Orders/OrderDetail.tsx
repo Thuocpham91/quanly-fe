@@ -13,7 +13,8 @@ import {
   MapPin,
   Navigation,
   DollarSign,
-  Coins
+  Coins,
+  Phone
 } from 'lucide-react';
 import api from '../../api/axios';
 import './OrderDetail.css';
@@ -21,7 +22,7 @@ import './OrderDetail.css';
 interface OrderData {
   id: string;
   userId: string;
-  user?: { username: string; fullName: string; lat?: number; lng?: number };
+  user?: { id?: string; username: string; fullName: string; phone?: string; lat?: number; lng?: number };
   quantity: number;
   type: string;
   status: string;
@@ -57,6 +58,24 @@ const OrderDetail: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState('');
+
+  const handleCall = async (phone: string, userId: string, name: string) => {
+    if (!phone) return;
+
+    try {
+      const res = await api.get(`/customers/user/${userId}`);
+      if (res.data && res.data.data) {
+        await api.post('/call-histories', {
+          customerId: res.data.data.id,
+          note: `Cuộc gọi từ chi tiết Đơn hàng #${id}: ${name}`
+        });
+      }
+    } catch (error) {
+      console.error('Error logging call history:', error);
+    } finally {
+      window.location.href = `tel:${phone}`;
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -206,9 +225,28 @@ const OrderDetail: React.FC = () => {
           <div className="info-list">
             <div className="info-item">
               <span className="label">Khách hàng:</span>
-              <div className="value" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <UserIcon size={14} />
-                <span>{order.user?.fullName || order.user?.username || 'N/A'}</span>
+              <div className="value" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.25rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <UserIcon size={14} />
+                  <span style={{ fontWeight: 600 }}>{order.user?.fullName || order.user?.username || 'N/A'}</span>
+                </div>
+                {(() => {
+                  const isPhonePattern = (val?: string) => val ? /^[0-9+\s().-]{9,15}$/.test(val.trim()) : false;
+                  const phone = order.user?.phone || (isPhonePattern(order.user?.username) ? order.user?.username : null);
+                  if (phone) {
+                    return (
+                      <div 
+                        onClick={() => handleCall(phone, order.userId, order.user?.fullName || order.user?.username || '')}
+                        style={{ color: '#2563eb', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '1.25rem' }}
+                        title="Click để gọi và lưu lịch sử"
+                      >
+                        <Phone size={12} />
+                        <span>{phone}</span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
             </div>
             <div className="info-item">
