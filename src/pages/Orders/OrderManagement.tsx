@@ -14,7 +14,8 @@ import {
   AlertCircle,
   CheckCircle2,
   Clock,
-  Phone
+  Phone,
+  Eye
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '../../api/axios';
@@ -629,7 +630,6 @@ const OrderManagement: React.FC = () => {
               <thead>
                 <tr>
                   <th style={{ textAlign: 'right' }}>Thao Tác</th>
-                  <th>Mã Đơn</th>
                   {!isNormalUser && <th>Khách Hàng</th>}
                   {!isNormalUser && <th>Người Tạo</th>}
                   <th>Người Giao</th>
@@ -640,6 +640,7 @@ const OrderManagement: React.FC = () => {
                   <th>Ngày Đặt</th>
                   <th>Ngày Xuất</th>
                   <th>Ngày Bán</th>
+                  <th>Miêu tả</th>
                   <th>Trạng Thái</th>
                 </tr>
               </thead>
@@ -649,6 +650,9 @@ const OrderManagement: React.FC = () => {
                     <tr key={order.id}>
                       <td>
                         <div className="action-buttons">
+                          <Link to={`/orders/${order.id}`} className="btn-icon btn-view" title="Chi tiết">
+                            <Eye size={16} />
+                          </Link>
                           {hasPermission('/admin/orders', 'edit') && (
                             <button className="btn-icon btn-edit" onClick={() => openEditModal(order)}>
                               <Edit2 size={16} />
@@ -660,11 +664,6 @@ const OrderManagement: React.FC = () => {
                             </button>
                           )}
                         </div>
-                      </td>
-                      <td>
-                        <Link to={`/orders/${order.id}`} className="order-id-link">
-                          <span className="order-id">#{order.id}</span>
-                        </Link>
                       </td>
                       {!isNormalUser && (
                         <td>
@@ -744,6 +743,9 @@ const OrderManagement: React.FC = () => {
                           <Calendar size={14} />
                           <span>{order.saleDate ? new Date(order.saleDate).toLocaleDateString('vi-VN') : '-'}</span>
                         </div>
+                      </td>
+                      <td style={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={order.description}>
+                        {order.description || '-'}
                       </td>
                       <td>{getStatusBadge(order.status)}</td>
                     </tr>
@@ -1129,7 +1131,7 @@ const OrderManagement: React.FC = () => {
                       name="orderDate"
                       value={formData.orderDate}
                       onChange={handleInputChange}
-                      min={new Date().toISOString().split('T')[0]}
+                      min={editingOrder ? undefined : new Date().toISOString().split('T')[0]}
                       required
                     />
                   </div>
