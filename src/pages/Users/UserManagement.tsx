@@ -74,6 +74,10 @@ const UserManagement: React.FC = () => {
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   const [formData, setFormData] = useState({
     fullName: '',
     username: '',
@@ -127,6 +131,11 @@ const UserManagement: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Reset page to 1 when search or filter values change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedRole, selectedStatus]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -314,6 +323,12 @@ const UserManagement: React.FC = () => {
     return matchesSearch && matchesRole && matchesStatus;
   });
 
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const paginatedUsers = filteredUsers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   const handleOpenMap = (lat: number | null, lng: number | null) => {
     if (!lat || !lng) {
       alert('Người dùng này chưa có dữ liệu vị trí.');
@@ -408,7 +423,8 @@ const UserManagement: React.FC = () => {
             <p>Đang tải dữ liệu...</p>
           </div>
         ) : viewMode === 'table' ? (
-          <div className="table-responsive">
+          <>
+            <div className="table-responsive">
             <table className="data-table">
               <thead>
                 <tr>
@@ -421,8 +437,8 @@ const UserManagement: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.length > 0 ? (
-                  filteredUsers.map((user) => (
+                {paginatedUsers.length > 0 ? (
+                  paginatedUsers.map((user) => (
                     <tr key={user.id}>
                       <td>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -529,6 +545,87 @@ const UserManagement: React.FC = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="pagination-wrapper" style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center', 
+              marginTop: '0rem', 
+              padding: '1rem 1.5rem',
+              borderTop: '1px solid #e2e8f0',
+              backgroundColor: '#f8fafc'
+            }}>
+              <div style={{ fontSize: '0.8125rem', color: '#64748b' }}>
+                Hiển thị từ <strong>{Math.min((currentPage - 1) * itemsPerPage + 1, filteredUsers.length)}</strong> đến <strong>{Math.min(currentPage * itemsPerPage, filteredUsers.length)}</strong> trong tổng số <strong>{filteredUsers.length}</strong> người dùng
+              </div>
+              <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center' }}>
+                <button 
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
+                  disabled={currentPage === 1}
+                  className="btn-secondary"
+                  style={{ 
+                    padding: '0.4rem 0.8rem', 
+                    borderRadius: '6px', 
+                    fontSize: '0.8125rem',
+                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer', 
+                    opacity: currentPage === 1 ? 0.5 : 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem'
+                  }}
+                >
+                  Trước
+                </button>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
+                  const isActive = page === currentPage;
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: '6px',
+                        border: isActive ? '1px solid var(--primary-color)' : '1px solid #e2e8f0',
+                        background: isActive ? 'var(--primary-color)' : 'white',
+                        color: isActive ? 'white' : '#1e293b',
+                        fontSize: '0.8125rem',
+                        fontWeight: isActive ? 600 : 400,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+
+                <button 
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} 
+                  disabled={currentPage === totalPages}
+                  className="btn-secondary"
+                  style={{ 
+                    padding: '0.4rem 0.8rem', 
+                    borderRadius: '6px', 
+                    fontSize: '0.8125rem',
+                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', 
+                    opacity: currentPage === totalPages ? 0.5 : 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem'
+                  }}
+                >
+                  Sau
+                </button>
+              </div>
+            </div>
+          )}
+          </>
         ) : (
           <div className="map-view-wrapper">
              <MapContainer 
