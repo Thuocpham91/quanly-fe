@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, X, Edit2, Trash2, Search, User as UserIcon, MapPin, List, Map as MapIcon, Filter } from 'lucide-react';
+import { Plus, X, Edit2, Trash2, Search, User as UserIcon, MapPin, List, Map as MapIcon, Filter, Key } from 'lucide-react';
 import api from '../../api/axios';
 import { allNavItems } from '../../utils/navigation';
 import { useAuth } from '../../context/AuthContext';
@@ -64,6 +64,15 @@ const UserManagement: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
   const [error, setError] = useState('');
+
+  // Password change modal states
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [passwordUser, setPasswordUser] = useState<UserData | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -158,6 +167,52 @@ const UserManagement: React.FC = () => {
     });
     setError('');
     setIsModalOpen(true);
+  };
+
+  const openChangePasswordModal = (user: UserData) => {
+    setPasswordUser(user);
+    setNewPassword('');
+    setConfirmPassword('');
+    setPasswordError('');
+    setPasswordSuccess('');
+    setIsPasswordModalOpen(true);
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError('');
+    setPasswordSuccess('');
+
+    if (!newPassword || !confirmPassword) {
+      setPasswordError('Vui lòng nhập đầy đủ các trường bắt buộc!');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setPasswordError('Mật khẩu mới phải có ít nhất 6 ký tự!');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Xác nhận mật khẩu không khớp!');
+      return;
+    }
+
+    try {
+      setIsSavingPassword(true);
+      await api.put(`/users/${passwordUser?.id}`, {
+        password: newPassword
+      });
+      setPasswordSuccess('Đổi mật khẩu thành công!');
+      setTimeout(() => {
+        setIsPasswordModalOpen(false);
+      }, 1500);
+    } catch (err: any) {
+      console.error('Lỗi khi đổi mật khẩu user:', err);
+      setPasswordError(err.response?.data?.message || 'Có lỗi xảy ra khi đổi mật khẩu.');
+    } finally {
+      setIsSavingPassword(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -385,14 +440,30 @@ const UserManagement: React.FC = () => {
                             <MapPin size={16} />
                           </button>
                           {hasPermission('/admin/users', 'edit') && (
-                            <button 
-                              className="btn-secondary" 
-                              style={{ padding: '0.4rem', borderRadius: '6px' }}
-                              title="Chỉnh sửa"
-                              onClick={() => openEditModal(user)}
-                            >
-                              <Edit2 size={16} />
-                            </button>
+                            <>
+                              <button 
+                                className="btn-secondary" 
+                                style={{ padding: '0.4rem', borderRadius: '6px' }}
+                                title="Chỉnh sửa"
+                                onClick={() => openEditModal(user)}
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                              <button 
+                                className="btn-secondary" 
+                                style={{ 
+                                  padding: '0.4rem', 
+                                  borderRadius: '6px',
+                                  backgroundColor: '#fff7ed',
+                                  color: '#ea580c',
+                                  borderColor: '#fed7aa'
+                                }}
+                                title="Đổi mật khẩu"
+                                onClick={() => openChangePasswordModal(user)}
+                              >
+                                <Key size={16} />
+                              </button>
+                            </>
                           )}
                           {hasPermission('/admin/users', 'delete') && (
                             <button 
@@ -746,6 +817,67 @@ const UserManagement: React.FC = () => {
                 </button>
                 <button type="submit" className="btn-primary" disabled={isSubmitting}>
                   {isSubmitting ? <div className="loader-small" /> : 'Lưu Dữ Liệu'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Đổi mật khẩu */}
+      {isPasswordModalOpen && passwordUser && (
+        <div className="modal-overlay" onClick={() => !isSavingPassword && setIsPasswordModalOpen(false)}>
+          <div className="modal-content" style={{ maxWidth: '400px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Đổi Mật Khẩu</h3>
+              <button className="close-btn" onClick={() => setIsPasswordModalOpen(false)} disabled={isSavingPassword}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleChangePassword}>
+              <div className="modal-body">
+                <div style={{ marginBottom: '1.25rem', padding: '0.75rem', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: '0.8125rem', color: '#64748b' }}>Tài khoản:</div>
+                  <div style={{ fontWeight: 600, fontSize: '0.95rem', color: '#1e293b' }}>{passwordUser.fullName || passwordUser.username}</div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>@{passwordUser.username}</div>
+                </div>
+
+                {passwordError && <div style={{ color: '#dc2626', fontSize: '0.8125rem', marginBottom: '1rem' }}>{passwordError}</div>}
+                {passwordSuccess && <div style={{ color: '#059669', fontSize: '0.8125rem', marginBottom: '1rem', fontWeight: 500 }}>{passwordSuccess}</div>}
+                
+                <div className="form-group-modal">
+                  <label>Mật khẩu mới *</label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)..."
+                    required
+                    disabled={isSavingPassword}
+                    autoFocus
+                  />
+                </div>
+
+                <div className="form-group-modal">
+                  <label>Xác nhận mật khẩu mới *</label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Nhập lại mật khẩu mới..."
+                    required
+                    disabled={isSavingPassword}
+                  />
+                </div>
+              </div>
+              
+              <div className="modal-footer">
+                <button type="button" className="btn-secondary" onClick={() => setIsPasswordModalOpen(false)} disabled={isSavingPassword}>
+                  Hủy Bỏ
+                </button>
+                <button type="submit" className="btn-primary" disabled={isSavingPassword}>
+                  {isSavingPassword ? <div className="loader-small" /> : 'Cập Nhật Mật Khẩu'}
                 </button>
               </div>
             </form>
