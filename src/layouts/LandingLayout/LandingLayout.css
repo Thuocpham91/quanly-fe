@@ -249,3 +249,76 @@
     gap: 3rem;
   }
 }
+
+/* PWA Install Buttons Styling */
+.install-app-btn {
+  background: transparent;
+  color: var(--dark);
+  border: 1.5px solid var(--primary);
+  padding: 0.625rem 1.25rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.install-app-btn:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+}
+
+.mobile-install-btn {
+  background: transparent;
+  border: 1.5px solid var(--primary);
+  color: var(--primary);
+  padding: 0.85rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.mobile-install-btn:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.mobile-header-install-btn {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--primary);
+  border: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: none; /* hidden by default on desktop */
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-right: 0.75rem;
+  transition: var(--transition);
+}
+
+.mobile-header-install-btn:hover {
+  background: var(--primary);
+  color: white;
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .mobile-header-install-btn {
+    display: flex; /* display only on mobile layout */
+  }
+}
+

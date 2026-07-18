@@ -12,57 +12,74 @@ const PWAInstallPrompt: React.FC = () => {
     isSafari: false,
   });
 
-  useEffect(() => {
-    // 1. Check if running in standalone mode (already installed)
-    const isStandalone = 
-      window.matchMedia('(display-mode: standalone)').matches || 
-      (window.navigator as any).standalone === true;
-
-    if (isStandalone) {
-      return;
-    }
-
-    // 2. Detect platform
-    const ua = navigator.userAgent;
-    const isIOS = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
-    const isAndroid = /Android/i.test(ua);
-    const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
-
-    setPlatform({ isIOS, isAndroid, isSafari });
-
-    // 3. Check dismiss cooldown (e.g., hide prompt for 3 days if dismissed)
+  const isDismissedRecently = () => {
     const dismissedTime = localStorage.getItem('pwa-prompt-dismissed');
     const cooldownDays = 3;
     if (dismissedTime) {
       const diffTime = Math.abs(new Date().getTime() - parseInt(dismissedTime, 10));
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      if (diffDays <= cooldownDays) {
-        return;
-      }
+      return diffDays <= cooldownDays;
     }
+    return false;
+  };
 
-    // 4. Capture beforeinstallprompt for Android / Chrome / Edge
+  useEffect(() => {
+    const isStandalone = 
+      window.matchMedia('(display-mode: standalone)').matches || 
+      (window.navigator as any).standalone === true;
+
+    // Detect platform
+    const ua = navigator.userAgent;
+    const isIOSDevice = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
+    const isAndroidDevice = /Android/i.test(ua);
+    const isSafariDevice = /^((?!chrome|android).)*safari/i.test(ua);
+
+    setPlatform({ isIOS: isIOSDevice, isAndroid: isAndroidDevice, isSafari: isSafariDevice });
+
+    // Capture beforeinstallprompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setShowPrompt(true);
+      
+      // Auto show banner if not standalone and not dismissed recently
+      if (!isStandalone && !isDismissedRecently()) {
+        setShowPrompt(true);
+      }
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // 5. For iOS, we automatically show the prompt after a slight delay
-    // because iOS Safari doesn't fire beforeinstallprompt.
-    if (isIOS) {
-      const timer = setTimeout(() => {
+    // Manual activation event listener (can bypass cooldown)
+    const handleTriggerInstall = () => {
+      if (isStandalone) return;
+      
+      if (isIOSDevice) {
+        setShowPrompt(false);
+        setShowIOSGuide(true);
+      } else if (deferredPrompt) {
+        deferredPrompt.prompt();
+      } else {
+        setShowPrompt(false);
+        setShowIOSGuide(true); // fallback guide
+      }
+    };
+
+    window.addEventListener('trigger-pwa-install', handleTriggerInstall);
+
+    // Auto-show prompt for iOS Safari
+    let timer: any;
+    if (isIOSDevice && !isStandalone && !isDismissedRecently()) {
+      timer = setTimeout(() => {
         setShowPrompt(true);
-      }, 3000); // delay to let page load first
-      return () => clearTimeout(timer);
+      }, 3000);
     }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('trigger-pwa-install', handleTriggerInstall);
+      if (timer) clearTimeout(timer);
     };
-  }, []);
+  }, [deferredPrompt]);
 
   const handleInstallClick = async () => {
     if (platform.isIOS) {

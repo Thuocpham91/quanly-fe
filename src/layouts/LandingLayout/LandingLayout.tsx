@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
-import { Menu, X, ChevronRight, MessageCircle, Mail, Phone, MapPin } from 'lucide-react';
+import { Menu, X, ChevronRight, MessageCircle, Mail, Phone, MapPin, Download } from 'lucide-react';
 import './LandingLayout.css';
 import ChatConsultant from '../../components/ChatConsultant/ChatConsultant';
 import PWAInstallPrompt from '../../components/PWAInstallPrompt/PWAInstallPrompt';
@@ -10,13 +10,26 @@ const LandingLayout: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
+  const [showInstallBtn, setShowInstallBtn] = useState(false);
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
+    
+    // Check if app is not running in standalone mode
+    const isStandalone = 
+      window.matchMedia('(display-mode: standalone)').matches || 
+      (window.navigator as any).standalone === true;
+    setShowInstallBtn(!isStandalone);
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleTriggerInstall = () => {
+    window.dispatchEvent(new CustomEvent('trigger-pwa-install'));
+  };
 
   const navLinks = [
     { label: 'Trang chủ', path: '/' },
@@ -42,18 +55,31 @@ const LandingLayout: React.FC = () => {
                 {link.label}
               </a>
             ))}
+            {showInstallBtn && (
+              <button className="install-app-btn" onClick={handleTriggerInstall}>
+                <Download size={16} /> Cài đặt App
+              </button>
+            )}
             <button className="login-btn" onClick={() => navigate('/login')}>
               Đăng nhập
             </button>
           </div>
 
-          {/* Mobile Menu Toggle */}
-          <button 
-            className="mobile-toggle" 
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-          </button>
+          {/* Mobile Actions (Install & Menu Toggle) */}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            {showInstallBtn && (
+              <button className="mobile-header-install-btn" onClick={handleTriggerInstall} aria-label="Cài đặt ứng dụng">
+                <Download size={22} />
+              </button>
+            )}
+            
+            <button 
+              className="mobile-toggle" 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Nav */}
@@ -68,6 +94,18 @@ const LandingLayout: React.FC = () => {
               {link.label}
             </a>
           ))}
+          {showInstallBtn && (
+            <button 
+              className="mobile-install-btn" 
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                handleTriggerInstall();
+              }}
+            >
+              <Download size={18} style={{ marginRight: '6px' }} />
+              Cài đặt Ứng dụng
+            </button>
+          )}
           <button 
             className="mobile-login-btn" 
             onClick={() => {

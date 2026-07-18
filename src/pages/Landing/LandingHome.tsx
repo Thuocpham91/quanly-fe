@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, Star, ShieldCheck, Zap, ArrowRight } from 'lucide-react';
+import { ChevronRight, Star, ShieldCheck, Zap, ArrowRight, Download } from 'lucide-react';
 import './LandingHome.css';
 
 const chickenBreeds = [
@@ -49,6 +49,18 @@ const chickenBreeds = [
 
 const LandingHome: React.FC = () => {
   const navigate = useNavigate();
+  const [showInstallBtn, setShowInstallBtn] = React.useState(false);
+
+  React.useEffect(() => {
+    const isStandalone = 
+      window.matchMedia('(display-mode: standalone)').matches || 
+      (window.navigator as any).standalone === true;
+    setShowInstallBtn(!isStandalone);
+  }, []);
+
+  const handleTriggerInstall = () => {
+    window.dispatchEvent(new CustomEvent('trigger-pwa-install'));
+  };
 
   return (
     <div className="landing-home">
@@ -166,6 +178,11 @@ const LandingHome: React.FC = () => {
               <a href="#products" className="btn-primary">
                 Xem sản phẩm <ChevronRight size={20} />
               </a>
+              {showInstallBtn && (
+                <button onClick={handleTriggerInstall} className="btn-install-hero">
+                  Cài đặt App <Download size={20} />
+                </button>
+              )}
               <a href="#about" className="btn-secondary">
                 Tìm hiểu thêm
               </a>

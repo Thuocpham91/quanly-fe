@@ -130,6 +130,33 @@
   transform: translateY(-3px);
 }
 
+.btn-install-hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+  transition: var(--transition);
+}
+
+.btn-install-hero:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.5);
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+}
+
+.btn-install-hero:active {
+  transform: translateY(-1px);
+}
+
+
 /* Features Section */
 .features-section {
   padding: 8rem 0;
