@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { allNavItems } from '../../utils/navigation';
+import PWAInstallPrompt from '../../components/PWAInstallPrompt/PWAInstallPrompt';
 import './MainLayout.css';
 
 const MainLayout: React.FC = () => {
@@ -150,6 +151,9 @@ const MainLayout: React.FC = () => {
           <Outlet />
         </section>
       </main>
+
+      {/* PWA Add to Home Screen Prompt */}
+      <PWAInstallPrompt />
     </div>
   );
 };

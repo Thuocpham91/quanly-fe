@@ -3,6 +3,7 @@ import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { Menu, X, ChevronRight, MessageCircle, Mail, Phone, MapPin } from 'lucide-react';
 import './LandingLayout.css';
 import ChatConsultant from '../../components/ChatConsultant/ChatConsultant';
+import PWAInstallPrompt from '../../components/PWAInstallPrompt/PWAInstallPrompt';
 
 const LandingLayout: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -140,6 +141,9 @@ const LandingLayout: React.FC = () => {
 
       {/* Floating Chat Consultant */}
       <ChatConsultant />
+
+      {/* PWA Add to Home Screen Prompt */}
+      <PWAInstallPrompt />
     </div>
   );
 };
