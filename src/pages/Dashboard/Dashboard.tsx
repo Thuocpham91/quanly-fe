@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 // @ts-ignore
 import { Lunar } from 'lunar-javascript';
@@ -31,6 +32,12 @@ const Dashboard: React.FC = () => {
   const roleCode = typeof user?.role === 'object' && user?.role !== null
     ? user.role.code?.toUpperCase()
     : typeof user?.role === 'string' ? user.role.toUpperCase() : '';
+
+  const isStaff = ['STAFF', 'EMPLOYEE', 'NHAN_VIEN', 'NHANVIEN'].includes(roleCode);
+  if (isStaff) {
+    return <Navigate to="/admin/tasks/schedule" replace />;
+  }
+
   const isAdmin = ['ADMIN', 'MANAGER', 'STAFF'].includes(roleCode);
 
   useEffect(() => {

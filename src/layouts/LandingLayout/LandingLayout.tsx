@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { Menu, X, ChevronRight, MessageCircle, Mail, Phone, MapPin, Download } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import './LandingLayout.css';
 import ChatConsultant from '../../components/ChatConsultant/ChatConsultant';
 import PWAInstallPrompt from '../../components/PWAInstallPrompt/PWAInstallPrompt';
@@ -9,10 +10,26 @@ const LandingLayout: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
 
   const [showInstallBtn, setShowInstallBtn] = useState(false);
 
   useEffect(() => {
+    if (isAuthenticated) {
+      const roleCode = typeof user?.role === 'object' && user?.role !== null
+        ? user.role.code?.toUpperCase()
+        : typeof user?.role === 'string'
+          ? user.role.toUpperCase()
+          : '';
+      const isStaff = ['STAFF', 'EMPLOYEE', 'NHAN_VIEN', 'NHANVIEN'].includes(roleCode);
+      if (isStaff) {
+        navigate('/admin/tasks/schedule', { replace: true });
+      } else {
+        navigate('/admin', { replace: true });
+      }
+      return;
+    }
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
@@ -25,7 +42,7 @@ const LandingLayout: React.FC = () => {
     setShowInstallBtn(!isStandalone);
 
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isAuthenticated, user, navigate]);
 
   const handleTriggerInstall = () => {
     window.dispatchEvent(new CustomEvent('trigger-pwa-install'));

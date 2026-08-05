@@ -45,6 +45,7 @@ const MainLayout: React.FC = () => {
 
   const isAdmin = roleCode === 'ADMIN' || roleCode === 'SUPERADMIN';
   const isCollaborator = roleCode === 'COLLABORATOR';
+  const isStaff = ['STAFF', 'EMPLOYEE', 'MANAGER', 'NHAN_VIEN', 'NHANVIEN'].includes(roleCode);
 
   let visibleNavItems = [];
 
@@ -56,6 +57,8 @@ const MainLayout: React.FC = () => {
     let defaultPaths = ['/admin', '/admin/orders']; // User thường
     if (isCollaborator) {
       defaultPaths = ['/admin', '/admin/customers', '/admin/orders', '/admin/revenue', '/admin/sales', '/admin/social/assistant'];
+    } else if (isStaff) {
+      defaultPaths = ['/admin', '/admin/tasks/schedule', '/admin/works', '/admin/orders', '/admin/orders/schedule', '/admin/objects', '/admin/customers'];
     }
 
     // Kết hợp với các quyền được cấp riêng (nếu có). Chỉ lấy phần path (trước dấu :)

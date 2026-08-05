@@ -68,8 +68,11 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
     // Nếu không có quyền cụ thể, kiểm tra fallback theo Role (Role mặc định có full quyền trên các menu được phép)
     let defaultPaths = ['/admin', '/admin/orders'];
+    const isStaff = ['STAFF', 'EMPLOYEE', 'MANAGER', 'NHAN_VIEN', 'NHANVIEN'].includes(roleCode);
     if (isCollaborator) {
       defaultPaths = ['/admin', '/admin/customers', '/admin/orders', '/admin/revenue', '/admin/sales', '/admin/social/assistant'];
+    } else if (isStaff) {
+      defaultPaths = ['/admin', '/admin/tasks/schedule', '/admin/works', '/admin/orders', '/admin/orders/schedule', '/admin/objects', '/admin/customers'];
     }
 
     return defaultPaths.includes(path);

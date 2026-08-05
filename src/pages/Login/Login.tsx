@@ -12,7 +12,26 @@ const Login: React.FC = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const { login, isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
+
   useEffect(() => {
+    // Nếu đã đăng nhập (còn token), tự động chuyển đến màn hình tương ứng
+    if (isAuthenticated) {
+      const roleCode = typeof user?.role === 'object' && user?.role !== null 
+        ? user.role.code?.toUpperCase() 
+        : typeof user?.role === 'string' 
+          ? user.role.toUpperCase() 
+          : '';
+      const isStaff = ['STAFF', 'EMPLOYEE', 'NHAN_VIEN', 'NHANVIEN'].includes(roleCode);
+      if (isStaff) {
+        navigate('/admin/tasks/schedule', { replace: true });
+      } else {
+        navigate('/admin', { replace: true });
+      }
+      return;
+    }
+
     // Tự động điền tài khoản & mật khẩu nếu đã chọn "Nhớ tài khoản" từ trước
     const savedUsername = localStorage.getItem('remembered_username');
     const savedPassword = localStorage.getItem('remembered_password');
@@ -22,9 +41,7 @@ const Login: React.FC = () => {
     if (savedPassword) {
       setPassword(savedPassword);
     }
-  }, []);
-  const { login } = useAuth();
-  const navigate = useNavigate();
+  }, [isAuthenticated, user, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +70,19 @@ const Login: React.FC = () => {
 
       // Login to context and route
       login(token, payload);
-      navigate('/admin');
+
+      const roleCode = typeof payload?.role === 'object' && payload?.role !== null
+        ? payload.role.code?.toUpperCase()
+        : typeof payload?.role === 'string'
+          ? payload.role.toUpperCase()
+          : '';
+
+      const isStaff = ['STAFF', 'EMPLOYEE', 'NHAN_VIEN', 'NHANVIEN'].includes(roleCode);
+      if (isStaff) {
+        navigate('/admin/tasks/schedule');
+      } else {
+        navigate('/admin');
+      }
 
     } catch (err: any) {
       console.error('Login Error:', err);
