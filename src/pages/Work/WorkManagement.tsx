@@ -170,9 +170,13 @@ const WorkManagement: React.FC = () => {
       
       const constructLocalDate = (dateStr: string) => {
         if (!dateStr) return null;
-        const d = new Date(dateStr);
-        d.setHours(0, 0, 0, 0);
-        return d;
+        if (typeof dateStr === 'string' && dateStr.includes('-')) {
+          const [y, m, d] = dateStr.split('T')[0].split('-').map(Number);
+          if (y && m && d) {
+            return new Date(y, m - 1, d, 12, 0, 0);
+          }
+        }
+        return new Date(dateStr);
       };
 
       const payload = {
