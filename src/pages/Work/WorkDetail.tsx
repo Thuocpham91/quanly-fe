@@ -9,6 +9,7 @@ import {
   Save,
   Trash2,
   Edit,
+  ChevronLeft,
   ChevronRight,
   ShoppingBag,
   User as UserIcon,
@@ -20,6 +21,8 @@ import {
   X,
   Info
 } from 'lucide-react';
+// @ts-ignore
+import { Lunar } from 'lunar-javascript';
 import api from '../../api/axios';
 import { compressImage } from '../../utils/imageUtils';
 import './WorkDetail.css';
@@ -80,6 +83,45 @@ const WorkDetail: React.FC = () => {
   // Pagination states for tasks
   const [currentPage, setCurrentPage] = useState(1);
   const tasksPerPage = 10;
+
+  // Date navigation states
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [isDateFiltered, setIsDateFiltered] = useState<boolean>(false);
+
+  const isSameDay = (d1: Date, d2: Date) => {
+    return d1.getFullYear() === d2.getFullYear() &&
+           d1.getMonth() === d2.getMonth() &&
+           d1.getDate() === d2.getDate();
+  };
+
+  const getShiftedDate = (days: number, base: Date = new Date()) => {
+    const d = new Date(base);
+    d.setDate(d.getDate() + days);
+    return d;
+  };
+
+  const handleDateChange = (days: number) => {
+    setSelectedDate(prev => {
+      const d = new Date(prev);
+      d.setDate(d.getDate() + days);
+      return d;
+    });
+    setIsDateFiltered(true);
+    setCurrentPage(1);
+  };
+
+  const setDayMode = (mode: 'yesterday' | 'today' | 'tomorrow' | 'all') => {
+    if (mode === 'all') {
+      setIsDateFiltered(false);
+    } else {
+      const d = new Date();
+      if (mode === 'yesterday') d.setDate(d.getDate() - 1);
+      if (mode === 'tomorrow') d.setDate(d.getDate() + 1);
+      setSelectedDate(d);
+      setIsDateFiltered(true);
+    }
+    setCurrentPage(1);
+  };
 
   const fetchWorkDetail = useCallback(async () => {
     try {
@@ -237,11 +279,15 @@ const WorkDetail: React.FC = () => {
     ? Math.round((tasks.filter(t => t.employeeChecked).length / tasks.length) * 100) 
     : 0;
 
+  const filteredTasks = isDateFiltered
+    ? tasks.filter(t => t.startDate && isSameDay(new Date(t.startDate), selectedDate))
+    : tasks;
+
   // Pagination calculations
   const indexOfLastTask = currentPage * tasksPerPage;
   const indexOfFirstTask = indexOfLastTask - tasksPerPage;
-  const currentTasks = tasks.slice(indexOfFirstTask, indexOfLastTask);
-  const totalPages = Math.ceil(tasks.length / tasksPerPage);
+  const currentTasks = filteredTasks.slice(indexOfFirstTask, indexOfLastTask);
+  const totalPages = Math.ceil(filteredTasks.length / tasksPerPage);
 
   return (
     <div className="work-detail-container">
@@ -284,7 +330,59 @@ const WorkDetail: React.FC = () => {
       <div className="tasks-section">
         <div className="section-title">
           <h3>Danh Sách Nhiệm Vụ Chi Tiết</h3>
-          <p>Cập nhật trạng thái và số lượng thực tế cho từng đầu việc</p>
+          <p>
+            {isDateFiltered 
+              ? `Hiển thị ${filteredTasks.length} nhiệm vụ ngày ${selectedDate.toLocaleDateString('vi-VN')}`
+              : 'Cập nhật trạng thái và số lượng thực tế cho từng đầu việc'}
+          </p>
+        </div>
+
+        {/* Quick Date Navigator */}
+        <div className="work-date-nav-bar">
+          <div className="quick-nav-group">
+            <button 
+              className={`nav-btn ${isDateFiltered && isSameDay(selectedDate, getShiftedDate(-1, new Date())) ? 'active' : ''}`}
+              onClick={() => setDayMode('yesterday')}
+            >
+              Ngày trước đó
+            </button>
+            <button 
+              className={`nav-btn ${isDateFiltered && isSameDay(selectedDate, new Date()) ? 'active' : ''}`}
+              onClick={() => setDayMode('today')}
+            >
+              Ngày hiện tại
+            </button>
+            <button 
+              className={`nav-btn ${isDateFiltered && isSameDay(selectedDate, getShiftedDate(1, new Date())) ? 'active' : ''}`}
+              onClick={() => setDayMode('tomorrow')}
+            >
+              Ngày tiếp theo
+            </button>
+            <button 
+              className={`nav-btn ${!isDateFiltered ? 'active' : ''}`}
+              onClick={() => setDayMode('all')}
+            >
+              Tất cả ({tasks.length})
+            </button>
+          </div>
+
+          <div className="date-picker-bar">
+            <button className="arrow-btn" onClick={() => handleDateChange(-1)} title="Ngày trước đó">
+              <ChevronLeft size={18} />
+            </button>
+            <div className="date-display-info">
+              <Calendar size={16} style={{ color: '#2563eb' }} />
+              <span className="date-text">
+                {selectedDate.toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })}
+              </span>
+              <span className="lunar-text">
+                ({Lunar.fromDate(selectedDate).getDay()}/{Lunar.fromDate(selectedDate).getMonth()} ÂL)
+              </span>
+            </div>
+            <button className="arrow-btn" onClick={() => handleDateChange(1)} title="Ngày tiếp theo">
+              <ChevronRight size={18} />
+            </button>
+          </div>
         </div>
 
         <div className="task-list">
@@ -404,7 +502,20 @@ const WorkDetail: React.FC = () => {
             ))
           ) : (
             <div className="empty-tasks">
-              <p>Chưa có nhiệm vụ nào trong đợt này.</p>
+              <p>
+                {isDateFiltered 
+                  ? `Không có nhiệm vụ nào vào ngày ${selectedDate.toLocaleDateString('vi-VN')}.`
+                  : 'Chưa có nhiệm vụ nào trong đợt này.'}
+              </p>
+              {isDateFiltered && (
+                <button 
+                  className="btn-secondary" 
+                  style={{ marginTop: '0.75rem', fontSize: '0.8125rem' }}
+                  onClick={() => setDayMode('all')}
+                >
+                  Xem tất cả các ngày
+                </button>
+              )}
             </div>
           )}
         </div>
