@@ -632,3 +632,130 @@
   }
 }
 
+/* View Mode Toggle Button Group */
+.view-mode-toggle {
+  display: flex;
+  background: #f1f5f9;
+  padding: 0.25rem;
+  border-radius: 8px;
+  gap: 0.25rem;
+}
+
+.view-mode-toggle button {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-mode-toggle button:hover {
+  color: #1e293b;
+}
+
+.view-mode-toggle button.active {
+  background: white;
+  color: #2563eb;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+/* Basic / Compact Tasks Table */
+.basic-tasks-table-wrapper {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  overflow-x: auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.basic-tasks-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.basic-tasks-table th {
+  background: #f8fafc;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #475569;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.8125rem;
+}
+
+.basic-tasks-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.basic-tasks-table tr:last-child td {
+  border-bottom: none;
+}
+
+.basic-tasks-table tr.checked-row {
+  background: #f0fdf4;
+}
+
+.basic-task-name {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.basic-task-date {
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.basic-num-input {
+  width: 64px;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.basic-num-input:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.basic-num-input.removal {
+  color: #ef4444;
+}
+
+.basic-check-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: 6px;
+  color: #cbd5e1;
+  transition: all 0.2s;
+}
+
+.basic-check-btn.employee.active {
+  color: #10b981;
+  background: #d1fae5;
+}
+
+.basic-check-btn.manager.active {
+  color: #2563eb;
+  background: #dbeafe;
+}
+
+.basic-check-btn:hover {
+  background: #f1f5f9;
+}
+
+

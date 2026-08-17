@@ -19,7 +19,9 @@ import {
   File as FileIcon,
   Loader2,
   X,
-  Info
+  Info,
+  LayoutGrid,
+  List
 } from 'lucide-react';
 // @ts-ignore
 import { Lunar } from 'lunar-javascript';
@@ -80,9 +82,10 @@ const WorkDetail: React.FC = () => {
     startDate: ''
   });
 
-  // Pagination states for tasks
+  // Pagination & View Mode states for tasks
   const [currentPage, setCurrentPage] = useState(1);
   const tasksPerPage = 10;
+  const [viewMode, setViewMode] = useState<'full' | 'basic'>('full');
 
   // Date navigation states
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -328,13 +331,34 @@ const WorkDetail: React.FC = () => {
       </div>
 
       <div className="tasks-section">
-        <div className="section-title">
-          <h3>Danh Sách Nhiệm Vụ Chi Tiết</h3>
-          <p>
-            {isDateFiltered 
-              ? `Hiển thị ${filteredTasks.length} nhiệm vụ ngày ${selectedDate.toLocaleDateString('vi-VN')}`
-              : 'Cập nhật trạng thái và số lượng thực tế cho từng đầu việc'}
-          </p>
+        <div className="section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <h3>Danh Sách Nhiệm Vụ Chi Tiết</h3>
+            <p>
+              {isDateFiltered 
+                ? `Hiển thị ${filteredTasks.length} nhiệm vụ ngày ${selectedDate.toLocaleDateString('vi-VN')}`
+                : 'Cập nhật trạng thái và số lượng thực tế cho từng đầu việc'}
+            </p>
+          </div>
+
+          <div className="view-mode-toggle">
+            <button 
+              className={viewMode === 'full' ? 'active' : ''} 
+              onClick={() => setViewMode('full')}
+              title="Xem dạng đầy đủ"
+            >
+              <LayoutGrid size={16} />
+              <span>Đầy đủ</span>
+            </button>
+            <button 
+              className={viewMode === 'basic' ? 'active' : ''} 
+              onClick={() => setViewMode('basic')}
+              title="Xem dạng căn bản"
+            >
+              <List size={16} />
+              <span>Căn bản</span>
+            </button>
+          </div>
         </div>
 
         {/* Quick Date Navigator */}
@@ -385,140 +409,237 @@ const WorkDetail: React.FC = () => {
           </div>
         </div>
 
-        <div className="task-list">
-          {currentTasks.length > 0 ? (
-            currentTasks.map((task) => (
-              <div key={task.id} className={`task-card ${task.employeeChecked ? 'checked' : ''}`}>
-                <div className="task-main-info">
-                  <div className="task-title-group">
-                    <h4>{task.taskName}</h4>
-                    {task.description && (
-                      <div className="task-desc">
-                        <Info size={12} style={{ flexShrink: 0, marginTop: '2px' }} />
-                        <div 
-                          className="task-desc-html ql-editor"
-                          style={{ padding: 0, whiteSpace: /<(p|br|ul|ol|li|strong|em|u|span|div|h[1-6])[>\s/]/i.test(task.description) ? 'normal' : 'pre-wrap' }}
-                          dangerouslySetInnerHTML={{ __html: task.description }}
-                        ></div>
+        {viewMode === 'basic' ? (
+          <div className="basic-tasks-table-wrapper">
+            <table className="basic-tasks-table">
+              <thead>
+                <tr>
+                  <th>Nhiệm vụ</th>
+                  <th>Ngày dự kiến</th>
+                  <th style={{ textAlign: 'center' }}>Số lượng</th>
+                  <th style={{ textAlign: 'center' }}>Loại bỏ</th>
+                  <th style={{ textAlign: 'center' }}>Nhân viên</th>
+                  <th style={{ textAlign: 'center' }}>Quản lý</th>
+                  <th style={{ textAlign: 'right' }}>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentTasks.length > 0 ? (
+                  currentTasks.map((task) => (
+                    <tr key={task.id} className={task.employeeChecked ? 'checked-row' : ''}>
+                      <td>
+                        <div className="basic-task-name">{task.taskName}</div>
+                      </td>
+                      <td>
+                        <span className="basic-task-date">{new Date(task.startDate).toLocaleDateString('vi-VN')}</span>
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        <input 
+                          type="number" 
+                          className="basic-num-input"
+                          defaultValue={task.quantity || ''}
+                          onBlur={(e) => handleUpdateTaskData(task.id, 'quantity', e.target.value)}
+                          placeholder="-"
+                        />
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        <input 
+                          type="number" 
+                          className="basic-num-input removal"
+                          defaultValue={task.removalCount || ''}
+                          onBlur={(e) => handleUpdateTaskData(task.id, 'removalCount', e.target.value)}
+                          placeholder="-"
+                        />
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        <button 
+                          className={`basic-check-btn employee ${task.employeeChecked ? 'active' : ''}`}
+                          onClick={() => handleToggleCheck(task.id, 'employeeChecked', task.employeeChecked)}
+                          title="Nhân viên xác nhận"
+                        >
+                          {task.employeeChecked ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+                        </button>
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        <button 
+                          className={`basic-check-btn manager ${task.managerChecked ? 'active' : ''}`}
+                          onClick={() => handleToggleCheck(task.id, 'managerChecked', task.managerChecked)}
+                          title="Quản lý xác nhận"
+                        >
+                          {task.managerChecked ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+                        </button>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.25rem' }}>
+                          <button className="edit-task-btn" onClick={() => handleEditClick(task)} title="Chỉnh sửa">
+                            <Edit size={16} />
+                          </button>
+                          <button className="delete-task-btn" onClick={() => handleDeleteTask(task.id)} title="Xóa">
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={7} style={{ textAlign: 'center', padding: '2rem' }}>
+                      <p style={{ margin: 0, color: '#94a3b8' }}>
+                        {isDateFiltered 
+                          ? `Không có nhiệm vụ nào vào ngày ${selectedDate.toLocaleDateString('vi-VN')}.`
+                          : 'Chưa có nhiệm vụ nào trong đợt này.'}
+                      </p>
+                      {isDateFiltered && (
+                        <button 
+                          className="btn-secondary" 
+                          style={{ marginTop: '0.75rem', fontSize: '0.8125rem' }}
+                          onClick={() => setDayMode('all')}
+                        >
+                          Xem tất cả các ngày
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="task-list">
+            {currentTasks.length > 0 ? (
+              currentTasks.map((task) => (
+                <div key={task.id} className={`task-card ${task.employeeChecked ? 'checked' : ''}`}>
+                  <div className="task-main-info">
+                    <div className="task-title-group">
+                      <h4>{task.taskName}</h4>
+                      {task.description && (
+                        <div className="task-desc">
+                          <Info size={12} style={{ flexShrink: 0, marginTop: '2px' }} />
+                          <div 
+                            className="task-desc-html ql-editor"
+                            style={{ padding: 0, whiteSpace: /<(p|br|ul|ol|li|strong|em|u|span|div|h[1-6])[>\s/]/i.test(task.description) ? 'normal' : 'pre-wrap' }}
+                            dangerouslySetInnerHTML={{ __html: task.description }}
+                          ></div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="task-date">
+                      <Calendar size={14} />
+                      <span>Dự kiến: {new Date(task.startDate).toLocaleDateString('vi-VN')}</span>
+                    </div>
+                  </div>
+
+                  <div className="task-controls">
+                    <div className="control-group">
+                      <label>Số lượng (QTY)</label>
+                      <input 
+                        type="number" 
+                        defaultValue={task.quantity || ''}
+                        onBlur={(e) => handleUpdateTaskData(task.id, 'quantity', e.target.value)}
+                        placeholder="-"
+                      />
+                    </div>
+                    
+                    <div className="control-group">
+                      <label>Loại bỏ (Removal)</label>
+                      <input 
+                        type="number" 
+                        defaultValue={task.removalCount || ''}
+                        onBlur={(e) => handleUpdateTaskData(task.id, 'removalCount', e.target.value)}
+                        placeholder="-"
+                        className="removal-input"
+                      />
+                    </div>
+
+                    <div className="check-buttons">
+                      <button 
+                        className={`check-btn employee ${task.employeeChecked ? 'active' : ''}`}
+                        onClick={() => handleToggleCheck(task.id, 'employeeChecked', task.employeeChecked)}
+                        title="Nhân viên xác nhận"
+                      >
+                        {task.employeeChecked ? <CheckCircle2 size={18} /> : <Circle size={18} />}
+                        <span>Nhân viên</span>
+                      </button>
+                      
+                      <button 
+                        className={`check-btn manager ${task.managerChecked ? 'active' : ''}`}
+                        onClick={() => handleToggleCheck(task.id, 'managerChecked', task.managerChecked)}
+                        title="Quản lý xác nhận"
+                      >
+                        {task.managerChecked ? <CheckCircle2 size={18} /> : <Circle size={18} />}
+                        <span>Quản lý</span>
+                      </button>
+                    </div>
+
+                    <div className="task-actions-secondary">
+                      <button className="edit-task-btn" onClick={() => handleEditClick(task)} title="Chỉnh sửa nhiệm vụ">
+                        <Edit size={18} />
+                      </button>
+                      <button className="delete-task-btn" onClick={() => handleDeleteTask(task.id)} title="Xóa nhiệm vụ">
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="task-files-section-detail">
+                    <div className="task-files-header-detail">
+                      <span className="files-title-detail">Chụp ảnh:</span>
+                      <label className="upload-file-btn-detail">
+                        {uploadingTaskId === task.id ? <Loader2 size={14} className="spin" /> : <Camera size={14} />}
+                        <span>Chụp ảnh</span>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          capture="environment"
+                          multiple 
+                          onChange={(e) => handleFileUpload(task.id, e)} 
+                          style={{ display: 'none' }} 
+                          disabled={uploadingTaskId === task.id} 
+                        />
+                      </label>
+                    </div>
+                    {task.fileUrls && task.fileUrls.length > 0 && (
+                      <div className="task-files-list-detail">
+                        {task.fileUrls.map((url, idx) => {
+                          const isImage = url.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null;
+                          return (
+                            <div key={idx} className="task-file-item-detail">
+                              <a href={url} target="_blank" rel="noreferrer" className="file-link-detail">
+                                {isImage ? <ImageIcon size={14} /> : <FileIcon size={14} />}
+                                <span className="file-name-detail">File {idx + 1}</span>
+                              </a>
+                              <button className="remove-file-btn-detail" onClick={() => handleRemoveFile(task.id, url)} title="Xóa file">
+                                <X size={12} />
+                              </button>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
-                  
-                  <div className="task-date">
-                    <Calendar size={14} />
-                    <span>Dự kiến: {new Date(task.startDate).toLocaleDateString('vi-VN')}</span>
-                  </div>
                 </div>
-
-                <div className="task-controls">
-                  <div className="control-group">
-                    <label>Số lượng (QTY)</label>
-                    <input 
-                      type="number" 
-                      defaultValue={task.quantity || ''}
-                      onBlur={(e) => handleUpdateTaskData(task.id, 'quantity', e.target.value)}
-                      placeholder="-"
-                    />
-                  </div>
-                  
-                  <div className="control-group">
-                    <label>Loại bỏ (Removal)</label>
-                    <input 
-                      type="number" 
-                      defaultValue={task.removalCount || ''}
-                      onBlur={(e) => handleUpdateTaskData(task.id, 'removalCount', e.target.value)}
-                      placeholder="-"
-                      className="removal-input"
-                    />
-                  </div>
-
-                  <div className="check-buttons">
-                    <button 
-                      className={`check-btn employee ${task.employeeChecked ? 'active' : ''}`}
-                      onClick={() => handleToggleCheck(task.id, 'employeeChecked', task.employeeChecked)}
-                      title="Nhân viên xác nhận"
-                    >
-                      {task.employeeChecked ? <CheckCircle2 size={18} /> : <Circle size={18} />}
-                      <span>Nhân viên</span>
-                    </button>
-                    
-                    <button 
-                      className={`check-btn manager ${task.managerChecked ? 'active' : ''}`}
-                      onClick={() => handleToggleCheck(task.id, 'managerChecked', task.managerChecked)}
-                      title="Quản lý xác nhận"
-                    >
-                      {task.managerChecked ? <CheckCircle2 size={18} /> : <Circle size={18} />}
-                      <span>Quản lý</span>
-                    </button>
-                  </div>
-
-                  <div className="task-actions-secondary">
-                    <button className="edit-task-btn" onClick={() => handleEditClick(task)} title="Chỉnh sửa nhiệm vụ">
-                      <Edit size={18} />
-                    </button>
-                    <button className="delete-task-btn" onClick={() => handleDeleteTask(task.id)} title="Xóa nhiệm vụ">
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="task-files-section-detail">
-                  <div className="task-files-header-detail">
-                    <span className="files-title-detail">Chụp ảnh:</span>
-                    <label className="upload-file-btn-detail">
-                      {uploadingTaskId === task.id ? <Loader2 size={14} className="spin" /> : <Camera size={14} />}
-                      <span>Chụp ảnh</span>
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        capture="environment"
-                        multiple 
-                        onChange={(e) => handleFileUpload(task.id, e)} 
-                        style={{ display: 'none' }} 
-                        disabled={uploadingTaskId === task.id} 
-                      />
-                    </label>
-                  </div>
-                  {task.fileUrls && task.fileUrls.length > 0 && (
-                    <div className="task-files-list-detail">
-                      {task.fileUrls.map((url, idx) => {
-                        const isImage = url.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null;
-                        return (
-                          <div key={idx} className="task-file-item-detail">
-                            <a href={url} target="_blank" rel="noreferrer" className="file-link-detail">
-                              {isImage ? <ImageIcon size={14} /> : <FileIcon size={14} />}
-                              <span className="file-name-detail">File {idx + 1}</span>
-                            </a>
-                            <button className="remove-file-btn-detail" onClick={() => handleRemoveFile(task.id, url)} title="Xóa file">
-                              <X size={12} />
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
+              ))
+            ) : (
+              <div className="empty-tasks">
+                <p>
+                  {isDateFiltered 
+                    ? `Không có nhiệm vụ nào vào ngày ${selectedDate.toLocaleDateString('vi-VN')}.`
+                    : 'Chưa có nhiệm vụ nào trong đợt này.'}
+                </p>
+                {isDateFiltered && (
+                  <button 
+                    className="btn-secondary" 
+                    style={{ marginTop: '0.75rem', fontSize: '0.8125rem' }}
+                    onClick={() => setDayMode('all')}
+                  >
+                    Xem tất cả các ngày
+                  </button>
+                )}
               </div>
-            ))
-          ) : (
-            <div className="empty-tasks">
-              <p>
-                {isDateFiltered 
-                  ? `Không có nhiệm vụ nào vào ngày ${selectedDate.toLocaleDateString('vi-VN')}.`
-                  : 'Chưa có nhiệm vụ nào trong đợt này.'}
-              </p>
-              {isDateFiltered && (
-                <button 
-                  className="btn-secondary" 
-                  style={{ marginTop: '0.75rem', fontSize: '0.8125rem' }}
-                  onClick={() => setDayMode('all')}
-                >
-                  Xem tất cả các ngày
-                </button>
-              )}
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
