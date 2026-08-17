@@ -24,7 +24,10 @@ import {
   Trash2,
   Plus,
   Loader2,
-  Repeat
+  Repeat,
+  LayoutGrid,
+  List,
+  Search
 } from 'lucide-react';
 import api from '../../api/axios';
 import { compressImage } from '../../utils/imageUtils';
@@ -91,6 +94,13 @@ const TaskSchedule: React.FC = () => {
     time: '08:00'
   });
 
+  // View mode & Calendar View states
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('calendar');
+  const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'completed' | 'cancelled'>('all');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [monthlyTasks, setMonthlyTasks] = useState<WorkTask[]>([]);
+
   const formatDate = (date: Date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -132,9 +142,79 @@ const TaskSchedule: React.FC = () => {
     }
   };
 
+  const fetchMonthlyTasks = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const year = calendarMonth.getFullYear();
+      const month = calendarMonth.getMonth();
+      const startDate = formatDate(new Date(year, month, 1));
+      const endDate = formatDate(new Date(year, month + 1, 0));
+      
+      const res = await api.get('/works/tasks', {
+        params: {
+          startDate,
+          endDate,
+          limit: 500
+        }
+      });
+      if (res.data && Array.isArray(res.data.data)) {
+        setMonthlyTasks(res.data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching monthly tasks:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [calendarMonth]);
+
   useEffect(() => {
-    fetchTasks();
-  }, [fetchTasks]);
+    if (viewMode === 'calendar') {
+      fetchMonthlyTasks();
+    } else {
+      fetchTasks();
+    }
+  }, [viewMode, fetchMonthlyTasks, fetchTasks]);
+
+  const handleMonthChange = (delta: number) => {
+    setCalendarMonth(prev => {
+      const d = new Date(prev);
+      d.setMonth(d.getMonth() + delta);
+      return d;
+    });
+  };
+
+  const getCalendarDaysMatrix = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    
+    const firstDayOfMonth = new Date(year, month, 1);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    // 0 = Monday, ..., 6 = Sunday
+    const startDayOfWeek = (firstDayOfMonth.getDay() + 6) % 7; 
+    
+    const matrix: Array<{ dayNum: number | null; dateObj: Date | null }> = [];
+    
+    // Padding before 1st of month
+    for (let i = 0; i < startDayOfWeek; i++) {
+      matrix.push({ dayNum: null, dateObj: null });
+    }
+    
+    // Days in current month
+    for (let d = 1; d <= daysInMonth; d++) {
+      matrix.push({
+        dayNum: d,
+        dateObj: new Date(year, month, d)
+      });
+    }
+    
+    // Padding after end of month to complete grid
+    while (matrix.length % 7 !== 0) {
+      matrix.push({ dayNum: null, dateObj: null });
+    }
+    
+    return matrix;
+  };
 
   const fetchWorks = async () => {
     try {
@@ -303,73 +383,246 @@ const TaskSchedule: React.FC = () => {
 
   return (
     <div className="task-schedule-container">
-      <div className="schedule-header">
-        <div className="header-top">
-          <div className="title-section">
-            <h2>Lịch Trình Công Việc</h2>
-            <p className="subtitle">Quản lý và theo dõi nhiệm vụ hàng ngày</p>
-          </div>
-          
-          <div className="quick-nav">
-            <button 
-              className={`nav-btn ${formatDate(selectedDate) === formatDate(new Date(new Date().setDate(new Date().getDate() - 1))) ? 'active' : ''}`}
-              onClick={() => setDay('yesterday')}
-            >
-              Hôm qua
-            </button>
-            <button 
-              className={`nav-btn ${isToday(selectedDate) ? 'active' : ''}`}
-              onClick={() => setDay('today')}
-            >
-              Hôm nay
-            </button>
-            <button 
-              className={`nav-btn ${formatDate(selectedDate) === formatDate(new Date(new Date().setDate(new Date().getDate() + 1))) ? 'active' : ''}`}
-              onClick={() => setDay('tomorrow')}
-            >
-              Ngày mai
-            </button>
-          </div>
+      {/* Top Header */}
+      <div className="page-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h2 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>Task Management</h2>
+          <p style={{ color: '#64748b', fontSize: '0.875rem', margin: '0.25rem 0 0 0' }}>Quản lý và theo dõi lịch trình công việc</p>
         </div>
-
-        <div className="date-selector">
-          <div className="date-nav-wrapper">
-            <button className="arrow-btn" onClick={() => handleDateChange(-1)}>
-              <ChevronLeft size={20} />
-            </button>
-            <div className="current-date" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: '1.2', gap: '0.25rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Calendar size={20} />
-                <span>{selectedDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
-              </div>
-              <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
-                ({Lunar.fromDate(selectedDate).getDay()}/{Lunar.fromDate(selectedDate).getMonth()} ÂL)
-              </span>
-            </div>
-            <button className="arrow-btn" onClick={() => handleDateChange(1)}>
-              <ChevronRight size={20} />
-            </button>
-          </div>
-          
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
           <button 
             className="btn-primary" 
-            style={{ marginLeft: '1rem', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            style={{ padding: '0.6rem 1.25rem', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#6366f1' }}
             onClick={() => setIsAddModalOpen(true)}
           >
-            <Plus size={16} />
-            <span>Thêm nhiệm vụ</span>
-          </button>
-          <button 
-            className="btn-secondary" 
-            style={{ marginLeft: '0.5rem', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#f8fafc', border: '1px solid #e2e8f0', color: '#64748b' }}
-            onClick={handleScanFixedTasks}
-            disabled={isLoading}
-          >
-            {isLoading ? <Loader2 size={16} className="spin" /> : <Repeat size={16} />}
-            <span>Quét task cố định</span>
+            <Plus size={18} />
+            <span>Thêm công việc</span>
           </button>
         </div>
       </div>
+
+      {/* Control Bar: View Toggle, Search, Status Filter Pills */}
+      <div className="calendar-controls-bar">
+        <div className="view-mode-toggle-group">
+          <button 
+            className={viewMode === 'list' ? 'active' : ''} 
+            onClick={() => setViewMode('list')}
+          >
+            <List size={16} />
+            <span>List View</span>
+          </button>
+          <button 
+            className={viewMode === 'calendar' ? 'active' : ''} 
+            onClick={() => setViewMode('calendar')}
+          >
+            <LayoutGrid size={16} />
+            <span>Calendar View</span>
+          </button>
+        </div>
+
+        <div className="calendar-search-input">
+          <Search size={16} color="#94a3b8" />
+          <input 
+            type="text" 
+            placeholder="Tìm theo nhiệm vụ, đối tượng..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        <div className="status-filter-pills">
+          <button 
+            className={`status-pill ${statusFilter === 'all' ? 'active' : ''}`}
+            onClick={() => setStatusFilter('all')}
+          >
+            Tất cả
+          </button>
+          <button 
+            className={`status-pill ${statusFilter === 'pending' ? 'active' : ''}`}
+            onClick={() => setStatusFilter('pending')}
+          >
+            Đang chờ
+          </button>
+          <button 
+            className={`status-pill ${statusFilter === 'completed' ? 'active' : ''}`}
+            onClick={() => setStatusFilter('completed')}
+          >
+            Hoàn thành
+          </button>
+          <button 
+            className={`status-pill ${statusFilter === 'cancelled' ? 'active' : ''}`}
+            onClick={() => setStatusFilter('cancelled')}
+          >
+            Đã hủy
+          </button>
+        </div>
+      </div>
+
+      {viewMode === 'calendar' ? (
+        <div className="calendar-view-container">
+          {/* Month Navigation Header */}
+          <div className="calendar-month-header">
+            <button className="month-nav-arrow" onClick={() => handleMonthChange(-1)}>
+              <ChevronLeft size={20} />
+            </button>
+            <h3 className="month-title">
+              Tháng {calendarMonth.getMonth() + 1}, {calendarMonth.getFullYear()}
+            </h3>
+            <button className="month-nav-arrow" onClick={() => handleMonthChange(1)}>
+              <ChevronRight size={20} />
+            </button>
+          </div>
+
+          {/* Calendar Grid */}
+          <div className="calendar-grid-wrapper">
+            <div className="calendar-week-header">
+              <div>Mon</div>
+              <div>Tue</div>
+              <div>Wed</div>
+              <div>Thu</div>
+              <div>Fri</div>
+              <div>Sat</div>
+              <div>Sun</div>
+            </div>
+
+            <div className="calendar-days-grid">
+              {getCalendarDaysMatrix(calendarMonth).map((cell, idx) => {
+                if (!cell.dayNum || !cell.dateObj) {
+                  return <div key={idx} className="calendar-day-cell empty"></div>;
+                }
+
+                const dateStr = formatDate(cell.dateObj);
+                const isCellToday = isToday(cell.dateObj);
+
+                // Filter tasks for this day
+                const dayTasks = monthlyTasks.filter(t => {
+                  if (!t.startDate) return false;
+                  const taskDateStr = formatDate(new Date(t.startDate));
+                  if (taskDateStr !== dateStr) return false;
+
+                  // Status filter
+                  if (statusFilter === 'pending' && (t.employeeChecked || t.managerChecked)) return false;
+                  if (statusFilter === 'completed' && !t.employeeChecked && !t.managerChecked) return false;
+
+                  // Search term filter
+                  if (searchTerm) {
+                    const matchName = (t.taskName || '').toLowerCase().includes(searchTerm.toLowerCase());
+                    const matchWork = (t.work?.title || '').toLowerCase().includes(searchTerm.toLowerCase());
+                    const matchObj = (t.work?.object?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
+                    if (!matchName && !matchWork && !matchObj) return false;
+                  }
+
+                  return true;
+                });
+
+                return (
+                  <div 
+                    key={idx} 
+                    className={`calendar-day-cell ${isCellToday ? 'today' : ''}`}
+                    onClick={() => {
+                      setSelectedDate(cell.dateObj!);
+                      setViewMode('list');
+                    }}
+                  >
+                    <div className="cell-day-num">{cell.dayNum}</div>
+                    
+                    <div className="cell-tasks-list">
+                      {dayTasks.slice(0, 3).map(task => (
+                        <div 
+                          key={task.id} 
+                          className={`calendar-task-item ${task.employeeChecked ? 'done' : ''}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleStatus(task, 'employeeChecked');
+                          }}
+                          title={`${task.taskName} - ${task.work?.title || ''}`}
+                        >
+                          <span className="task-dot"></span>
+                          <span className="task-title-text">{task.taskName}</span>
+                        </div>
+                      ))}
+                      {dayTasks.length > 3 && (
+                        <div className="more-tasks-tag">+{dayTasks.length - 3} nữa</div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* List View */
+        <div>
+          <div className="schedule-header">
+            <div className="header-top">
+              <div className="title-section">
+                <h2>Lịch Trình Công Việc</h2>
+                <p className="subtitle">Quản lý và theo dõi nhiệm vụ hàng ngày</p>
+              </div>
+              
+              <div className="quick-nav">
+                <button 
+                  className={`nav-btn ${formatDate(selectedDate) === formatDate(new Date(new Date().setDate(new Date().getDate() - 1))) ? 'active' : ''}`}
+                  onClick={() => setDay('yesterday')}
+                >
+                  Hôm qua
+                </button>
+                <button 
+                  className={`nav-btn ${isToday(selectedDate) ? 'active' : ''}`}
+                  onClick={() => setDay('today')}
+                >
+                  Hôm nay
+                </button>
+                <button 
+                  className={`nav-btn ${formatDate(selectedDate) === formatDate(new Date(new Date().setDate(new Date().getDate() + 1))) ? 'active' : ''}`}
+                  onClick={() => setDay('tomorrow')}
+                >
+                  Ngày mai
+                </button>
+              </div>
+            </div>
+
+            <div className="date-selector">
+              <div className="date-nav-wrapper">
+                <button className="arrow-btn" onClick={() => handleDateChange(-1)}>
+                  <ChevronLeft size={20} />
+                </button>
+                <div className="current-date" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: '1.2', gap: '0.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Calendar size={20} />
+                    <span>{selectedDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                  </div>
+                  <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
+                    ({Lunar.fromDate(selectedDate).getDay()}/{Lunar.fromDate(selectedDate).getMonth()} ÂL)
+                  </span>
+                </div>
+                <button className="arrow-btn" onClick={() => handleDateChange(1)}>
+                  <ChevronRight size={20} />
+                </button>
+              </div>
+              
+              <button 
+                className="btn-primary" 
+                style={{ marginLeft: '1rem', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                onClick={() => setIsAddModalOpen(true)}
+              >
+                <Plus size={16} />
+                <span>Thêm nhiệm vụ</span>
+              </button>
+              <button 
+                className="btn-secondary" 
+                style={{ marginLeft: '0.5rem', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#f8fafc', border: '1px solid #e2e8f0', color: '#64748b' }}
+                onClick={handleScanFixedTasks}
+                disabled={isLoading}
+              >
+                {isLoading ? <Loader2 size={16} className="spin" /> : <Repeat size={16} />}
+                <span>Quét task cố định</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="tasks-content">
         {isLoading ? (
