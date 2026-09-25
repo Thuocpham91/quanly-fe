@@ -21,6 +21,7 @@ const CustomerManagement: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [customers, setCustomers] = useState<CustomerData[]>([]);
+  const [showDeleted, setShowDeleted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,13 +42,16 @@ const CustomerManagement: React.FC = () => {
     try {
       setIsLoading(true);
       setError('');
-      const response = await api.get('/customers');
+      const response = await api.get(showDeleted ? '/customers?includeDeleted=true' : '/customers');
       const data = response.data;
-      if (data && Array.isArray(data.data)) {
-        setCustomers(data.data);
-      } else if (Array.isArray(data)) {
-        setCustomers(data);
-      }
+      const rawCustomers = data && Array.isArray(data.data) ? data.data : Array.isArray(data) ? data : [];
+
+      const normalizedCustomers = rawCustomers.filter((customer: any) => {
+        if (!showDeleted) return customer.isActive !== false;
+        return true;
+      });
+
+      setCustomers(normalizedCustomers);
     } catch (err) {
       console.error('Error fetching customers:', err);
       setError('Không thể tải danh sách khách hàng.');
@@ -58,7 +62,7 @@ const CustomerManagement: React.FC = () => {
 
   useEffect(() => {
     fetchCustomers();
-  }, []);
+  }, [showDeleted]);
 
   useEffect(() => {
     const totalPages = Math.max(1, Math.ceil(customers.length / itemsPerPage));
@@ -100,19 +104,40 @@ const CustomerManagement: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    if (!formData.name) {
+    if (!formData.name.trim()) {
       setError('Vui lòng nhập Tên khách hàng.');
+      return;
+    }
+
+    const normalizedPhone = formData.phone.trim();
+    const normalizedEmail = formData.email.trim();
+
+    const duplicateCustomer = customers.find((customer) => {
+      if (customer.id === editingCustomer?.id) return false;
+
+      const phoneMatches = normalizedPhone && customer.phone && customer.phone.trim().toLowerCase() === normalizedPhone.toLowerCase();
+      const emailMatches = normalizedEmail && customer.email && customer.email.trim().toLowerCase() === normalizedEmail.toLowerCase();
+
+      return phoneMatches || emailMatches;
+    });
+
+    if (duplicateCustomer) {
+      const reason = normalizedPhone && duplicateCustomer.phone && duplicateCustomer.phone.trim().toLowerCase() === normalizedPhone.toLowerCase()
+        ? 'Số điện thoại này đã được sử dụng bởi khách hàng khác.'
+        : 'Email này đã được sử dụng bởi khách hàng khác.';
+
+      setError(reason);
       return;
     }
 
     try {
       setIsSubmitting(true);
       const payload = {
-        name: formData.name,
-        email: formData.email || undefined,
-        phone: formData.phone || undefined,
-        address: formData.address || undefined,
-        note: formData.note || undefined,
+        name: formData.name.trim(),
+        email: normalizedEmail || undefined,
+        phone: normalizedPhone || undefined,
+        address: formData.address.trim() || undefined,
+        note: formData.note.trim() || undefined,
       };
 
       if (editingCustomer) {
@@ -171,10 +196,19 @@ const CustomerManagement: React.FC = () => {
             <h2>Quản lý Khách hàng</h2>
             <p>Quản lý danh sách khách hàng, thông tin liên hệ và trạng thái.</p>
           </div>
-          <button className="btn-primary" onClick={openAddModal} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Plus size={18} />
-            <span>Tạo Khách Hàng</span>
-          </button>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <button
+              className={showDeleted ? 'btn-secondary' : 'btn-primary'}
+              onClick={() => setShowDeleted((prev) => !prev)}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <span>{showDeleted ? 'Đang xem cả đã xóa' : 'Hiển thị cả đã xóa'}</span>
+            </button>
+            <button className="btn-primary" onClick={openAddModal} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Plus size={18} />
+              <span>Tạo Khách Hàng</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -203,7 +237,7 @@ const CustomerManagement: React.FC = () => {
               <tbody>
                 {paginatedCustomers.length > 0 ? (
                   paginatedCustomers.map((customer) => (
-                    <tr key={customer.id}>
+                    <tr key={customer.id} style={{ opacity: customer.isActive === false ? 0.7 : 1, backgroundColor: customer.isActive === false ? '#f8fafc' : undefined }}>
                       <td>{customer.id}</td>
                       <td>
                         <div style={{ fontWeight: 600 }}>{customer.name}</div>
@@ -247,7 +281,6 @@ const CustomerManagement: React.FC = () => {
                             style={{ padding: '0.4rem', border: '1px solid #e2e8f0', borderRadius: '4px' }}
                             title="Sửa"
                             onClick={() => openEditModal(customer)}
-                            disabled={customer.isSelfCustomer}
                           >
                             <Edit2 size={16} />
                           </button>

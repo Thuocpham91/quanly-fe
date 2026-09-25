@@ -51,6 +51,7 @@ const UserManagement: React.FC = () => {
   const { hasPermission } = useAuth();
   const [users, setUsers] = useState<UserData[]>([]);
   const [roles, setRoles] = useState<RoleData[]>([]);
+  const [totalItems, setTotalItems] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'table' | 'map'>('table');
   
@@ -95,21 +96,39 @@ const UserManagement: React.FC = () => {
   const fetchData = async () => {
     setIsLoading(true);
     setError('');
-    
+
+    const params: Record<string, string | number> = {
+      page: currentPage,
+      limit: itemsPerPage
+    };
+
+    if (searchTerm.trim()) params.search = searchTerm.trim();
+    if (selectedRole) params.roleId = selectedRole;
+    if (selectedStatus) params.status = selectedStatus;
+
     // Tải Users
     try {
-      const usersResponse = await api.get('/users');
+      const usersResponse = await api.get('/users', { params });
       console.log('Users API Response:', usersResponse.data);
-      
+
       const responseData = usersResponse.data;
-      if (responseData && Array.isArray(responseData.data)) {
-        setUsers(responseData.data);
-      } else if (Array.isArray(responseData)) {
-        setUsers(responseData);
-      }
+      const rawUsers = responseData && Array.isArray(responseData.data)
+        ? responseData.data
+        : Array.isArray(responseData?.items)
+          ? responseData.items
+          : Array.isArray(responseData)
+            ? responseData
+            : [];
+
+      setUsers(rawUsers);
+
+      const totalFromApi = responseData?.total ?? responseData?.totalItems ?? responseData?.count ?? responseData?.pagination?.total ?? rawUsers.length;
+      setTotalItems(Number(totalFromApi) || rawUsers.length);
     } catch (err: any) {
       console.error('Lỗi khi tải danh sách User:', err);
       setError('Không thể tải danh sách người dùng.');
+      setUsers([]);
+      setTotalItems(0);
     }
 
     // Tải Roles (Độc lập, lỗi không ảnh hưởng đến hiển thị User)
@@ -130,11 +149,11 @@ const UserManagement: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [currentPage, searchTerm, selectedRole, selectedStatus]);
 
   // Reset page to 1 when search or filter values change
   useEffect(() => {
-    setCurrentPage(1);
+    if (currentPage !== 1) setCurrentPage(1);
   }, [searchTerm, selectedRole, selectedStatus]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -306,29 +325,24 @@ const UserManagement: React.FC = () => {
     }
   };
   
-  // Filtering logic
+  // Filtering logic is handled by backend when possible.
+  // Fallback to client-side filtering only if the API response is not paginated.
   const filteredUsers = users.filter(user => {
     const searchLower = searchTerm.toLowerCase();
     const fullNameLower = (user.fullName || '').toLowerCase();
     const usernameLower = (user.username || '').toLowerCase();
     const phone = user.phone || '';
 
-    const matchesSearch = fullNameLower.includes(searchLower) || 
-                          usernameLower.includes(searchLower) ||
-                          phone.includes(searchTerm);
-    
+    const matchesSearch = !searchLower || fullNameLower.includes(searchLower) || usernameLower.includes(searchLower) || phone.includes(searchTerm);
     const matchesRole = !selectedRole || user.roleId === selectedRole;
     const matchesStatus = !selectedStatus || user.status === selectedStatus;
-    
+
     return matchesSearch && matchesRole && matchesStatus;
   });
 
-  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / itemsPerPage));
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage || 1));
   const safeCurrentPage = Math.min(currentPage, totalPages);
-  const paginatedUsers = filteredUsers.slice(
-    (safeCurrentPage - 1) * itemsPerPage,
-    safeCurrentPage * itemsPerPage
-  );
+  const paginatedUsers = filteredUsers.length > 0 ? filteredUsers : users;
 
   const handleOpenMap = (lat: number | null, lng: number | null) => {
     if (!lat || !lng) {
@@ -413,7 +427,7 @@ const UserManagement: React.FC = () => {
         </div>
         
         <div className="filter-stats">
-            Tìm thấy: <strong>{filteredUsers.length}</strong> / {users.length} user
+            Tìm thấy: <strong>{totalItems || filteredUsers.length}</strong> / {users.length || totalItems || 0} user
         </div>
       </div>
 
@@ -556,12 +570,14 @@ const UserManagement: React.FC = () => {
               marginTop: '0rem', 
               padding: '1rem 1.5rem',
               borderTop: '1px solid #e2e8f0',
-              backgroundColor: '#f8fafc'
+              backgroundColor: '#f8fafc',
+              gap: '1rem',
+              flexWrap: 'wrap'
             }}>
               <div style={{ fontSize: '0.8125rem', color: '#64748b' }}>
-                Hiển thị từ <strong>{Math.min((currentPage - 1) * itemsPerPage + 1, filteredUsers.length)}</strong> đến <strong>{Math.min(currentPage * itemsPerPage, filteredUsers.length)}</strong> trong tổng số <strong>{filteredUsers.length}</strong> người dùng
+                Hiển thị từ <strong>{Math.min((safeCurrentPage - 1) * itemsPerPage + 1, filteredUsers.length)}</strong> đến <strong>{Math.min(safeCurrentPage * itemsPerPage, filteredUsers.length)}</strong> trong tổng số <strong>{filteredUsers.length}</strong> người dùng
               </div>
-              <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center', flexWrap: 'wrap' }}>
                 <button 
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
                   disabled={safeCurrentPage === 1}
@@ -579,32 +595,26 @@ const UserManagement: React.FC = () => {
                 >
                   Trước
                 </button>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
-                  const isActive = page === safeCurrentPage;
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      style={{
-                        width: '32px',
-                        height: '32px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: '6px',
-                        border: isActive ? '1px solid var(--primary-color)' : '1px solid #e2e8f0',
-                        background: isActive ? 'var(--primary-color)' : 'white',
-                        color: isActive ? 'white' : '#1e293b',
-                        fontSize: '0.8125rem',
-                        fontWeight: isActive ? 600 : 400,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {page}
-                    </button>
-                  );
-                })}
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: '#334155' }}>
+                  Trang
+                  <select
+                    value={safeCurrentPage}
+                    onChange={(e) => setCurrentPage(Number(e.target.value))}
+                    style={{
+                      minWidth: '72px',
+                      padding: '0.4rem 0.55rem',
+                      borderRadius: '6px',
+                      border: '1px solid #e2e8f0',
+                      background: '#fff',
+                      color: '#1e293b'
+                    }}
+                  >
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <option key={page} value={page}> {page} </option>
+                    ))}
+                  </select>
+                </label>
 
                 <button 
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} 

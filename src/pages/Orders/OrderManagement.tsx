@@ -109,6 +109,7 @@ const OrderManagement: React.FC = () => {
   const [customersList, setCustomersList] = useState<any[]>([]);
   const [works, setWorks] = useState<any[]>([]);
   const [todayPrice, setTodayPrice] = useState<any>(null);
+  const [totalItems, setTotalItems] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [customerSearchInput, setCustomerSearchInput] = useState('');
@@ -169,8 +170,16 @@ const OrderManagement: React.FC = () => {
   const fetchData = async () => {
     try {
       setIsLoading(true);
+      const params: Record<string, string | number> = {
+        page: currentPage,
+        limit: itemsPerPage
+      };
+
+      if (searchTerm.trim()) params.search = searchTerm.trim();
+      if (statusFilter && statusFilter !== 'ALL') params.status = statusFilter;
+
       const [ordersRes, usersRes, worksRes, customersRes, priceRes] = await Promise.all([
-        api.get('/orders'),
+        api.get('/orders', { params }),
         api.get('/users').catch(() => ({ data: { data: [] } })),
         api.get('/works').catch(() => ({ data: { data: [] } })),
         api.get('/customers?limit=1000').catch(() => ({ data: { data: [] } })),
@@ -178,9 +187,13 @@ const OrderManagement: React.FC = () => {
       ]);
       if (priceRes.data?.data) setTodayPrice(priceRes.data.data);
 
-      if (ordersRes.data && Array.isArray(ordersRes.data.data)) {
-        setOrders(ordersRes.data.data);
-      }
+      const rawOrders = ordersRes.data?.data ?? ordersRes.data?.items ?? ordersRes.data ?? [];
+      const normalizedOrders = Array.isArray(rawOrders) ? rawOrders : [];
+      setOrders(normalizedOrders);
+
+      const totalFromApi = ordersRes.data?.total ?? ordersRes.data?.totalItems ?? ordersRes.data?.count ?? ordersRes.data?.pagination?.total ?? normalizedOrders.length;
+      setTotalItems(Number(totalFromApi) || normalizedOrders.length);
+
       if (usersRes?.data && Array.isArray(usersRes.data.data)) {
         setUsers(usersRes.data.data);
       }
@@ -192,6 +205,8 @@ const OrderManagement: React.FC = () => {
       }
     } catch (err) {
       console.error('Error fetching data:', err);
+      setOrders([]);
+      setTotalItems(0);
     } finally {
       setIsLoading(false);
     }
@@ -199,10 +214,12 @@ const OrderManagement: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [currentPage, searchTerm, statusFilter]);
 
   useEffect(() => {
-    setCurrentPage(1);
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
   }, [searchTerm, statusFilter]);
 
   const formatNumber = (val: string | number) => {
@@ -590,15 +607,36 @@ const OrderManagement: React.FC = () => {
   };
 
   const filteredOrders = orders.filter(o => {
-    const matchesSearch = (o.user?.username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (o.id || '').toString().includes(searchTerm);
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    if (!normalizedSearch) {
+      return statusFilter === 'ALL' ? true : o.status === statusFilter;
+    }
+
+    const orderCustomer = getOrderPhoneAndName(o);
+    const customerName = orderCustomer?.name || o.user?.fullName || o.user?.username || '';
+    const customerPhone = orderCustomer?.phone || o.user?.phone || '';
+    const userUsername = o.user?.username || '';
+    const orderId = (o.id || '').toString();
+    const workName = works.find(w => w.id === o.workId)?.name || '';
+    const saleDate = o.saleDate || '';
+    const description = o.description || '';
+
+    const matchesSearch =
+      userUsername.toLowerCase().includes(normalizedSearch) ||
+      customerName.toLowerCase().includes(normalizedSearch) ||
+      customerPhone.toLowerCase().includes(normalizedSearch) ||
+      orderId.toLowerCase().includes(normalizedSearch) ||
+      workName.toLowerCase().includes(normalizedSearch) ||
+      saleDate.toLowerCase().includes(normalizedSearch) ||
+      description.toLowerCase().includes(normalizedSearch);
+
     const matchesStatus = statusFilter === 'ALL' ? true : o.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage) || 1;
+  const totalPages = totalItems > 0 ? Math.ceil(totalItems / itemsPerPage) || 1 : Math.ceil(filteredOrders.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedOrders = filteredOrders.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedOrders = orders.length > 0 ? orders : filteredOrders.slice(startIndex, startIndex + itemsPerPage);
 
     const unifiedDataSource = getUnifiedList();
 
