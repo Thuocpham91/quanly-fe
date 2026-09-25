@@ -133,6 +133,16 @@ const OrderManagement: React.FC = () => {
   const [error, setError] = useState('');
   const [capacityWarning, setCapacityWarning] = useState('');
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const [isQuickCustomerModalOpen, setIsQuickCustomerModalOpen] = useState(false);
+  const [quickCustomerForm, setQuickCustomerForm] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    address: '',
+    note: ''
+  });
+  const [quickCustomerError, setQuickCustomerError] = useState('');
+  const [isSavingQuickCustomer, setIsSavingQuickCustomer] = useState(false);
 
   const [formData, setFormData] = useState({
     userId: '',
@@ -163,7 +173,7 @@ const OrderManagement: React.FC = () => {
         api.get('/orders'),
         api.get('/users').catch(() => ({ data: { data: [] } })),
         api.get('/works').catch(() => ({ data: { data: [] } })),
-        api.get('/customers').catch(() => ({ data: { data: [] } })),
+        api.get('/customers?limit=1000').catch(() => ({ data: { data: [] } })),
         api.get('/chicken-prices/today').catch(() => ({ data: { data: null } }))
       ]);
       if (priceRes.data?.data) setTodayPrice(priceRes.data.data);
@@ -308,14 +318,29 @@ const OrderManagement: React.FC = () => {
   };
 
   const getUnifiedList = () => {
-    return isCollaborator 
-      ? customersList.map(c => ({
-          id: c.userCustomId,
-          fullName: c.name,
-          username: c.phone || '',
-          phone: c.phone || ''
-        }))
-      : users;
+    const customerItems = customersList.map(c => ({
+      id: c.userCustomId || c.id,
+      fullName: c.name || c.fullName || c.username || 'Khách hàng',
+      username: c.phone || c.email || c.name || '',
+      phone: c.phone || ''
+    }));
+
+    const userItems = users.map(u => ({
+      id: u.id,
+      fullName: u.fullName || u.username || 'Người dùng',
+      username: u.username || u.phone || '',
+      phone: u.phone || ''
+    }));
+
+    const merged = [...customerItems, ...userItems];
+    const unique = new Map<string, any>();
+
+    merged.forEach((item) => {
+      const key = String(item.id || `${item.phone || ''}-${item.fullName || ''}-${item.username || ''}`);
+      if (!unique.has(key)) unique.set(key, item);
+    });
+
+    return [...unique.values()];
   };
 
   const openAddModal = () => {
@@ -345,6 +370,70 @@ const OrderManagement: React.FC = () => {
     setError('');
     setCapacityWarning('');
     setIsModalOpen(true);
+  };
+
+  const openQuickCustomerModal = () => {
+    setQuickCustomerError('');
+    setQuickCustomerForm({
+      name: '',
+      phone: '',
+      email: '',
+      address: '',
+      note: ''
+    });
+    setIsQuickCustomerModalOpen(true);
+  };
+
+  const handleQuickCustomerInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setQuickCustomerForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleQuickCustomerSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setQuickCustomerError('');
+
+    if (!quickCustomerForm.name.trim()) {
+      setQuickCustomerError('Vui lòng nhập tên khách hàng.');
+      return;
+    }
+
+    try {
+      setIsSavingQuickCustomer(true);
+      const payload = {
+        name: quickCustomerForm.name.trim(),
+        phone: quickCustomerForm.phone.trim() || undefined,
+        email: quickCustomerForm.email.trim() || undefined,
+        address: quickCustomerForm.address.trim() || undefined,
+        note: quickCustomerForm.note.trim() || undefined
+      };
+
+      const response = await api.post('/customers', payload);
+      const createdCustomer = response.data?.data || response.data || payload;
+      const customerListItem = {
+        ...createdCustomer,
+        userCustomId: createdCustomer.userCustomId || createdCustomer.id,
+        name: createdCustomer.name || payload.name,
+        phone: createdCustomer.phone || payload.phone || '',
+        address: createdCustomer.address || payload.address || '',
+        email: createdCustomer.email || payload.email || ''
+      };
+
+      setCustomersList((prev) => {
+        const exists = prev.some((item) => item.id === customerListItem.id || item.userCustomId === customerListItem.userCustomId);
+        return exists ? prev : [...prev, customerListItem];
+      });
+
+      const selectedCustomerId = customerListItem.userCustomId || customerListItem.id;
+      setFormData((prev) => ({ ...prev, userId: selectedCustomerId }));
+      setCustomerSearchInput(`${customerListItem.phone ? customerListItem.phone + ' - ' : ''}${customerListItem.name}`);
+      setIsQuickCustomerModalOpen(false);
+    } catch (err: any) {
+      console.error('Error creating quick customer:', err);
+      setQuickCustomerError(err.response?.data?.message || 'Có lỗi xảy ra khi tạo khách hàng nhanh.');
+    } finally {
+      setIsSavingQuickCustomer(false);
+    }
   };
 
   const openEditModal = (order: OrderData) => {
@@ -511,14 +600,7 @@ const OrderManagement: React.FC = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedOrders = filteredOrders.slice(startIndex, startIndex + itemsPerPage);
 
-    const unifiedDataSource = isCollaborator 
-      ? customersList.map(c => ({
-          id: c.userCustomId,          // Map system linked user ID 
-          fullName: c.name,
-          username: c.phone || '',
-          phone: c.phone || ''
-        }))
-      : users;
+    const unifiedDataSource = getUnifiedList();
 
   return (
     <div className="order-page-container">
@@ -782,7 +864,82 @@ const OrderManagement: React.FC = () => {
         )}
       </div>
 
-      {isModalOpen && (
+      {isQuickCustomerModalOpen && (
+        <div className="modal-overlay quick-customer-modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '460px', zIndex: 1201 }}>
+            <div className="modal-header">
+              <h3>Thêm khách hàng nhanh</h3>
+              <button className="close-btn" type="button" onClick={() => setIsQuickCustomerModalOpen(false)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleQuickCustomerSubmit}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label>Tên khách hàng *</label>
+                  <input
+                    name="name"
+                    value={quickCustomerForm.name}
+                    onChange={handleQuickCustomerInputChange}
+                    placeholder="Ví dụ: Nguyễn Văn A"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Số điện thoại</label>
+                  <input
+                    name="phone"
+                    value={quickCustomerForm.phone}
+                    onChange={handleQuickCustomerInputChange}
+                    placeholder="0912345678"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Email</label>
+                  <input
+                    name="email"
+                    type="email"
+                    value={quickCustomerForm.email}
+                    onChange={handleQuickCustomerInputChange}
+                    placeholder="email@example.com"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Địa chỉ</label>
+                  <input
+                    name="address"
+                    value={quickCustomerForm.address}
+                    onChange={handleQuickCustomerInputChange}
+                    placeholder="Địa chỉ khách hàng"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Ghi chú</label>
+                  <input
+                    name="note"
+                    value={quickCustomerForm.note}
+                    onChange={handleQuickCustomerInputChange}
+                    placeholder="Ghi chú bổ sung"
+                  />
+                </div>
+                {quickCustomerError && <div className="error-message">{quickCustomerError}</div>}
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" className="btn-secondary" onClick={() => setIsQuickCustomerModalOpen(false)}>
+                  Hủy
+                </button>
+                <button type="submit" className="btn-primary" disabled={isSavingQuickCustomer}>
+                  {isSavingQuickCustomer ? 'Đang lưu...' : 'Lưu khách hàng'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isModalOpen && !isQuickCustomerModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
@@ -798,7 +955,17 @@ const OrderManagement: React.FC = () => {
                 
                 {!isNormalUser && (
                   <div className="form-group" style={{ position: 'relative' }}>
-                    <label>Khách Hàng ({isCollaborator ? 'Chọn từ danh sách' : 'Nhập SĐT hoặc Chọn'}) *</label>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                      <label style={{ marginBottom: 0 }}>Khách Hàng ({isCollaborator ? 'Chọn từ danh sách' : 'Nhập SĐT hoặc Chọn'}) *</label>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={openQuickCustomerModal}
+                        style={{ padding: '0.45rem 0.75rem', fontSize: '0.75rem' }}
+                      >
+                        + Thêm nhanh
+                      </button>
+                    </div>
                     <input 
                       type="text" 
                       placeholder="Click hoặc gõ SĐT/Tên..."

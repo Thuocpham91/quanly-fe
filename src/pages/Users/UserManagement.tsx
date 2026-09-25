@@ -323,10 +323,11 @@ const UserManagement: React.FC = () => {
     return matchesSearch && matchesRole && matchesStatus;
   });
 
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / itemsPerPage));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
   const paginatedUsers = filteredUsers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    (safeCurrentPage - 1) * itemsPerPage,
+    safeCurrentPage * itemsPerPage
   );
 
   const handleOpenMap = (lat: number | null, lng: number | null) => {
@@ -563,14 +564,14 @@ const UserManagement: React.FC = () => {
               <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center' }}>
                 <button 
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
-                  disabled={currentPage === 1}
+                  disabled={safeCurrentPage === 1}
                   className="btn-secondary"
                   style={{ 
                     padding: '0.4rem 0.8rem', 
                     borderRadius: '6px', 
                     fontSize: '0.8125rem',
-                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer', 
-                    opacity: currentPage === 1 ? 0.5 : 1,
+                    cursor: safeCurrentPage === 1 ? 'not-allowed' : 'pointer', 
+                    opacity: safeCurrentPage === 1 ? 0.5 : 1,
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.25rem'
@@ -580,7 +581,7 @@ const UserManagement: React.FC = () => {
                 </button>
                 
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
-                  const isActive = page === currentPage;
+                  const isActive = page === safeCurrentPage;
                   return (
                     <button
                       key={page}
@@ -607,14 +608,14 @@ const UserManagement: React.FC = () => {
 
                 <button 
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} 
-                  disabled={currentPage === totalPages}
+                  disabled={safeCurrentPage === totalPages}
                   className="btn-secondary"
                   style={{ 
                     padding: '0.4rem 0.8rem', 
                     borderRadius: '6px', 
                     fontSize: '0.8125rem',
-                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', 
-                    opacity: currentPage === totalPages ? 0.5 : 1,
+                    cursor: safeCurrentPage === totalPages ? 'not-allowed' : 'pointer', 
+                    opacity: safeCurrentPage === totalPages ? 0.5 : 1,
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.25rem'

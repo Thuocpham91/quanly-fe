@@ -26,6 +26,8 @@ const CustomerManagement: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<CustomerData | null>(null);
   const [error, setError] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const [formData, setFormData] = useState({
     name: '',
@@ -57,6 +59,11 @@ const CustomerManagement: React.FC = () => {
   useEffect(() => {
     fetchCustomers();
   }, []);
+
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(customers.length / itemsPerPage));
+    setCurrentPage((prev) => Math.min(prev, totalPages));
+  }, [customers.length]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -139,7 +146,7 @@ const CustomerManagement: React.FC = () => {
 
   const handleCall = async (customer: CustomerData) => {
     if (!customer.phone) return;
-    
+
     try {
       await api.post('/call-histories', {
         customerId: customer.id,
@@ -151,6 +158,10 @@ const CustomerManagement: React.FC = () => {
       window.location.href = `tel:${customer.phone}`;
     }
   };
+
+  const totalPages = Math.max(1, Math.ceil(customers.length / itemsPerPage));
+  const paginatedCustomers = customers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const shouldShowPagination = customers.length > 0;
 
   return (
     <div className="object-page-container">
@@ -190,8 +201,8 @@ const CustomerManagement: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {customers.length > 0 ? (
-                  customers.map((customer) => (
+                {paginatedCustomers.length > 0 ? (
+                  paginatedCustomers.map((customer) => (
                     <tr key={customer.id}>
                       <td>{customer.id}</td>
                       <td>
@@ -262,6 +273,31 @@ const CustomerManagement: React.FC = () => {
                 )}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {shouldShowPagination && (
+          <div className="pagination-container">
+            <div className="pagination-summary">
+              Hiển thị {customers.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, customers.length)} / {customers.length} khách hàng
+            </div>
+            <div className="pagination-controls">
+              <button
+                className="btn-pagination"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                Trước
+              </button>
+              <span className="pagination-info">Trang {currentPage} / {totalPages}</span>
+              <button
+                className="btn-pagination"
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                Tiếp
+              </button>
+            </div>
           </div>
         )}
       </div>

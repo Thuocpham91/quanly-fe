@@ -189,6 +189,15 @@
   backdrop-filter: blur(4px);
 }
 
+.quick-customer-modal-overlay {
+  z-index: 1200;
+}
+
+.quick-customer-modal-overlay .modal-content {
+  position: relative;
+  z-index: 1201;
+}
+
 .modal-content {
   background: white;
   width: 90%;
@@ -196,6 +205,8 @@
   border-radius: 12px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
   animation: modalIn 0.3s ease-out;
+  position: relative;
+  z-index: 1;
 }
 
 @keyframes modalIn {
